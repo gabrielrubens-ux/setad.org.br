@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="description" content="Área institucional SETAD — direção, contabilidade e secretaria.">
+
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <title>Área Institucional — SETAD</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+
+</head>
+
+
+
+<body class="login-page login-page--direcao portal-marca-dagua">
+
+
+
+  <div class="login-card login-card--direcao login-card--institucional">
+
+    <a href="index.html" class="login-card__back">&larr; Voltar à página principal</a>
+
+
+
+    <h1 class="login-card__title">Área Institucional</h1>
+
+    <p class="login-card__subtitle">
+
+      Acesso restrito à <strong>direção</strong> (inclui contabilidade), <strong>secretaria</strong> e equipe do seminário.
+
+    </p>
+
+
+
+    <div class="login-card__tabs" role="tablist" aria-label="Tipo de acesso institucional">
+
+      <button type="button" id="abaDirecao" class="login-card__tab login-card__tab--ativa" role="tab" aria-selected="true" aria-controls="painelLoginDirecao">
+
+        Direção / Contabilidade
+
+      </button>
+
+      <button type="button" id="abaSecretaria" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelLoginSecretaria">
+
+        Secretaria
+
+      </button>
+
+    </div>
+
+
+
+    <div id="painelLoginDirecao" role="tabpanel">
+
+      <p class="login-card__subtitle login-card__subtitle--aba">
+
+        Login único para <strong>diretor</strong> e <strong>contabilidade</strong> — gestão financeira, DRE e relatórios.
+
+      </p>
+
+
+
+      <form id="loginFormDirecao" autocomplete="on">
+
+        <div class="form-group">
+
+          <label for="emailDirecao">E-mail (diretor ou contabilidade)</label>
+
+          <input
+
+            type="email"
+
+            id="emailDirecao"
+
+            name="email"
+
+            placeholder="diretor@setad.org.br"
+
+            required
+
+          >
+
+        </div>
+
+
+
+        <div class="form-group">
+
+          <label for="senhaDirecao">Senha</label>
+
+          <input
+
+            type="password"
+
+            id="senhaDirecao"
+
+            name="senha"
+
+            placeholder="Digite sua senha"
+
+            required
+
+            minlength="6"
+
+          >
+
+        </div>
+
+
+
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar</button>
+
+        <div id="loginErroDirecao" class="login-card__error" role="alert"></div>
+
+      </form>
+
+
+
+      <div class="login-card__hint login-card__hint--seguro">
+
+        <strong>Login único — demonstração:</strong><br>
+
+        <strong>Diretor:</strong> diretor@setad.org.br / dir123<br>
+
+        <strong>Contabilidade:</strong> contador@setad.org.br / cont456
+
+      </div>
+
+    </div>
+
+
+
+    <div id="painelLoginSecretaria" role="tabpanel" hidden>
+
+      <p class="login-card__subtitle login-card__subtitle--aba">
+
+        Secretaria do seminário — cadastro presencial, matrículas do site e atendimento via WhatsApp.
+
+      </p>
+
+
+
+      <form id="loginFormSecretaria" autocomplete="on">
+
+        <div class="form-group">
+
+          <label for="emailSecretaria">E-mail da secretaria</label>
+
+          <input
+
+            type="email"
+
+            id="emailSecretaria"
+
+            name="email"
+
+            placeholder="secretaria@setad.org.br"
+
+            required
+
+          >
+
+        </div>
+
+
+
+        <div class="form-group">
+
+          <label for="senhaSecretaria">Senha</label>
+
+          <input
+
+            type="password"
+
+            id="senhaSecretaria"
+
+            name="senha"
+
+            placeholder="Digite sua senha"
+
+            required
+
+            minlength="6"
+
+          >
+
+        </div>
+
+
+
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar na secretaria</button>
+
+        <div id="loginErroSecretaria" class="login-card__error" role="alert"></div>
+
+      </form>
+
+
+
+      <div class="login-card__hint login-card__hint--seguro">
+
+        <strong>Secretaria — demonstração:</strong><br>
+
+        <strong>E-mail:</strong> secretaria@setad.org.br<br>
+
+        <strong>Senha:</strong> sec123
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <script src="js/contato-setad.js"></script>
+  <script src="js/api-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    (function () {
+      function iniciarLoginDirecao() {
+        window.SETAD = window.SETAD || {
+          apiAtivo: false,
+          session: null,
+          cache: {},
+          ready: Promise.resolve(false),
+          setSession: function (user) { SETAD.session = user; },
+          clearSession: function () { SETAD.session = null; },
+          hydrate: function () {}
+        };
+
+        if (typeof SETADApi === "undefined") {
+          SETAD.apiAtivo = false;
+          configurarLoginDirecao();
+          return;
+        }
+
+        SETADApi.health().then(function (health) {
+          SETAD.apiAtivo = !!(health && health.ok);
+          configurarLoginDirecao();
+        }).catch(function () {
+          SETAD.apiAtivo = false;
+          configurarLoginDirecao();
+        });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", iniciarLoginDirecao);
+      } else {
+        iniciarLoginDirecao();
+      }
+    })();
+  </script>
+  <script src="js/pwa.js" defer></script>
+
+</body>
+
+</html>
+
+

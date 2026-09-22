@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Painel do Diretor — SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="portal-marca-dagua painel-direcao">
+
+  <div class="painel">
+
+    <aside class="painel__sidebar painel__sidebar--portal painel__sidebar--direcao">
+      <div class="painel__perfil">
+        <div class="painel__foto-aluno">
+          <label for="fotoProfessorInput" class="painel__foto-label" title="Carregar foto">
+            <img id="fotoProfessorPreview" src="" alt="Foto do diretor" class="painel__foto-preview">
+            <span class="painel__foto-overlay">+ Foto</span>
+          </label>
+          <input type="file" id="fotoProfessorInput" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+        <div class="painel__brand-role painel__brand-role--nome" id="usuarioNome">Diretor</div>
+        <div class="painel__brand-role" id="usuarioPerfil">Diretor</div>
+      </div>
+
+      <nav class="painel__nav-area">
+        <ul class="painel__nav">
+          <li class="painel__nav-item">
+            <button class="painel__nav-link active" data-tab="tab-visao">Visão geral</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-notas">Notas</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-trabalhos">Trabalhos</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-matriculas">Matrículas</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-biblioteca">Biblioteca</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-financeiro">Financeiro</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-colaboradores">Colaboradores</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-equipe">Equipe</button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="painel__institucional">
+        <img
+          src="assets/images/logo-setad-perfil-professor.jpg"
+          alt="SETAD — Seminário Teológico"
+          class="painel__logo-institucional"
+        >
+      </div>
+
+      <div class="painel__logout">
+        <button type="button" id="btnLogout" class="btn">Sair</button>
+      </div>
+    </aside>
+
+    <main class="painel__main">
+      <header class="painel__header">
+        <h1 id="painelTitulo">Visão Geral</h1>
+        <p id="painelSubtitulo">Indicadores acadêmicos e financeiros do seminário.</p>
+      </header>
+
+      <section id="tab-visao" class="painel__tab active">
+        <div id="visaoDiretorContainer"></div>
+      </section>
+
+      <section id="tab-notas" class="painel__tab">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Turma / Disciplina</th>
+              <th>Avaliação</th>
+              <th>Alunos avaliados</th>
+              <th>Média</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Teologia Sistemática I — Turma A</td>
+              <td>Prova 1 — Doutrina de Deus</td>
+              <td>18 / 22</td>
+              <td><span class="nota-badge nota-badge--alta">7,8</span></td>
+            </tr>
+            <tr>
+              <td>Hermenêutica Bíblica — Turma B</td>
+              <td>Prova 1 — Métodos de Interpretação</td>
+              <td>22 / 22</td>
+              <td><span class="nota-badge nota-badge--media">7,2</span></td>
+            </tr>
+            <tr>
+              <td>História da Igreja — Turma A</td>
+              <td>Prova 1 — Igreja Primitiva</td>
+              <td>0 / 20</td>
+              <td><span class="nota-badge nota-badge--pendente">Pendente</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="tab-trabalhos" class="painel__tab">
+        <div id="trabalhosProfessorContainer"></div>
+      </section>
+
+      <section id="tab-matriculas" class="painel__tab">
+        <div id="exclusaoAlunosDiretorContainer"></div>
+        <div id="matriculasProfessorContainer"></div>
+        <div id="auditoriaExclusaoAlunosContainer"></div>
+      </section>
+
+      <section id="tab-biblioteca" class="painel__tab">
+        <div id="formLivroContainer"></div>
+        <div id="bibliotecaGrid" class="biblioteca-grid"></div>
+      </section>
+
+      <section id="tab-financeiro" class="painel__tab">
+        <div id="financeiroDiretorContainer"></div>
+        <div id="documentosContabeisDiretorContainer"></div>
+      </section>
+
+      <section id="tab-colaboradores" class="painel__tab">
+        <div id="colaboradoresDiretorContainer"></div>
+      </section>
+
+      <section id="tab-equipe" class="painel__tab">
+        <div id="equipeDiretorContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/terminologia-setad.js"></script>
+  <script src="js/financeiro.js"></script>
+  <script src="js/contabilidade-relatorios.js"></script>
+  <script src="js/perfil-aluno.js"></script>
+  <script src="js/trabalhos.js"></script>
+  <script src="js/biblioteca.js"></script>
+  <script src="js/exclusao-alunos.js"></script>
+  <script src="js/matricula.js"></script>
+  <script src="js/painel-direcao.js"></script>
+  <script>
+    SETAD.ready.then(function () {
+      inicializarPainelDiretor();
+    });
+  </script>
+  <script src="js/contato-setad.js"></script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

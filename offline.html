@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#23406b">
+  <title>Sem conexão — SETAD</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .offline {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      background: linear-gradient(160deg, #23406b 0%, #1a3256 45%, #0d141a 100%);
+      color: #fff;
+      text-align: center;
+    }
+
+    .offline__card {
+      max-width: 26rem;
+      padding: 2rem 1.5rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+    }
+
+    .offline__logo {
+      width: 5rem;
+      height: 5rem;
+      margin: 0 auto 1.25rem;
+      object-fit: contain;
+    }
+
+    .offline__title {
+      font-family: "Outfit", system-ui, sans-serif;
+      font-size: 1.5rem;
+      margin: 0 0 0.75rem;
+    }
+
+    .offline__text {
+      margin: 0 0 1.5rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .offline__actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .offline__btn {
+      display: inline-block;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .offline__btn--primary {
+      background: #fff;
+      color: #23406b;
+    }
+
+    .offline__btn--ghost {
+      background: transparent;
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <main class="offline">
+    <div class="offline__card">
+      <img
+        src="/assets/icons/icon-192.png"
+        alt="SETAD"
+        class="offline__logo"
+        width="80"
+        height="80"
+      >
+      <h1 class="offline__title">Você está offline</h1>
+      <p class="offline__text">
+        Não foi possível carregar esta página. Verifique sua conexão com a internet e tente novamente.
+        Algumas áreas do app podem continuar disponíveis se já foram abertas antes.
+      </p>
+      <div class="offline__actions">
+        <button type="button" class="offline__btn offline__btn--primary" id="offlineRetry">
+          Tentar novamente
+        </button>
+        <a href="/index.html" class="offline__btn offline__btn--ghost">Ir para o início</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.getElementById("offlineRetry").addEventListener("click", function () {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

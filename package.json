@@ -1,0 +1,35 @@
+{
+  "name": "site-projeto-setad",
+  "private": true,
+  "description": "Site, PWA, API e app Capacitor do SETAD — Seminário Teológico",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "icons": "node scripts/generate-pwa-icons.mjs",
+    "assets:cap": "node scripts/generate-capacitor-assets.mjs",
+    "build:app": "node scripts/prepare-www.mjs",
+    "cap:sync": "npm run build:app && npx cap sync",
+    "cap:android": "npm run cap:sync && npx cap open android",
+    "cap:assets": "npm run assets:cap && npx capacitor-assets generate --android --assetPath resources",
+    "serve": "node server/index.js",
+    "pwa:setup": "npm run icons"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/splash-screen": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.10.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.2.0",
+    "sharp": "^0.34.3"
+  }
+}

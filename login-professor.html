@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login do professor — Portal Acadêmico SETAD">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Login Professor — SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="login-page login-page--professor portal-marca-dagua">
+
+  <div class="login-card">
+    <a href="index.html" class="login-card__back">&larr; Voltar à página principal</a>
+
+    <h1 class="login-card__title">Área do Professor</h1>
+    <p class="login-card__subtitle">
+      Acesso para professores e equipe autorizada da biblioteca.
+    </p>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="form-group">
+        <label for="email">E-mail institucional</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="professor@setad.org.br"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          placeholder="Digite sua senha"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn--primary login-card__btn">Entrar</button>
+      <div id="loginErro" class="login-card__error" role="alert"></div>
+    </form>
+
+    <div class="login-card__hint">
+      <strong>Demonstração — perfis autorizados:</strong><br><br>
+      <strong>Professor:</strong> professor@setad.org.br / prof123<br>
+      <strong>Biblioteca:</strong> biblioteca@setad.org.br / bib123<br>
+      <em>Direção, contabilidade e secretaria acessam pela <a href="login-direcao.html">Área Institucional</a>.</em>
+    </div>
+  </div>
+
+  <script src="js/contato-setad.js"></script>
+  <script src="js/wpp-float.js" defer></script>
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    configurarLogin("professor");
+  </script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+node_modules/
+data/
+.env
+*.db
+*.db-journal
+uploads/
+www/
+android/
+ios/
+.capacitor/
+resources/android/
+resources/ios/

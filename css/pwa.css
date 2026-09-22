@@ -1,0 +1,151 @@
+/* Banner de instalação e atualização — SETAD PWA */
+
+.pwa-install,
+.pwa-update {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  z-index: 10050;
+  border-radius: 0.875rem;
+  box-shadow: 0 12px 40px rgba(13, 20, 26, 0.28);
+  animation: pwa-slide-up 0.35s ease;
+}
+
+.pwa-install {
+  bottom: 1rem;
+  background: #fff;
+  color: var(--cor-texto, #0d141a);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+}
+
+.pwa-update {
+  top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #23406b;
+  color: #fff;
+}
+
+.pwa-install__content {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+}
+
+.pwa-install__icon {
+  flex-shrink: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+}
+
+.pwa-install__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pwa-install__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #23406b;
+}
+
+.pwa-install__desc {
+  font-size: 0.82rem;
+  color: #36344d;
+  line-height: 1.35;
+}
+
+.pwa-install__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.pwa-install__btn,
+.pwa-update__btn {
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.45rem 0.75rem;
+  white-space: nowrap;
+}
+
+.pwa-install__btn--primary,
+.pwa-update__btn {
+  background: #23406b;
+  color: #fff;
+}
+
+.pwa-install__btn--primary:hover,
+.pwa-update__btn:hover {
+  background: #1a3256;
+}
+
+.pwa-install__btn--ghost {
+  background: transparent;
+  color: #36344d;
+}
+
+.pwa-install__btn--ghost:hover {
+  background: rgba(35, 64, 107, 0.06);
+}
+
+.pwa-update__text {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+@media (min-width: 640px) {
+  .pwa-install {
+    left: auto;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    max-width: 24rem;
+  }
+
+  .pwa-update {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-width: 28rem;
+    width: calc(100% - 2rem);
+  }
+}
+
+@media (display-mode: standalone) {
+  .pwa-install {
+    display: none;
+  }
+}
+
+/* App nativo Capacitor */
+.setad-native-app body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.setad-native-app .pwa-install {
+  display: none;
+}
+
+@keyframes pwa-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

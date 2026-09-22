@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login do aluno — Portal Acadêmico SETAD">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Login Aluno — SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="login-page login-page--aluno portal-marca-dagua">
+
+  <div class="login-card">
+    <a href="index.html" class="login-card__back">&larr; Voltar à página principal</a>
+
+    <span class="login-card__badge">Portal Acadêmico</span>
+    <h1 class="login-card__title">Área do Aluno</h1>
+    <p class="login-card__subtitle">
+      Use o mesmo e-mail informado na sua matrícula online para criar o acesso e entrar no portal.
+    </p>
+
+    <div class="login-card__tabs" role="tablist" aria-label="Acesso do aluno">
+      <button type="button" id="abaLogin" class="login-card__tab login-card__tab--ativa" role="tab" aria-selected="true" aria-controls="painelLogin">
+        Entrar
+      </button>
+      <button type="button" id="abaCadastro" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelCadastro">
+        Criar senha
+      </button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="painelLogin" role="tabpanel">
+      <form id="loginForm" autocomplete="on">
+        <div class="form-group">
+          <label for="email">E-mail da matrícula</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="seu@email.com"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input
+            type="password"
+            id="senha"
+            name="senha"
+            placeholder="Digite sua senha"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar</button>
+        <div id="loginErro" class="login-card__error" role="alert"></div>
+      </form>
+    </div>
+
+    <!-- CRIAR SENHA (após matrícula) -->
+    <div id="painelCadastro" role="tabpanel" hidden>
+      <form id="cadastroForm" autocomplete="on">
+        <div class="form-group">
+          <label for="cadastroEmail">E-mail da matrícula *</label>
+          <input
+            type="email"
+            id="cadastroEmail"
+            name="email"
+            placeholder="Mesmo e-mail usado na inscrição"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="cadastroSenha">Criar senha *</label>
+          <input
+            type="password"
+            id="cadastroSenha"
+            name="senha"
+            placeholder="Mínimo 6 caracteres"
+            minlength="6"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="cadastroConfirmarSenha">Confirmar senha *</label>
+          <input
+            type="password"
+            id="cadastroConfirmarSenha"
+            name="confirmarSenha"
+            placeholder="Repita a senha"
+            minlength="6"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn--primary login-card__btn">Enviar código de verificação</button>
+        <div id="cadastroErro" class="login-card__error" role="alert"></div>
+      </form>
+    </div>
+
+    <!-- VERIFICAÇÃO DE E-MAIL -->
+    <div id="painelVerificacao" role="tabpanel" hidden>
+      <p class="verificacao__texto">
+        Digite o código de <strong>6 números</strong> enviado para
+        <strong id="verificacaoEmail"></strong>
+      </p>
+
+      <div id="codigoDemonstracao" class="login-card__demo" role="status"></div>
+
+      <form id="verificacaoForm" autocomplete="off">
+        <div class="form-group">
+          <label for="codigoVerificacao">Código de verificação</label>
+          <input
+            type="text"
+            id="codigoVerificacao"
+            name="codigo"
+            class="verificacao__codigo"
+            placeholder="000000"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            minlength="6"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn--primary login-card__btn">Verificar e acessar</button>
+        <button type="button" id="btnReenviarCodigo" class="btn btn--secondary login-card__btn-secundario">
+          Reenviar código
+        </button>
+        <div id="verificacaoErro" class="login-card__error" role="alert"></div>
+        <div id="verificacaoSucesso" class="login-card__success" role="status"></div>
+      </form>
+    </div>
+
+    <div class="login-card__hint">
+      <strong>Fluxo de acesso:</strong><br>
+      1. Matrícula online em <a href="matricula/">Matrícula</a><br>
+      2. Criação da senha nesta página<br>
+      3. Verificação por código de 6 dígitos no e-mail<br>
+      4. Acesso liberado à área do aluno
+    </div>
+  </div>
+
+  <script src="js/contato-setad.js"></script>
+  <script src="js/wpp-float.js" defer></script>
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    configurarLogin("aluno");
+    configurarCadastroAluno();
+    configurarVerificacaoAluno();
+    inicializarLoginAposMatricula();
+
+    document.getElementById("abaLogin").addEventListener("click", function () {
+      alternarFormularioAluno("login");
+    });
+
+    document.getElementById("abaCadastro").addEventListener("click", function () {
+      alternarFormularioAluno("cadastro");
+    });
+
+    document.getElementById("codigoVerificacao").addEventListener("input", function (evento) {
+      evento.target.value = evento.target.value.replace(/\D/g, "").slice(0, 6);
+    });
+  </script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

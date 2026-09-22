@@ -1,0 +1,26 @@
+{
+  "appId": "org.setad.seminario",
+  "appName": "SETAD",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2200,
+      "launchAutoHide": true,
+      "backgroundColor": "#23406b",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "backgroundColor": "#23406b",
+      "style": "LIGHT"
+    }
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

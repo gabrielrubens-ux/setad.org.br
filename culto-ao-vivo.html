@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Culto ao vivo — SETAD Seminário Teológico. Acompanhe a transmissão em tempo real.">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Culto ao Vivo — SETAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="pagina-culto-ao-vivo">
+
+  <header class="header">
+    <div class="container container--wide header__inner">
+      <a href="index.html" class="logo">
+        <img src="assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de navegação">
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+      </button>
+
+      <nav class="nav header__nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="index.html#sobre" class="nav__link">Sobre</a></li>
+          <li><a href="polos/" class="nav__link">Polos</a></li>
+          <li><a href="index.html#programa" class="nav__link">Programa</a></li>
+          <li><a href="index.html#localizacao" class="nav__link">Onde estamos</a></li>
+          <li><a href="index.html#informacoes" class="nav__link">Informações</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__acoes">
+        <a href="matricula/" class="btn btn--header-matricula">Matricule-se</a>
+        <a href="index.html#portal" class="btn btn--header-portal">Área do Aluno e Professor</a>
+      </div>
+
+      <a href="login-direcao.html" class="btn btn--header-direcao">Direção</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="culto-hero">
+      <div class="container container--wide">
+        <p class="section__label">Transmissão</p>
+        <div class="culto-hero__titulo-linha">
+          <h1 class="section__title culto-hero__titulo">Culto ao Vivo</h1>
+          <span class="culto-live-tag" id="cultoLiveTag" hidden>
+            <span class="culto-live-tag__dot" aria-hidden="true"></span>
+            AO VIVO
+          </span>
+        </div>
+        <p class="section__text culto-hero__texto" id="cultoStatus">Verificando transmissão…</p>
+      </div>
+    </section>
+
+    <section class="culto-player-section">
+      <div class="container container--wide">
+        <div class="culto-player" id="cultoPlayer">
+          <div class="culto-offair" id="cultoOffAir">
+            <div class="culto-offair__icone" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>
+                <path d="M7.76 16.24a6 6 0 0 1 0-8.48"/>
+                <path d="M16.24 7.76a6 6 0 0 1 0 8.48"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+            </div>
+            <p class="culto-offair__titulo">Sem transmissão no momento</p>
+            <p class="culto-offair__texto">Quando o culto entrar ao vivo, a transmissão começa automaticamente nesta página.</p>
+          </div>
+
+          <video
+            id="cultoVideo"
+            class="culto-player__video"
+            playsinline
+            autoplay
+            controls
+            poster=""
+            title="Transmissão ao vivo — Culto SETAD"
+          ></video>
+
+          <iframe
+            id="cultoPlayerIframe"
+            class="culto-player__iframe"
+            hidden
+            title="Transmissão ao vivo — Culto SETAD"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowfullscreen
+          ></iframe>
+        </div>
+
+        <p class="culto-player__fonte">
+          Transmissão fornecida por
+          <a href="https://live.brascast.com/player/3672d32d" target="_blank" rel="noopener noreferrer">Brascast</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/script.js" defer></script>
+  <script src="js/contato-setad.js"></script>
+  <script src="js/wpp-float.js" defer></script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

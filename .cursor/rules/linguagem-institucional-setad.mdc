@@ -1,0 +1,35 @@
+---
+description: Linguagem institucional SETAD — sem fins lucrativos (superávit/déficit, nunca lucro)
+alwaysApply: true
+---
+
+# Linguagem institucional SETAD
+
+O SETAD é uma organização **sem fins lucrativos**. Em todo o site, painéis, relatórios, textos e mensagens:
+
+## Proibido
+
+- **Nunca** usar a palavra **lucro** (nem variações: lucros, lucrativo, lucrativa, lucratividade).
+- Evitar **prejuízo** em textos voltados ao usuário — preferir **déficit**.
+
+## Obrigatório
+
+- Saldo positivo (receitas > despesas): **superávit**
+- Saldo negativo (despesas > receitas): **déficit**
+- Saldo zero: **equilíbrio financeiro** (quando fizer sentido no contexto)
+
+## Implementação
+
+- Textos visíveis ao usuário: aplicar a regra diretamente.
+- Código interno: variáveis como `resultado` ou `saldo` são aceitáveis; labels e strings de UI devem seguir a regra.
+- Use `js/terminologia-setad.js` (`classificarSaldoInstitucional`, `formatarSaldoInstitucional`, `sanitizarTextoInstitucional`) em áreas financeiras.
+- DRE permanece como sigla contábil (Demonstrativo de Resultado do Exercício); o valor final deve ser apresentado como superávit ou déficit, não como lucro.
+
+## Exemplos
+
+| Evitar | Usar |
+|--------|------|
+| Lucro do mês | Superávit do mês |
+| Prejuízo acumulado | Déficit acumulado |
+| Resultado positivo (lucro) | Superávit |
+| Margem de lucro | Saldo em superávit |

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pagamento da matrícula — SETAD Seminário Teológico">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Pagamento da Matrícula — SETAD</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="pagina-matricula pagina-pagamento-matricula">
+
+  <header class="header">
+    <div class="container container--wide header__inner">
+      <a href="../index.html" class="logo">
+        <img src="../assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+      </a>
+
+      <div class="header__acoes">
+        <a href="index.html" class="btn btn--header-portal">Voltar à matrícula</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pagamento-matricula">
+    <div class="container container--wide">
+      <nav class="pagamento-matricula__breadcrumb" aria-label="Navegação do pagamento">
+        <a href="../index.html">Início</a>
+        <span aria-hidden="true">&gt;</span>
+        <a href="index.html">Matrícula</a>
+        <span aria-hidden="true">&gt;</span>
+        <span aria-current="page">Pagamento</span>
+      </nav>
+
+      <div id="pagamentoMatriculaErro" class="pagamento-matricula__erro" hidden role="alert"></div>
+
+      <div id="pagamentoMatriculaConteudo" hidden>
+        <header class="pagamento-matricula__cabecalho">
+          <div>
+            <p class="section__label">Pagamento seguro</p>
+            <h1 class="pagamento-matricula__titulo">Finalize sua matrícula</h1>
+            <p class="pagamento-matricula__subtitulo" id="pagamentoMatriculaSubtitulo"></p>
+          </div>
+          <div class="pagamento-matricula__selo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+            <span>Ambiente protegido</span>
+          </div>
+        </header>
+
+        <div class="pagamento-matricula__resumo" id="pagamentoMatriculaResumo"></div>
+
+        <section class="pagamento-matricula__metodos" aria-labelledby="tituloMetodosPagamento">
+          <h2 id="tituloMetodosPagamento">Escolha a forma de pagamento</h2>
+          <p class="pagamento-matricula__metodos-texto">
+            Selecione como deseja quitar a taxa de matrícula do curso escolhido.
+          </p>
+
+          <div class="pagamentos-metodos pagamento-matricula__opcoes">
+            <button type="button" class="pagamentos-metodo pagamento-matricula__opcao pagamento-matricula__opcao--ativa" data-forma="Transferência">
+              <span class="pagamentos-metodo__icone">TED</span>
+              <strong>Transferência bancária</strong>
+              <span>Dados da conta SETAD</span>
+            </button>
+            <button type="button" class="pagamentos-metodo pagamento-matricula__opcao" data-forma="PIX">
+              <span class="pagamentos-metodo__icone">PIX</span>
+              <strong>PIX</strong>
+              <span>Link e código no valor do curso</span>
+            </button>
+            <button type="button" class="pagamentos-metodo pagamento-matricula__opcao" data-forma="Cartão">
+              <span class="pagamentos-metodo__icone">CRD</span>
+              <strong>Cartão</strong>
+              <span>Crédito ou débito</span>
+            </button>
+          </div>
+        </section>
+
+        <div id="pagamentoMatriculaPainel" class="pagamento-matricula__painel"></div>
+
+        <label class="pagamentos-termos pagamento-matricula__termos">
+          <input type="checkbox" id="pagamentoAceiteTermos">
+          Li e aceito os termos de pagamento e a política de privacidade do SETAD.
+        </label>
+
+        <div class="pagamento-matricula__acoes">
+          <button type="button" class="btn btn--primary" id="btnConfirmarPagamentoMatricula">
+            Confirmar pagamento
+          </button>
+          <a href="#" class="btn btn--secondary" id="linkPularPagamento">Continuar depois e criar senha</a>
+        </div>
+
+        <div id="pagamentoMatriculaSucesso" class="matricula-sucesso" role="status" hidden></div>
+        <div id="pagamentoMatriculaMensagem" class="form-mensagem" role="alert"></div>
+      </div>
+
+      <div id="pagamentoMatriculaPago" class="pagamento-matricula__pago" hidden>
+        <div class="matricula-sucesso matricula-sucesso--visivel" id="pagamentoMatriculaPagoTexto"></div>
+        <a href="#" class="btn btn--primary" id="linkCriarSenhaAposPago">Criar senha de acesso</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="../js/dados.js"></script>
+  <script src="../js/financeiro.js"></script>
+  <script src="../js/pagamento-matricula.js"></script>
+  <script src="../js/contato-setad.js"></script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

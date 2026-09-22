@@ -1,0 +1,50 @@
+[
+  {
+    "id": "func-001",
+    "nome": "Prof. SETAD",
+    "email": "professor@setad.org.br",
+    "telefone": "(91) 98000-0001",
+    "tipo": "professor",
+    "cargo": "Professor de Teologia",
+    "setor": "Acadêmico",
+    "vinculo": "clt",
+    "salario": 3200,
+    "ajudaCusto": 450,
+    "valeTransporte": 220,
+    "outrosBeneficios": "Auxílio material didático",
+    "dataAdmissao": "2024-02-01",
+    "ativo": true
+  },
+  {
+    "id": "func-002",
+    "nome": "Biblioteca SETAD",
+    "email": "biblioteca@setad.org.br",
+    "telefone": "(91) 98000-0002",
+    "tipo": "administrativo",
+    "cargo": "Bibliotecário(a)",
+    "setor": "Biblioteca",
+    "vinculo": "clt",
+    "salario": 2400,
+    "ajudaCusto": 300,
+    "valeTransporte": 180,
+    "outrosBeneficios": "",
+    "dataAdmissao": "2023-08-15",
+    "ativo": true
+  },
+  {
+    "id": "func-003",
+    "nome": "Recepção SETAD",
+    "email": "recepcao@setad.org.br",
+    "telefone": "(91) 98000-0003",
+    "tipo": "apoio",
+    "cargo": "Recepcionista",
+    "setor": "Administrativo",
+    "vinculo": "clt",
+    "salario": 1900,
+    "ajudaCusto": 250,
+    "valeTransporte": 150,
+    "outrosBeneficios": "",
+    "dataAdmissao": "2025-01-10",
+    "ativo": true
+  }
+]

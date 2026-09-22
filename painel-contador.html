@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Área da Contabilidade — SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="portal-marca-dagua painel-contador">
+
+  <div class="painel">
+
+    <aside class="painel__sidebar painel__sidebar--portal painel__sidebar--contador">
+      <div class="painel__perfil">
+        <div class="painel__foto-aluno">
+          <label for="fotoProfessorInput" class="painel__foto-label" title="Carregar foto">
+            <img id="fotoProfessorPreview" src="" alt="Foto do contador" class="painel__foto-preview">
+            <span class="painel__foto-overlay">+ Foto</span>
+          </label>
+          <input type="file" id="fotoProfessorInput" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+        <div class="painel__brand-role painel__brand-role--nome" id="usuarioNome">Contador</div>
+        <div class="painel__brand-role" id="usuarioPerfil">Contador</div>
+      </div>
+
+      <nav class="painel__nav-area">
+        <ul class="painel__nav">
+          <li class="painel__nav-item">
+            <button class="painel__nav-link active" data-tab="tab-dashboard">Painel</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-pagamentos-alunos">Pag. alunos</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-folha">Folha</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-funcionarios">Funcionários</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-instituicoes">Bancos</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-relatorios">Relatórios</button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="painel__seguranca">
+        <p class="painel__seguranca-texto">Área restrita · Contabilidade</p>
+      </div>
+
+      <div class="painel__logout">
+        <button type="button" id="btnLogout" class="btn">Sair</button>
+      </div>
+    </aside>
+
+    <main class="painel__main">
+      <header class="painel__header">
+        <h1 id="painelTitulo">Painel Financeiro</h1>
+        <p id="painelSubtitulo">Visão geral de receitas, despesas e instituições conectadas.</p>
+      </header>
+
+      <section id="tab-dashboard" class="painel__tab active">
+        <div id="dashboardContadorContainer"></div>
+      </section>
+
+      <section id="tab-pagamentos-alunos" class="painel__tab">
+        <div id="pagamentosAlunosContainer"></div>
+      </section>
+
+      <section id="tab-folha" class="painel__tab">
+        <div id="folhaContainer"></div>
+      </section>
+
+      <section id="tab-funcionarios" class="painel__tab">
+        <div id="funcionariosContainer"></div>
+      </section>
+
+      <section id="tab-instituicoes" class="painel__tab">
+        <div id="instituicoesContainer"></div>
+      </section>
+
+      <section id="tab-relatorios" class="painel__tab">
+        <div id="relatoriosContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/terminologia-setad.js"></script>
+  <script src="js/financeiro.js"></script>
+  <script src="js/contabilidade-relatorios.js"></script>
+  <script src="js/perfil-aluno.js"></script>
+  <script src="js/painel-direcao.js"></script>
+  <script>
+    SETAD.ready.then(function () {
+      inicializarPainelContador();
+    });
+  </script>
+  <script src="js/contato-setad.js"></script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

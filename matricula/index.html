@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Matrícula online — SETAD Seminário Teológico. Inscreva-se nos módulos Básico, Médio ou Avançado.">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Matrícula Online — SETAD</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="pagina-matricula">
+
+  <header class="header">
+    <div class="container container--wide header__inner">
+      <a href="../index.html" class="logo">
+        <img src="../assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de navegação">
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+      </button>
+
+      <nav class="nav header__nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="../index.html#sobre" class="nav__link">Sobre</a></li>
+          <li><a href="../polos/" class="nav__link">Polos</a></li>
+          <li><a href="../index.html#programa" class="nav__link">Programa</a></li>
+          <li><a href="../index.html#localizacao" class="nav__link">Onde estamos</a></li>
+          <li><a href="#informacoes" class="nav__link">Informações</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__acoes">
+        <a href="#formulario" class="btn btn--header-matricula">Matricule-se</a>
+        <a href="../index.html#portal" class="btn btn--header-portal">Área do Aluno e Professor</a>
+      </div>
+
+      <a href="../login-direcao.html" class="btn btn--header-direcao">Direção</a>
+    </div>
+  </header>
+
+  <main>
+  <section class="matricula-hero">
+    <div class="container container--wide matricula-hero__inner">
+      <div class="matricula-hero__conteudo">
+        <nav class="matricula-hero__breadcrumb" aria-label="Navegação da matrícula">
+          <a href="../index.html">Início</a>
+          <span aria-hidden="true">&gt;</span>
+          <span>Matrícula</span>
+          <span aria-hidden="true">&gt;</span>
+          <span aria-current="page">Módulos do Seminário</span>
+        </nav>
+
+        <p class="matricula-hero__etiqueta">Formação em</p>
+        <span class="matricula-hero__linha" aria-hidden="true"></span>
+        <h1 class="matricula-hero__titulo">Teologia</h1>
+        <p class="matricula-hero__subtitulo">
+          Formação bíblica e ministerial em Médio e Avançado para quem deseja servir com excelência na igreja local.
+        </p>
+      </div>
+
+      <aside class="matricula-hero__card matricula-hero__card--bacharelado" aria-label="Bacharelado em Teologia">
+        <h2 class="matricula-hero__card-titulo">Bacharelado em Teologia</h2>
+
+        <div class="matricula-hero__campo">
+          <h3 class="matricula-hero__campo-titulo">Duração</h3>
+          <p class="matricula-hero__campo-valor">4 anos</p>
+        </div>
+
+        <div class="matricula-hero__campo">
+          <h3 class="matricula-hero__campo-titulo">Modalidade</h3>
+          <span class="matricula-hero__badge">EAD</span>
+          <p class="matricula-hero__campo-valor matricula-hero__campo-valor--ead">Educação a Distância</p>
+        </div>
+
+        <div class="matricula-hero__campo">
+          <h3 class="matricula-hero__campo-titulo">Diploma</h3>
+          <p class="matricula-hero__campo-valor">Reconhecido pelo MEC, garantindo validade nacional.</p>
+        </div>
+
+        <a href="teologia/" class="btn matricula-hero__cta">
+          Bacharelado em Teologia &rarr;
+        </a>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section matricula-planos fade-in" id="informacoes">
+    <div class="container container--wide">
+      <p class="section__label">Módulos</p>
+      <h2 class="section__title">Escolha seu plano de estudos</h2>
+      <p class="section__text matricula-planos__intro">
+        Atualmente, oferecemos três modalidades de formação em Teologia — dois cursos presenciais
+        nos polos de Belém e o Bacharelado em Teologia na modalidade EAD.
+      </p>
+
+      <div class="matricula-planos__grid matricula-planos__grid--dois">
+        <article class="plano-card" data-modulo="medio">
+          <header class="plano-card__cabecalho">
+            <h3 class="plano-card__nome">Curso Médio em Teologia e Ciências Bíblicas</h3>
+            <p class="plano-card__subtitulo">Curso livre — presencial</p>
+          </header>
+          <div class="plano-card__corpo">
+            <p class="plano-card__preco">
+              <span class="plano-card__preco-valor">R$ 100,00</span>
+              <span class="plano-card__preco-periodo">mensalidade</span>
+            </p>
+            <p class="plano-card__duracao">
+              <strong>Duração:</strong> 18 meses &nbsp;|&nbsp; <strong>Matrícula:</strong> R$ 50,00
+            </p>
+            <ul class="plano-card__lista">
+              <li>Aulas aos sábados, 14h30</li>
+              <li>Modalidade presencial</li>
+              <li>Curso livre</li>
+              <li>Acesso ao portal acadêmico do SETAD</li>
+            </ul>
+            <button type="button" class="btn btn--secondary plano-card__btn">Escolher este curso</button>
+          </div>
+        </article>
+
+        <article class="plano-card" data-modulo="avancado">
+          <header class="plano-card__cabecalho">
+            <h3 class="plano-card__nome">Curso Avançado em Teologia</h3>
+            <p class="plano-card__subtitulo">Curso livre — presencial</p>
+          </header>
+          <div class="plano-card__corpo">
+            <p class="plano-card__preco">
+              <span class="plano-card__preco-valor">R$ 200,00</span>
+              <span class="plano-card__preco-periodo">mensalidade</span>
+            </p>
+            <p class="plano-card__duracao">
+              <strong>Duração:</strong> 2 anos &nbsp;|&nbsp; <strong>Matrícula:</strong> R$ 50,00
+            </p>
+            <ul class="plano-card__lista">
+              <li>Aulas aos sábados, 14h30</li>
+              <li>Modalidade presencial</li>
+              <li>Curso livre, voltado para quem deseja aprofundar seus conhecimentos teológicos</li>
+              <li>Acesso ao portal acadêmico do SETAD</li>
+            </ul>
+            <button type="button" class="btn btn--secondary plano-card__btn">Escolher este curso</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section matricula" id="formulario">
+    <div class="container container--wide">
+      <p class="section__label">Inscrição</p>
+      <h2 class="section__title">Preencha sua matrícula</h2>
+      <p class="section__text">
+        Selecione o módulo do curso e preencha seus dados. Após a confirmação, você será
+        direcionado à área de pagamento da taxa de matrícula e, em seguida, poderá criar
+        o acesso ao portal acadêmico com o mesmo e-mail informado aqui.
+      </p>
+
+      <div id="matriculaSucesso" class="matricula-sucesso" role="status"></div>
+
+      <form id="formMatricula" class="matricula-form" novalidate>
+        <div class="matricula-form__grid">
+          <div class="form-group form-group--full">
+            <label for="matNome">Nome completo *</label>
+            <input type="text" id="matNome" name="nome" placeholder="Seu nome completo" required autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label for="matEmail">E-mail *</label>
+            <input type="email" id="matEmail" name="email" placeholder="seu@email.com" required autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label for="matTelefone">Telefone / WhatsApp *</label>
+            <input type="tel" id="matTelefone" name="telefone" placeholder="(91) 99999-9999" required autocomplete="tel">
+          </div>
+
+          <div class="form-group">
+            <label for="matCpf">CPF *</label>
+            <input type="text" id="matCpf" name="cpf" placeholder="000.000.000-00" required inputmode="numeric">
+          </div>
+
+          <div class="form-group">
+            <label for="matNascimento">Data de nascimento *</label>
+            <input type="date" id="matNascimento" name="nascimento" required>
+          </div>
+
+          <div class="form-group">
+            <label for="matModulo">Módulo do curso *</label>
+            <select id="matModulo" name="modulo" required>
+              <option value="">Selecione o módulo...</option>
+              <option value="medio">Médio — Teologia e Ciências Bíblicas</option>
+              <option value="avancado">Avançado — Teologia</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="matCidade">Cidade *</label>
+            <input type="text" id="matCidade" name="cidade" placeholder="Belém" required autocomplete="address-level2">
+          </div>
+
+          <div class="form-group">
+            <label for="matEstado">Estado *</label>
+            <select id="matEstado" name="estado" required>
+              <option value="">Selecione...</option>
+              <option value="AC">Acre</option>
+              <option value="AL">Alagoas</option>
+              <option value="AP">Amapá</option>
+              <option value="AM">Amazonas</option>
+              <option value="BA">Bahia</option>
+              <option value="CE">Ceará</option>
+              <option value="DF">Distrito Federal</option>
+              <option value="ES">Espírito Santo</option>
+              <option value="GO">Goiás</option>
+              <option value="MA">Maranhão</option>
+              <option value="MT">Mato Grosso</option>
+              <option value="MS">Mato Grosso do Sul</option>
+              <option value="MG">Minas Gerais</option>
+              <option value="PA" selected>Pará</option>
+              <option value="PB">Paraíba</option>
+              <option value="PR">Paraná</option>
+              <option value="PE">Pernambuco</option>
+              <option value="PI">Piauí</option>
+              <option value="RJ">Rio de Janeiro</option>
+              <option value="RN">Rio Grande do Norte</option>
+              <option value="RS">Rio Grande do Sul</option>
+              <option value="RO">Rondônia</option>
+              <option value="RR">Roraima</option>
+              <option value="SC">Santa Catarina</option>
+              <option value="SP">São Paulo</option>
+              <option value="SE">Sergipe</option>
+              <option value="TO">Tocantins</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group--full">
+            <label for="matIgreja">Igreja / Congregação</label>
+            <input type="text" id="matIgreja" name="igreja" placeholder="Nome da sua igreja (opcional)">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary matricula-form__btn">Confirmar matrícula</button>
+        <div id="matriculaMensagem" class="form-mensagem" role="alert"></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="section midias" id="midias">
+    <div class="container">
+      <p class="section__label">Conecte-se</p>
+      <h2 class="section__title midias__titulo">Acesse nossas mídias</h2>
+
+      <div class="midias__grid">
+        <a
+          href="https://www.instagram.com/setad.adbelem?igsh=cmVxZTA1MTZldmRx"
+          class="midias__link midias__link--instagram"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram do SETAD"
+        >
+          <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+          <span class="midias__nome">Instagram</span>
+        </a>
+
+        <a
+          href="https://www.youtube.com/@SETAD-BELEM"
+          class="midias__link midias__link--youtube"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="YouTube do SETAD"
+        >
+          <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+          <span class="midias__nome">YouTube</span>
+        </a>
+
+        <a
+          href="https://open.spotify.com/playlist/0MqaKOIFA0Fs5Wsqf4zCem?si=d9c0d34a443d4b56"
+          class="midias__link midias__link--spotify"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Spotify do SETAD"
+        >
+          <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+          </svg>
+          <span class="midias__nome">Spotify</span>
+        </a>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="../js/dados.js" defer></script>
+  <script src="../js/financeiro.js" defer></script>
+  <script src="../js/wpp-secretaria.js" defer></script>
+  <script src="../js/matricula.js" defer></script>
+  <script src="../js/script.js" defer></script>
+  <script src="../js/contato-setad.js"></script>
+  <script src="../js/wpp-float.js" defer></script>
+  <script src="/js/pwa.js" defer></script>
+
+</body>
+</html>

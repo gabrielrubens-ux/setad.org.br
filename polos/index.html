@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Conheça os polos do SETAD — Seminário Teológico da Assembleia de Deus em Belém.">
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <title>Nossos Polos — SETAD</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="pagina-polos">
+
+  <header class="header">
+    <div class="container container--wide header__inner">
+      <a href="../index.html" class="logo">
+        <img src="../assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de navegação">
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+      </button>
+
+      <nav class="nav header__nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="../index.html#sobre" class="nav__link">Sobre</a></li>
+          <li><a href="index.html" class="nav__link nav__link--ativa">Polos</a></li>
+          <li><a href="../index.html#programa" class="nav__link">Programa</a></li>
+          <li><a href="../index.html#localizacao" class="nav__link">Onde estamos</a></li>
+          <li><a href="../index.html#informacoes" class="nav__link">Informações</a></li>
+          <li><a href="#mapa-polos" class="nav__link">Mapa</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__acoes">
+        <a href="../matricula/" class="btn btn--header-matricula">Matricule-se</a>
+        <a href="../index.html#portal" class="btn btn--header-portal">Área do Aluno e Professor</a>
+      </div>
+
+      <a href="../login-direcao.html" class="btn btn--header-direcao">Direção</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="pagina-polos__hero">
+      <div class="container">
+        <a href="../index.html" class="pagina-polos__voltar">&larr; Voltar à página principal</a>
+        <p class="section__label">Onde estamos</p>
+        <h1 class="pagina-polos__titulo">Conheça nossos polos</h1>
+        <p class="pagina-polos__texto">
+          O SETAD está presente em diversas localidades para levar formação teológica
+          de qualidade mais perto de você. Confira os endereços de cada polo abaixo.
+        </p>
+      </div>
+    </section>
+
+    <section class="section polos-lista">
+      <div class="container container--wide">
+        <div id="polosContainer" class="polos-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section polos-mapa fade-in" id="mapa-polos">
+      <div class="container container--wide">
+        <p class="section__label">Mapa geral</p>
+        <h2 class="section__title">Polos em Belém e região</h2>
+        <p class="section__text polos-mapa__intro">
+          Visualize todos os polos do SETAD no mapa. Clique em um pin para ver detalhes,
+          abrir a rota no Google Maps ou ir até o card do polo.
+        </p>
+        <div id="polosMapa" class="polos-mapa__container" role="region" aria-label="Mapa interativo dos polos do SETAD em Belém"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="../js/dados.js"></script>
+  <script src="../js/polos.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="../js/polos-mapa.js"></script>
+  <script src="../js/script.js"></script>
+  <script src="../js/contato-setad.js"></script>
+  <script src="../js/wpp-float.js" defer></script>
+  <script src="/js/pwa.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<!-- 
+  DOCTYPE informa ao navegador que este documento usa HTML5.
+  Sem isso, o navegador pode entrar em "modo de compatibilidade" antigo.
+-->
+<html lang="pt-BR">
+<!-- 
+  lang="pt-BR" define o idioma da página (português do Brasil).
+  Isso ajuda leitores de tela e mecanismos de busca.
+-->
+
+<head>
+  <!-- 
+    <head> contém metadados: informações SOBRE a página,
+    não visíveis diretamente no corpo do site.
+  -->
+
+  <meta charset="UTF-8">
+  <!-- charset UTF-8 permite acentos e caracteres especiais (ã, ç, é...) -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 
+    viewport faz o site se adaptar a telas de celular.
+    width=device-width = largura igual à da tela do dispositivo.
+    initial-scale=1.0 = zoom inicial de 100%.
+  -->
+
+  <meta name="description" content="SETAD — Seminário Teológico. Formação bíblica sólida, ensino acadêmico e crescimento espiritual.">
+  <!-- description aparece nos resultados do Google e ao compartilhar o link -->
+
+  <meta name="theme-color" content="#23406b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SETAD">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="msapplication-TileImage" content="/assets/icons/icon-512.png">
+  <meta name="msapplication-TileColor" content="transparent">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <title>SETAD — Seminário Teológico</title>
+  <!-- Título exibido na aba do navegador -->
+
+  <!--
+    <link> importa um arquivo CSS externo.
+    rel="stylesheet" diz ao navegador que é uma folha de estilos.
+    href aponta para o caminho do arquivo (pasta css/ na raiz do projeto).
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+
+<body class="pagina-inicial">
+  <!-- 
+    <body> contém todo o conteúdo VISÍVEL da página.
+    Estrutura semântica: usamos tags que descrevem o significado
+    (header, nav, main, section, footer) — bom para SEO e acessibilidade.
+  -->
+
+  <!-- ==================== CABEÇALHO ==================== -->
+  <header class="header">
+    <div class="container container--wide header__inner">
+
+      <!-- Logo no canto esquerdo — marca d'água com fundo transparente -->
+      <a href="#inicio" class="logo">
+        <img src="assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+      </a>
+
+      <!-- Botão hambúrguer (só aparece no mobile) -->
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de navegação">
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+      </button>
+
+      <nav class="nav header__nav" id="nav">
+        <ul class="nav__list">
+          <li><a href="#sobre" class="nav__link">Sobre</a></li>
+          <li><a href="polos/" class="nav__link">Polos</a></li>
+          <li><a href="#programa" class="nav__link">Programa</a></li>
+          <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
+          <li><a href="#informacoes" class="nav__link">Informações</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__acoes">
+        <a href="matricula/" class="btn btn--header-matricula">Matricule-se</a>
+        <a href="#portal" class="btn btn--header-portal">Área do Aluno e Professor</a>
+      </div>
+
+      <a href="login-direcao.html" class="btn btn--header-direcao">Direção</a>
+
+    </div>
+  </header>
+
+  <!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
+  <main>
+
+    <!-- HERO: fundo com foto da fachada SETAD (logo já visível no prédio) -->
+    <section class="hero" id="inicio">
+      <div class="container hero__content">
+        <span class="hero__badge">Seminário Teológico</span>
+        <h1 class="hero__title hero__title--sr-only">SETAD — Seminário Teológico da Assembleia de Deus em Belém</h1>
+        <p class="hero__subtitle">
+          Formação teológica sólida, fundamentada nas Escrituras,
+          para quem deseja aprofundar o conhecimento bíblico e servir com excelência.
+        </p>
+      </div>
+      <a href="matricula/" class="btn btn--primary hero__cta">Matricule-se</a>
+    </section>
+
+    <!-- SOBRE: apresentação do seminário -->
+    <section class="section fade-in" id="sobre">
+      <div class="container">
+        <p class="section__label">Quem somos</p>
+        <h2 class="section__title">Sobre o SETAD</h2>
+        <p class="section__text">
+          O SETAD é um seminário teológico dedicado à formação de líderes e servos
+          cristãos. Nossa missão é equipar homens e mulheres com conhecimento bíblico
+          profundo, pensamento teológico claro e caráter moldado pelo Evangelho.
+        </p>
+        <p class="section__text section__text--spaced">
+          Com metodologia acadêmica e comunhão fraterna, preparamos nossos alunos
+          para o ministério pastoral, ensino, missões e serviço na igreja local.
+        </p>
+      </div>
+    </section>
+
+    <!-- CAMPUS: arte informativa com link para a página de polos -->
+    <section class="section campus-info fade-in" id="campus">
+      <div class="container container--wide">
+        <p class="section__label">Onde estudar</p>
+        <h2 class="section__title">Nossos Campus e Polos</h2>
+        <p class="section__text">
+          O SETAD está presente em diversas regiões de Belém para levar formação teológica
+          de qualidade mais perto de você.
+        </p>
+
+        <a href="polos/" class="campus-arte" aria-label="Conheça todos os polos do SETAD em Belém">
+          <div class="campus-arte__visual" aria-hidden="true">
+            <span class="campus-arte__numero">9</span>
+            <span class="campus-arte__numero-label">polos em Belém</span>
+          </div>
+
+          <div class="campus-arte__conteudo">
+            <span class="campus-arte__badge">Modalidade presencial</span>
+            <h3 class="campus-arte__titulo">Estude no polo mais próximo de você</h3>
+            <p class="campus-arte__texto">
+              Aulas aos sábados em igrejas parceiras espalhadas pela cidade — do Utinga
+              à Marambaia. Encontre endereços, mapas e informações de cada unidade.
+            </p>
+
+            <ul class="campus-arte__regioes">
+              <li>Utinga</li>
+              <li>Guamá</li>
+              <li>Maracangalha</li>
+              <li>Castanheira</li>
+              <li>Mangueirão</li>
+              <li>Marambaia</li>
+              <li>Parque Verde</li>
+            </ul>
+
+            <span class="campus-arte__cta">Conheça nossos polos &rarr;</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- PROGRAMA: grid de cards com os pilares do seminário -->
+    <section class="section fade-in" id="programa">
+      <div class="container">
+        <p class="section__label">O que você vai aprender</p>
+        <h2 class="section__title">Programa Teológico</h2>
+        <p class="section__text">
+          Um currículo estruturado que abrange as principais áreas da teologia cristã.
+        </p>
+
+        <!-- Grid responsivo com 4 cards -->
+        <div class="grid">
+
+          <article class="card">
+            <!-- <article> é semântico para conteúdo independente (como um card) -->
+            <p class="card__number">01</p>
+            <h3 class="card__title">Teologia Sistemática</h3>
+            <p class="card__text">
+              Estudo organizado das doutrinas cristãs: Deus, Cristo, Espírito Santo,
+              salvação, igreja e escatologia.
+            </p>
+          </article>
+
+          <article class="card">
+            <p class="card__number">02</p>
+            <h3 class="card__title">Hermenêutica Bíblica</h3>
+            <p class="card__text">
+              Princípios de interpretação das Escrituras para uma leitura fiel
+              e contextualizada do texto bíblico.
+            </p>
+          </article>
+
+          <article class="card">
+            <p class="card__number">03</p>
+            <h3 class="card__title">História da Igreja</h3>
+            <p class="card__text">
+              Trajetória do cristianismo desde os apóstolos até os dias atuais,
+              compreendendo reformas e movimentos teológicos.
+            </p>
+          </article>
+
+          <article class="card">
+            <p class="card__number">04</p>
+            <h3 class="card__title">Teologia Prática</h3>
+            <p class="card__text">
+              Pregação, aconselhamento pastoral, liderança e ética cristã
+              aplicadas ao contexto ministerial contemporâneo.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTAL: acesso separado para alunos e professores -->
+    <section class="section portal fade-in" id="portal">
+      <div class="container">
+        <p class="section__label">Área restrita</p>
+        <h2 class="section__title">Portal Acadêmico</h2>
+        <p class="section__text">
+          Alunos e professores acessam notas, trabalhos e a biblioteca teológica
+          digital do seminário por meio de login individual.
+        </p>
+
+        <div class="portal__grid">
+
+          <!-- Card de acesso do aluno -->
+          <article class="portal-card">
+            <div class="portal-card__image portal-card__image--aluno">
+              <img
+                src="assets/images/portal-aluno-biblioteca.jpg"
+                alt="Estudante lendo e estudando na biblioteca"
+                loading="lazy"
+              >
+            </div>
+            <div class="portal-card__body">
+              <h3 class="portal-card__title">Área do Aluno</h3>
+              <p class="portal-card__text">
+                Consulte suas notas de provas, acompanhe prazos de trabalhos
+                e acesse a biblioteca digital com livros teológicos e Bíblias de estudo.
+              </p>
+              <ul class="portal-card__features">
+                <li>Notas de provas e avaliações</li>
+                <li>Trabalhos e entregas</li>
+                <li>Biblioteca teológica digital</li>
+              </ul>
+              <a href="login-aluno.html" class="btn btn--primary">Entrar como aluno</a>
+            </div>
+          </article>
+
+          <!-- Card de acesso do professor -->
+          <article class="portal-card">
+            <div class="portal-card__image portal-card__image--professor">
+              <img
+                src="assets/images/portal-professor-aula.jpg"
+                alt="Professor dando aula em sala de aula"
+                loading="lazy"
+              >
+            </div>
+            <div class="portal-card__body">
+              <h3 class="portal-card__title">Área do Professor</h3>
+              <p class="portal-card__text">
+                Gerencie turmas, lance notas, acompanhe trabalhos dos alunos
+                e acesse o acervo teológico para consulta e referência.
+              </p>
+              <ul class="portal-card__features">
+                <li>Lançamento de notas</li>
+                <li>Acompanhamento de trabalhos</li>
+                <li>Biblioteca teológica digital</li>
+              </ul>
+              <a href="login-professor.html" class="btn btn--primary">Entrar como professor</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- LOCALIZAÇÃO — sede principal com mapa clicável -->
+    <section class="section localizacao fade-in" id="localizacao">
+      <div class="localizacao__bg" aria-hidden="true">
+        <div class="localizacao__bg-base"></div>
+
+        <svg class="localizacao__bg-layer localizacao__bg-grid" data-parallax="10" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <pattern id="localizacaoGrid" width="56" height="56" patternUnits="userSpaceOnUse">
+              <path d="M 56 0 L 0 0 0 56" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
+              <circle cx="0" cy="0" r="1.5" fill="rgba(255,255,255,0.14)"/>
+            </pattern>
+            <pattern id="localizacaoGridFine" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M 14 0 L 0 0 0 14" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#localizacaoGridFine)"/>
+          <rect width="100%" height="100%" fill="url(#localizacaoGrid)"/>
+        </svg>
+
+        <svg class="localizacao__bg-layer localizacao__bg-contours" data-parallax="16" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+          <path class="localizacao__contour" d="M-40 620 C 180 540, 320 700, 520 640 S 900 480, 1120 560 S 1380 720, 1520 600"/>
+          <path class="localizacao__contour" d="M-60 420 C 220 360, 400 500, 620 430 S 980 300, 1200 380 S 1420 520, 1540 440"/>
+          <path class="localizacao__contour" d="M 80 760 C 280 700, 460 820, 700 760 S 1040 680, 1280 740"/>
+          <path class="localizacao__route" d="M 220 180 L 420 260 L 680 220 L 920 320 L 1180 280"/>
+          <path class="localizacao__route localizacao__route--sec" d="M 140 520 L 360 480 L 540 560 L 820 500 L 1060 580"/>
+          <circle class="localizacao__node" cx="680" cy="220" r="4"/>
+          <circle class="localizacao__node" cx="920" cy="320" r="3"/>
+          <circle class="localizacao__node" cx="540" cy="560" r="3"/>
+          <circle class="localizacao__node localizacao__node--sede" cx="820" cy="500" r="6"/>
+        </svg>
+
+        <div class="localizacao__bg-layer localizacao__bg-dots" data-parallax="6"></div>
+        <div class="localizacao__bg-glow"></div>
+      </div>
+
+      <div class="container container--wide localizacao__content">
+        <p class="section__label">Onde estamos</p>
+        <h2 class="section__title">Nossa sede em Belém</h2>
+        <p class="section__text">
+          Visite o SETAD ou trace a rota até o seminário pelo Google Maps —
+          funciona no computador e no celular.
+        </p>
+
+        <div class="localizacao__mapa">
+          <iframe
+            class="localizacao__iframe"
+            title="Mapa da sede do SETAD em Belém"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3980.789!2d-48.4656471!3d-1.4374973!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x92a48c11c506c41f%3A0xe90ebc274a2cebe6!2sSETAD%20-%20Semin%C3%A1rio%20Teol%C3%B3gico%20da%20Assembleia%20de%20Deus%20em%20Bel%C3%A9m!5e0!3m2!1spt-BR!2sbr!4v1726000000000!5m2!1spt-BR!2sbr"
+            allowfullscreen
+          ></iframe>
+
+          <a
+            href="https://www.google.com/maps/place/SETAD+-+Semin%C3%A1rio+Teol%C3%B3gico+da+Assembleia+de+Deus+em+Bel%C3%A9m/@-1.4374973,-48.4656471,17z/data=!3m1!4b1!4m6!3m5!1s0x92a48c11c506c41f:0xe90ebc274a2cebe6!8m2!3d-1.4374973!4d-48.4656471!16s%2Fg%2F11b72mzw9w"
+            class="localizacao__overlay"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir a localização do SETAD no Google Maps para traçar rota"
+          >
+            <span class="localizacao__pin" aria-hidden="true">
+              <svg viewBox="0 0 24 36" class="localizacao__pin-icone">
+                <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ea4335"/>
+                <circle cx="12" cy="12" r="5" fill="#fff"/>
+              </svg>
+            </span>
+            <span class="localizacao__cta">
+              <strong>Abrir no Google Maps</strong>
+              <span>Toque para ver o endereço e traçar rota</span>
+            </span>
+          </a>
+        </div>
+
+        <p class="localizacao__endereco">
+          SETAD — Seminário Teológico da Assembleia de Deus em Belém · Belém, PA
+        </p>
+      </div>
+    </section>
+
+    <!-- INFORMAÇÕES: modalidades de formação -->
+    <section class="section fade-in" id="informacoes">
+      <div class="container">
+        <p class="section__label">Detalhes</p>
+        <h2 class="section__title">Informações do Seminário</h2>
+        <p class="section__text">
+          Atualmente, oferecemos três modalidades de formação em Teologia:
+        </p>
+
+        <div class="cursos-grid">
+          <article class="curso-card">
+            <h3 class="curso-card__titulo">Curso Médio em Teologia e Ciências Bíblicas</h3>
+            <ul class="curso-card__lista">
+              <li><strong>Duração:</strong> 18 meses</li>
+              <li><strong>Mensalidade:</strong> R$ 100,00</li>
+              <li><strong>Matrícula:</strong> R$ 50,00</li>
+              <li><strong>Aulas:</strong> aos sábados, 14h30</li>
+              <li><strong>Modalidade:</strong> Presencial</li>
+              <li>Curso livre.</li>
+            </ul>
+          </article>
+
+          <article class="curso-card">
+            <h3 class="curso-card__titulo">Curso Avançado em Teologia</h3>
+            <ul class="curso-card__lista">
+              <li><strong>Duração:</strong> 2 anos</li>
+              <li><strong>Mensalidade:</strong> R$ 200,00</li>
+              <li><strong>Matrícula:</strong> R$ 50,00</li>
+              <li><strong>Aulas:</strong> aos sábados, 14h30</li>
+              <li><strong>Modalidade:</strong> Presencial</li>
+              <li>Curso livre, voltado para quem deseja aprofundar seus conhecimentos teológicos.</li>
+            </ul>
+          </article>
+
+          <article class="curso-card curso-card--destaque">
+            <h3 class="curso-card__titulo">Bacharelado em Teologia</h3>
+            <ul class="curso-card__lista">
+              <li><strong>Duração:</strong> 4 anos</li>
+              <li><strong>Modalidade:</strong> EAD (Educação a Distância)</li>
+              <li>Diploma reconhecido pelo MEC, garantindo validade nacional.</li>
+            </ul>
+            <a href="matricula/teologia/" class="curso-card__link">Saiba mais e inscreva-se &rarr;</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- MATRÍCULA: link para a subpágina de inscrição -->
+    <section class="section matricula-cta fade-in" id="inscricao">
+      <div class="container">
+        <p class="section__label">Matrícula</p>
+        <h2 class="section__title">Faça parte do SETAD</h2>
+        <p class="section__text">
+          Inscreva-se online e escolha o módulo adequado ao seu momento de formação teológica —
+          Básico, Médio ou Avançado.
+        </p>
+        <a href="matricula/" class="btn btn--primary">Matricule-se agora</a>
+      </div>
+    </section>
+
+    <!-- MÍDIAS SOCIAIS — links para Instagram, YouTube e Spotify -->
+    <section class="section midias fade-in" id="midias">
+      <div class="midias__bg" aria-hidden="true">
+        <div class="midias__bg-base"></div>
+        <div class="midias__bg-gallery" id="midiasBgGallery"></div>
+        <div class="midias__bg-veil"></div>
+        <div class="midias__bg-glow"></div>
+      </div>
+
+      <div class="container midias__content">
+        <p class="section__label">Conecte-se</p>
+        <h2 class="section__title midias__titulo">Acesse nossas mídias</h2>
+
+        <div class="midias__grid">
+          <a
+            href="https://www.instagram.com/setad.adbelem?igsh=cmVxZTA1MTZldmRx"
+            class="midias__link midias__link--instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram do SETAD"
+          >
+            <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+            <span class="midias__nome">Instagram</span>
+          </a>
+
+          <a
+            href="https://www.youtube.com/@SETAD-BELEM"
+            class="midias__link midias__link--youtube"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube do SETAD"
+          >
+            <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            <span class="midias__nome">YouTube</span>
+          </a>
+
+          <a
+            href="https://open.spotify.com/playlist/0MqaKOIFA0Fs5Wsqf4zCem?si=d9c0d34a443d4b56"
+            class="midias__link midias__link--spotify"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Spotify do SETAD"
+          >
+            <svg class="midias__icone" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+            <span class="midias__nome">Spotify</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!--
+    <script src="..."> carrega um arquivo JavaScript externo.
+    defer = baixa em paralelo e executa só depois do HTML estar pronto.
+    Colocado no final do <body> garante que os elementos do DOM já existam.
+  -->
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="js/script.js" defer></script>
+  <script src="js/midias-bg.js" defer></script>
+  <script src="js/contato-setad.js"></script>
+  <script src="js/wpp-float.js" defer></script>
+  <script src="/js/pwa.js" defer></script>
+
+</body>
+</html>
