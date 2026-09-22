@@ -2,6 +2,10 @@
   "name": "site-projeto-setad",
   "private": true,
   "description": "Site, PWA, API e app Capacitor do SETAD — Seminário Teológico",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
