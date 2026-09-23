@@ -10,7 +10,10 @@ const {
   toSessionUser
 } = require("../middleware/auth");
 
+const { criarLimiteLogin } = require("../middleware/security");
+
 const router = express.Router();
+const limitarLogin = criarLimiteLogin();
 
 function findUserByEmail(email) {
   return db.prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").get(email.trim().toLowerCase());
@@ -20,7 +23,7 @@ function gerarCodigoVerificacao() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-router.post("/login", function (req, res) {
+router.post("/login", limitarLogin, function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const senha = req.body.senha || "";
 

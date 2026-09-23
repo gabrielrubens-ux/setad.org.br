@@ -76,6 +76,29 @@ const CONTAS_DIRECAO = [
 const STORAGE_SESSAO_DIRECAO = "setad_sessao_direcao";
 const STORAGE_SESSAO_SECRETARIA = "setad_sessao_secretaria";
 
+function ambientePermiteDemonstracao() {
+  if (typeof window === "undefined" || !window.location) return false;
+  const host = window.location.hostname;
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".local") ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)
+  );
+}
+
+function aplicarPoliticaDemonstracaoUi() {
+  if (ambientePermiteDemonstracao()) return;
+  document.querySelectorAll("[data-setad-demo]").forEach(function (el) {
+    el.remove();
+  });
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", aplicarPoliticaDemonstracaoUi);
+}
+
 function authApiAtivo() {
   return typeof window !== "undefined" && window.SETAD && window.SETAD.apiAtivo;
 }
@@ -289,6 +312,7 @@ function configurarLoginDirecao() {
       }
 
       function tentarLoginLocal() {
+        if (!ambientePermiteDemonstracao()) return false;
         const conta = buscarContaDirecao(email, senha);
         if (conta) {
           finalizarLoginDirecaoLocal(conta);
@@ -348,7 +372,7 @@ function configurarLoginDirecao() {
         return;
       }
 
-      if (email === conta.email && senha === conta.senha) {
+      if (ambientePermiteDemonstracao() && email === conta.email && senha === conta.senha) {
         salvarSessaoSecretaria(conta);
         window.location.href = conta.redirect;
         return;
@@ -436,6 +460,11 @@ function configurarLogin(tipo) {
         }
         falhaLogin();
       }).catch(falhaLogin);
+      return;
+    }
+
+    if (!ambientePermiteDemonstracao()) {
+      falhaLogin();
       return;
     }
 
@@ -551,11 +580,17 @@ function simularEnvioCodigoEmail(email, codigo) {
   const demoEl = document.getElementById("codigoDemonstracao");
   if (!demoEl) return;
 
-  demoEl.innerHTML =
+  let html =
     "Enviamos um código de <strong>6 dígitos</strong> para <strong>" +
-    escaparHtml(email) + "</strong>.<br>" +
-    "<span class=\"login-card__demo-codigo\">Demonstração (sem servidor de e-mail): <strong>" +
-    escaparHtml(codigo) + "</strong></span>";
+    escaparHtml(email) + "</strong>.";
+
+  if (ambientePermiteDemonstracao() && codigo) {
+    html +=
+      "<br><span class=\"login-card__demo-codigo\">Demonstração (sem servidor de e-mail): <strong>" +
+      escaparHtml(codigo) + "</strong></span>";
+  }
+
+  demoEl.innerHTML = html;
   demoEl.classList.add("visible");
 }
 

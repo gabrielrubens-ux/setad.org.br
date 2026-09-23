@@ -27,6 +27,15 @@ function gerarId(prefixo) {
 function seedIfNeeded() {
   if (getMeta("seeded") === "true") return;
 
+  const isProd = process.env.NODE_ENV === "production";
+  const allowDemo = process.env.SETAD_ALLOW_DEMO_SEED === "true";
+
+  if (isProd && !allowDemo) {
+    setMeta("seeded", "true");
+    console.log("[SETAD API] Produção: contas de demonstração não foram criadas (defina SETAD_ALLOW_DEMO_SEED=true só em ambiente de teste).");
+    return;
+  }
+
   const now = new Date().toISOString();
   const insertUser = db.prepare(`
     INSERT INTO users (id, email, password_hash, nome, perfil, modulo, matricula_id, verificado, created_at, verified_at)

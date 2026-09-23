@@ -7,6 +7,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "build": "node -e \"require('fs').mkdirSync('data/uploads',{recursive:true})\"",
     "start": "node server/index.js",
     "dev": "node server/index.js",
     "icons": "node scripts/generate-pwa-icons.mjs",

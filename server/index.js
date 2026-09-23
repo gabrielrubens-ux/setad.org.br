@@ -5,32 +5,28 @@ const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
+const {
+  corsPermitido,
+  headersSeguranca,
+  validarSegredosProducao
+} = require("./middleware/security");
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
 
+validarSegredosProducao();
 seedIfNeeded();
 
 const app = express();
 
+app.use(headersSeguranca);
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    const allowed = [
-      /^https?:\/\/localhost(:\d+)?$/,
-      /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
-      /^capacitor:\/\/localhost$/,
-      /^https:\/\/localhost$/,
-      /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
-      /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/
-    ];
-    if (process.env.SETAD_CORS_ORIGIN) {
-      allowed.push(new RegExp(process.env.SETAD_CORS_ORIGIN));
-    }
-    if (allowed.some(function (rule) { return rule.test(origin); })) {
+    if (corsPermitido(origin)) {
       return callback(null, true);
     }
-    callback(null, true);
+    callback(new Error("Origem não permitida pelo CORS"));
   },
   credentials: true
 }));
