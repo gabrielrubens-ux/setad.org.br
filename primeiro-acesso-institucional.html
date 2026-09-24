@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Primeiro acesso institucional SETAD — direção, contabilidade e secretaria.">
+  <meta name="theme-color" content="#23406b">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
+  <title>Primeiro acesso — Área institucional SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+</head>
+<body class="login-page login-page--direcao portal-marca-dagua">
+  <div class="login-card login-card--direcao login-card--institucional">
+    <a href="login-direcao.html" class="login-card__back">&larr; Voltar ao login institucional</a>
+
+    <h1 class="login-card__title">Primeiro acesso institucional</h1>
+    <p class="login-card__subtitle">
+      Para <strong>direção</strong>, <strong>contabilidade</strong> e <strong>secretaria</strong>:
+      informe o e-mail autorizado, crie sua senha e confirme com o código enviado ao e-mail.
+    </p>
+
+    <div id="painelEmail" role="tabpanel">
+      <form id="formEmailInstitucional" autocomplete="on">
+        <div class="form-group">
+          <label for="emailInstitucional">E-mail institucional</label>
+          <input type="email" id="emailInstitucional" required placeholder="seu-email@exemplo.com">
+        </div>
+        <button type="submit" class="btn btn--primary login-card__btn">Continuar</button>
+        <div id="erroEmailInstitucional" class="login-card__error" role="alert"></div>
+      </form>
+    </div>
+
+    <div id="painelSenhaInstitucional" role="tabpanel" hidden>
+      <p class="login-card__subtitle login-card__subtitle--aba">
+        Conta: <strong id="emailSenhaInstitucional"></strong>
+        <span id="perfilSenhaInstitucional"></span>
+      </p>
+      <form id="formSenhaInstitucional" autocomplete="on">
+        <div class="form-group">
+          <label for="senhaInstitucional">Criar senha *</label>
+          <input type="password" id="senhaInstitucional" minlength="6" required placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="form-group">
+          <label for="confirmarSenhaInstitucional">Confirmar senha *</label>
+          <input type="password" id="confirmarSenhaInstitucional" minlength="6" required placeholder="Repita a senha">
+        </div>
+        <button type="submit" class="btn btn--primary login-card__btn">Enviar código de verificação</button>
+        <div id="erroSenhaInstitucional" class="login-card__error" role="alert"></div>
+      </form>
+    </div>
+
+    <div id="painelVerificacaoInstitucional" role="tabpanel" hidden>
+      <p class="verificacao__texto">
+        Digite o código de <strong>6 números</strong> enviado para
+        <strong id="emailVerificacaoInstitucional"></strong>
+      </p>
+      <div id="codigoDemoInstitucional" class="login-card__demo" role="status"></div>
+      <form id="formVerificacaoInstitucional" autocomplete="off">
+        <div class="form-group">
+          <label for="codigoInstitucional">Código de verificação</label>
+          <input
+            type="text"
+            id="codigoInstitucional"
+            class="verificacao__codigo"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            minlength="6"
+            required
+            placeholder="000000"
+          >
+        </div>
+        <button type="submit" class="btn btn--primary login-card__btn">Verificar e acessar</button>
+        <button type="button" id="btnReenviarCodigoInstitucional" class="btn btn--secondary login-card__btn-secundario">
+          Reenviar código
+        </button>
+        <div id="erroVerificacaoInstitucional" class="login-card__error" role="alert"></div>
+        <div id="sucessoVerificacaoInstitucional" class="login-card__success" role="status"></div>
+      </form>
+    </div>
+
+    <div class="login-card__hint">
+      O e-mail precisa estar na <strong>lista autorizada</strong> pela direção do SETAD.
+      Sem SMTP configurado no servidor, o código aparece nos logs (ambiente de teste).
+    </div>
+  </div>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="js/primeiro-acesso-institucional.js"></script>
+  <script src="/js/pwa.js" defer></script>
+</body>
+</html>

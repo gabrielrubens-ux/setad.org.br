@@ -117,6 +117,40 @@ function initSchema() {
       chave TEXT PRIMARY KEY,
       valor TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS convites_staff (
+      token TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      nome TEXT NOT NULL,
+      perfil TEXT NOT NULL,
+      password_hash TEXT,
+      codigo TEXT,
+      codigo_expira_em TEXT,
+      convite_expira_em TEXT NOT NULL,
+      senha_definida_em TEXT,
+      email_enviado_em TEXT,
+      criado_em TEXT NOT NULL,
+      ativado_em TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS staff_autorizados (
+      email TEXT PRIMARY KEY COLLATE NOCASE,
+      nome TEXT NOT NULL,
+      perfil TEXT NOT NULL,
+      ativo INTEGER NOT NULL DEFAULT 1,
+      criado_em TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS ativacoes_staff_pendentes (
+      email TEXT PRIMARY KEY COLLATE NOCASE,
+      nome TEXT NOT NULL,
+      perfil TEXT NOT NULL,
+      password_hash TEXT,
+      codigo TEXT,
+      codigo_expira_em TEXT,
+      senha_definida_em TEXT,
+      criado_em TEXT NOT NULL
+    );
   `);
 }
 

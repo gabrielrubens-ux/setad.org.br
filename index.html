@@ -53,6 +53,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="/css/pwa.css">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
 </head>
 
 <body class="pagina-inicial">
@@ -133,7 +139,14 @@
 
     <!-- CAMPUS: arte informativa com link para a página de polos -->
     <section class="section campus-info fade-in" id="campus">
-      <div class="container container--wide">
+      <div class="campus-info__bg" aria-hidden="true">
+        <div class="campus-info__mapa" id="campusMapaBg"></div>
+        <div class="campus-info__locais" id="campusLocaisTrilha"></div>
+        <div class="campus-info__veil"></div>
+        <div class="campus-info__glow" id="campusMapaGlow"></div>
+      </div>
+
+      <div class="container container--wide campus-info__content">
         <p class="section__label">Onde estudar</p>
         <h2 class="section__title">Nossos Campus e Polos</h2>
         <p class="section__text">
@@ -141,29 +154,21 @@
           de qualidade mais perto de você.
         </p>
 
-        <a href="polos/" class="campus-arte" aria-label="Conheça todos os polos do SETAD em Belém">
+        <a href="polos/" class="campus-arte campus-arte--glass" aria-label="Conheça todos os polos do SETAD em Belém">
           <div class="campus-arte__visual" aria-hidden="true">
-            <span class="campus-arte__numero">9</span>
-            <span class="campus-arte__numero-label">polos em Belém</span>
+            <span class="campus-arte__numero" id="campusPolosCount">—</span>
+            <span class="campus-arte__numero-label" id="campusPolosCountLabel">polos em Belém</span>
           </div>
 
           <div class="campus-arte__conteudo">
             <span class="campus-arte__badge">Modalidade presencial</span>
             <h3 class="campus-arte__titulo">Estude no polo mais próximo de você</h3>
             <p class="campus-arte__texto">
-              Aulas aos sábados em igrejas parceiras espalhadas pela cidade — do Utinga
-              à Marambaia. Encontre endereços, mapas e informações de cada unidade.
+              Aulas aos sábados em igrejas parceiras espalhadas pela cidade. Encontre endereços,
+              mapas e informações de cada unidade — atualizados a partir do cadastro oficial de polos.
             </p>
 
-            <ul class="campus-arte__regioes">
-              <li>Utinga</li>
-              <li>Guamá</li>
-              <li>Maracangalha</li>
-              <li>Castanheira</li>
-              <li>Mangueirão</li>
-              <li>Marambaia</li>
-              <li>Parque Verde</li>
-            </ul>
+            <ul class="campus-arte__regioes" id="campusPolosRegioes"></ul>
 
             <span class="campus-arte__cta">Conheça nossos polos &rarr;</span>
           </div>
@@ -492,6 +497,14 @@
   -->
   <script src="/js/app-config.js"></script>
   <script src="/js/native-bridge.js"></script>
+  <script src="js/polos.js"></script>
+  <script src="js/polos-coordenadas.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="js/campus-mapa-bg.js" defer></script>
   <script src="js/script.js" defer></script>
   <script src="js/midias-bg.js" defer></script>
   <script src="js/contato-setad.js"></script>

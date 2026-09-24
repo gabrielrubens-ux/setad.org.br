@@ -90,6 +90,22 @@
     verificacaoPendente: function (email) {
       return request("GET", "/auth/aluno/verificacao-pendente?email=" + encodeURIComponent(email));
     },
+    iniciarAtivacaoInstitucional: function (email) {
+      return request("POST", "/auth/staff/ativacao/iniciar", { email: email });
+    },
+    definirSenhaInstitucional: function (email, senha, confirmarSenha) {
+      return request("POST", "/auth/staff/ativacao/senha", {
+        email: email,
+        senha: senha,
+        confirmarSenha: confirmarSenha
+      });
+    },
+    verificarAtivacaoInstitucional: function (email, codigo) {
+      return request("POST", "/auth/staff/ativacao/verificar", { email: email, codigo: codigo });
+    },
+    reenviarCodigoInstitucional: function (email) {
+      return request("POST", "/auth/staff/ativacao/reenviar-codigo", { email: email });
+    },
     syncCollection: function (nome, items) {
       return request("PUT", "/" + nome, items);
     },

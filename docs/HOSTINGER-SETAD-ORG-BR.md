@@ -40,9 +40,12 @@ Após o deploy com as correções de segurança:
 2. **Git**:
    - URL: `https://github.com/gabrielrubens-ux/setad.org.br.git`
    - Branch: `main`
-3. **Build command:** `npm run build`
-4. **Start command:** `npm start`
-5. **Node:** 18 ou 20
+3. **Install command:** `npm ci --omit=dev` (reduz vulnerabilidades de Capacitor/sharp no servidor)
+4. **Build command:** `npm run build`
+5. **Start command:** `npm start`
+6. **Node:** 18 ou 20
+
+Vulnerabilidades npm: `docs/HOSTINGER-VULNERABILIDADES.md`
 
 ### Variáveis de ambiente (painel)
 
@@ -52,6 +55,8 @@ Após o deploy com as correções de segurança:
 | `JWT_SECRET` | chave aleatória com **32+ caracteres** (obrigatório; sem isso o app não inicia) |
 | `SETAD_PUBLIC_URL` | `https://setad.org.br` |
 | `PORT` | use a porta que o painel definir (se houver) |
+| `SETAD_STAFF_AUTORIZADOS_JSON` | e-mails autorizados (diretor, contador, secretaria) — ver `docs/STAFF-PRIMEIRO-ACESSO.md` |
+| `SETAD_SMTP_*` | opcional — código de verificação no primeiro acesso |
 
 Crie pasta persistente `data/uploads` se o painel permitir volume — o banco SQLite ficará em `data/setad.db`.
 

@@ -333,6 +333,13 @@ function configurarLoginDirecao() {
               return;
             }
           }
+          if (resposta && resposta.precisaAtivacao && erroDirecao) {
+            erroDirecao.classList.add("visible");
+            erroDirecao.textContent =
+              resposta.erro ||
+              "Conta pendente. Use Primeiro acesso institucional para criar sua senha.";
+            return;
+          }
           if (tentarLoginLocal()) return;
           falhaLogin();
         }).catch(function () {

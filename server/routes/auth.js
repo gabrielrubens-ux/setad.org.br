@@ -7,10 +7,22 @@ const {
   setAuthCookie,
   clearAuthCookie,
   authRequired,
+  requirePerfis,
   toSessionUser
 } = require("../middleware/auth");
 
 const { criarLimiteLogin } = require("../middleware/security");
+const {
+  iniciarAtivacao,
+  definirSenhaAtivacao,
+  verificarCodigoAtivacao,
+  reenviarCodigoAtivacao,
+  enviarCodigoSePossivel,
+  listarAutorizados,
+  upsertAutorizado,
+  desativarAutorizado,
+  PERFIS_INSTITUCIONAIS
+} = require("../staff-ativacao");
 
 const router = express.Router();
 const limitarLogin = criarLimiteLogin();
@@ -36,8 +48,12 @@ router.post("/login", limitarLogin, function (req, res) {
     return res.status(401).json({ ok: false, erro: "E-mail ou senha incorretos." });
   }
 
-  if (user.perfil === "aluno" && !user.verificado) {
-    return res.status(403).json({ ok: false, erro: "Conta ainda não verificada." });
+  if (!user.verificado) {
+    const perfilInstitucional = PERFIS_INSTITUCIONAIS.includes(user.perfil);
+    const mensagem = perfilInstitucional
+      ? "Conta pendente. Use Primeiro acesso institucional para criar sua senha."
+      : "Conta ainda não verificada.";
+    return res.status(403).json({ ok: false, erro: mensagem, precisaAtivacao: true });
   }
 
   const token = signToken(user);
@@ -196,6 +212,97 @@ router.get("/aluno/verificacao-pendente", function (req, res) {
   const email = (req.query.email || "").trim().toLowerCase();
   const pendente = db.prepare("SELECT email, codigo_expira_em FROM verificacoes_pendentes WHERE email = ?").get(email);
   res.json({ ok: true, pendente: !!pendente });
+});
+
+router.post("/staff/ativacao/iniciar", function (req, res) {
+  const email = (req.body.email || "").trim();
+  const resultado = iniciarAtivacao(email);
+  if (!resultado.ok) {
+    const status = resultado.jaAtivo ? 409 : 403;
+    return res.status(status).json(resultado);
+  }
+  res.json(resultado);
+});
+
+router.post("/staff/ativacao/senha", function (req, res) {
+  const email = (req.body.email || "").trim();
+  const senha = req.body.senha || "";
+  const confirmar = req.body.confirmarSenha || req.body.confirmar || "";
+
+  if (senha !== confirmar) {
+    return res.status(400).json({ ok: false, erro: "As senhas não coincidem." });
+  }
+
+  const resultado = definirSenhaAtivacao(email, senha);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo).then(function () {
+    res.json({
+      ok: true,
+      email: resultado.email,
+      perfil: resultado.perfil,
+      etapa: "verificacao",
+      codigoDemo: process.env.NODE_ENV === "production" ? undefined : resultado.codigo
+    });
+  });
+});
+
+router.post("/staff/ativacao/verificar", function (req, res) {
+  const email = (req.body.email || "").trim();
+  const codigo = String(req.body.codigo || "").trim();
+
+  const resultado = verificarCodigoAtivacao(email, codigo);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  const tokenJwt = signToken(resultado.user);
+  setAuthCookie(res, tokenJwt);
+
+  res.json({
+    ok: true,
+    token: tokenJwt,
+    user: toSessionUser(resultado.user),
+    redirect: resultado.redirect
+  });
+});
+
+router.post("/staff/ativacao/reenviar-codigo", function (req, res) {
+  const email = (req.body.email || "").trim();
+  const resultado = reenviarCodigoAtivacao(email);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo).then(function () {
+    res.json({
+      ok: true,
+      email: resultado.email,
+      codigoDemo: process.env.NODE_ENV === "production" ? undefined : resultado.codigo
+    });
+  });
+});
+
+router.get("/staff/autorizados", authRequired, requirePerfis("diretor"), function (_req, res) {
+  res.json({ ok: true, itens: listarAutorizados() });
+});
+
+router.post("/staff/autorizados", authRequired, requirePerfis("diretor"), function (req, res) {
+  const resultado = upsertAutorizado(req.body.email, req.body.nome, req.body.perfil);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+  res.json(resultado);
+});
+
+router.delete("/staff/autorizados/:email", authRequired, requirePerfis("diretor"), function (req, res) {
+  const resultado = desativarAutorizado(req.params.email);
+  if (!resultado.ok) {
+    return res.status(404).json(resultado);
+  }
+  res.json(resultado);
 });
 
 module.exports = router;

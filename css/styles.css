@@ -768,7 +768,10 @@ body {
   .midias__bg-trilha,
   .midias__bg-item,
   .midias__bg-item img,
-  .midias__bg-coluna {
+  .midias__bg-coluna,
+  .campus-info__trilha,
+  .campus-info__trilha-linha,
+  .campus-info__map-pin-icone {
     animation: none !important;
     transition: none !important;
   }
@@ -1290,10 +1293,241 @@ body.has-radio-player .contato-setad {
 }
 
 .campus-info {
+  position: relative;
+  overflow: hidden;
   text-align: center;
   background-color: var(--cor-primaria);
   color: var(--cor-branco);
   border-top: none;
+  --campus-glow-x: 48%;
+  --campus-glow-y: 40%;
+}
+
+.campus-info__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.campus-info__mapa {
+  position: absolute;
+  inset: -8% -4%;
+  filter: saturate(1) brightness(0.94) contrast(1.08);
+  opacity: 1;
+}
+
+.campus-info__mapa .leaflet-control-container {
+  display: none;
+}
+
+.campus-info__mapa .leaflet-pane,
+.campus-info__mapa .leaflet-tile-pane {
+  pointer-events: none !important;
+}
+
+.campus-info__mapa .leaflet-marker-pane,
+.campus-info__mapa .leaflet-popup-pane {
+  pointer-events: auto !important;
+}
+
+.campus-info__locais {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2.5rem 0;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  opacity: 0.38;
+}
+
+.campus-info__trilha-linha {
+  overflow: hidden;
+  width: 100%;
+  will-change: transform;
+  transition: transform 0.45s ease-out;
+}
+
+.campus-info__trilha-linha--a .campus-info__trilha {
+  animation: campus-locais-scroll 38s linear infinite;
+}
+
+.campus-info__trilha-linha--b .campus-info__trilha {
+  animation: campus-locais-scroll 44s linear infinite reverse;
+}
+
+.campus-info__trilha {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.85rem;
+  width: max-content;
+  padding: 0 1rem;
+}
+
+.campus-info__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.campus-info__chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cor-acento);
+  box-shadow: 0 0 0 4px rgba(103, 61, 230, 0.25);
+}
+
+.campus-info__chip[data-polo-id] {
+  pointer-events: auto;
+  cursor: default;
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.campus-info__chip[data-polo-id]:hover {
+  transform: translateY(-2px) scale(1.03);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.campus-info__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      165deg,
+      rgba(35, 64, 107, 0.52) 0%,
+      rgba(26, 50, 86, 0.45) 45%,
+      rgba(13, 20, 26, 0.5) 100%
+    );
+  backdrop-filter: blur(0);
+}
+
+.campus-info__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 22rem at var(--campus-glow-x) var(--campus-glow-y),
+    rgba(103, 61, 230, 0.12),
+    transparent 68%
+  );
+  opacity: 0.75;
+}
+
+.campus-info__content {
+  position: relative;
+  z-index: 1;
+}
+
+.campus-info__map-pin {
+  background: transparent;
+  border: none;
+}
+
+.campus-info__map-pin-icone {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+  border: 2px solid var(--cor-branco);
+  border-radius: 50%;
+  background: var(--cor-acento);
+  box-shadow: 0 0 0 6px rgba(103, 61, 230, 0.35);
+  animation: campus-pin-pulse 2.4s ease-in-out infinite;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.setad-mapa-pin--destaque .campus-info__map-pin-icone {
+  animation: none;
+  transform: scale(1.45);
+  background: #fff;
+  border-color: var(--cor-acento);
+  border-width: 3px;
+  box-shadow:
+    0 0 0 8px rgba(103, 61, 230, 0.45),
+    0 6px 18px rgba(35, 64, 107, 0.35);
+}
+
+.setad-mapa-pin--destaque .polos-mapa__pin-icone {
+  animation: none;
+  transform: rotate(-45deg) scale(1.35);
+  background: var(--cor-acento);
+  border-color: #fff;
+  box-shadow:
+    0 0 0 8px rgba(103, 61, 230, 0.4),
+    0 6px 18px rgba(35, 64, 107, 0.35);
+}
+
+.setad-mapa-pin--dim .campus-info__map-pin-icone {
+  animation: none;
+  opacity: 0.28;
+  transform: scale(0.82);
+  box-shadow: none;
+}
+
+.setad-mapa-pin--dim .polos-mapa__pin-icone {
+  animation: none;
+  opacity: 0.28;
+  transform: rotate(-45deg) scale(0.82);
+  box-shadow: none;
+}
+
+.campus-arte__regioes li[data-polo-id] {
+  cursor: default;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.campus-arte__regioes li[data-polo-id]:hover {
+  transform: translateY(-1px);
+  background-color: rgba(103, 61, 230, 0.14);
+  color: var(--cor-primaria-escura);
+}
+
+@keyframes campus-locais-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes campus-pin-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(103, 61, 230, 0.28);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 10px rgba(103, 61, 230, 0.12);
+  }
 }
 
 .campus-info .section__label {
@@ -1322,14 +1556,60 @@ body.has-radio-player .contato-setad {
   color: inherit;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--cor-borda);
-  box-shadow: 0 12px 40px rgba(35, 64, 107, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
   transition: transform var(--transicao), box-shadow var(--transicao);
+}
+
+.campus-arte--glass {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 2px 8px rgba(35, 64, 107, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.07);
+}
+
+.campus-arte--glass .campus-arte__conteudo {
+  background-color: rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+}
+
+.campus-arte--glass .campus-arte__visual {
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.22);
+  color: var(--cor-primaria);
+}
+
+.campus-arte--glass .campus-arte__numero,
+.campus-arte--glass .campus-arte__numero-label {
+  color: var(--cor-primaria);
+}
+
+.campus-arte--glass .campus-arte__numero-label {
+  opacity: 0.82;
+}
+
+.campus-arte--glass .campus-arte__badge {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.campus-arte--glass .campus-arte__regioes li {
+  background-color: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(35, 64, 107, 0.08);
 }
 
 .campus-arte:hover {
   transform: translateY(-4px);
   box-shadow: 0 18px 48px rgba(35, 64, 107, 0.18);
+}
+
+.campus-arte--glass:hover {
+  box-shadow:
+    0 4px 14px rgba(35, 64, 107, 0.08),
+    0 18px 40px rgba(0, 0, 0, 0.09);
 }
 
 .campus-arte:focus-visible {
@@ -1343,9 +1623,7 @@ body.has-radio-player .contato-setad {
   align-items: center;
   justify-content: center;
   padding: 2.5rem 1.5rem;
-  background-image:
-    linear-gradient(160deg, rgba(35, 64, 107, 0.88), rgba(103, 61, 230, 0.78)),
-    url("../assets/images/polos-fundo.jpg");
+  background-image: linear-gradient(160deg, rgba(35, 64, 107, 0.72), rgba(103, 61, 230, 0.55));
   background-size: cover;
   background-position: center;
   color: var(--cor-branco);
@@ -2279,6 +2557,10 @@ body.has-radio-player .contato-setad {
   border-bottom: 1px solid rgba(35, 64, 107, 0.12);
 }
 
+.pagina-polos__hero--compacta {
+  padding: 5.5rem 0 1.75rem;
+}
+
 .pagina-polos__voltar {
   display: inline-block;
   margin-bottom: 1.25rem;
@@ -2324,6 +2606,189 @@ body.has-radio-player .contato-setad {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+}
+
+/* Layout lista + mapa (página de polos) */
+.polos-split {
+  padding: 1.5rem 0 3rem;
+}
+
+.polos-split__shell {
+  display: grid;
+  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+  gap: 1.35rem;
+  align-items: start;
+}
+
+.polos-split__painel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 7.5rem);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 20px rgba(35, 64, 107, 0.08),
+    0 18px 48px rgba(35, 64, 107, 0.1);
+  overflow: hidden;
+}
+
+.polos-split__painel-head {
+  flex-shrink: 0;
+  padding: 1.35rem 1.35rem 1rem;
+  border-bottom: 1px solid rgba(35, 64, 107, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+}
+
+.polos-split__painel-titulo {
+  margin: 0 0 0.45rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  line-height: 1.25;
+}
+
+.polos-split__painel-texto {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--cor-texto-suave);
+}
+
+.polos-split__contagem {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-acento);
+}
+
+.polos-split__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1rem 1.15rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(103, 61, 230, 0.45) transparent;
+}
+
+.polos-split__lista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.polos-split__lista::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(103, 61, 230, 0.35);
+}
+
+.polos-split__lista .polo-card {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.polos-split__lista .polo-card--com-foto {
+  min-height: 9.5rem;
+}
+
+.polos-split__lista .polo-card__conteudo {
+  padding: 1rem 1.1rem;
+}
+
+.polos-split__lista .polo-card__nome {
+  font-size: 1.05rem;
+}
+
+.polos-split__lista .polo-card__endereco {
+  font-size: 0.88rem;
+  margin-bottom: 0.55rem;
+}
+
+.polos-split__lista .polo-card--ativo {
+  border-color: rgba(103, 61, 230, 0.45);
+  box-shadow:
+    0 0 0 2px rgba(103, 61, 230, 0.22),
+    0 14px 32px rgba(35, 64, 107, 0.16);
+  transform: translateY(-2px);
+}
+
+.polos-split__lista .polo-card--ativo .polo-card__conteudo {
+  border-top-color: var(--cor-acento);
+}
+
+.polos-split__mapa-wrap {
+  position: sticky;
+  top: 5.25rem;
+}
+
+.polos-split__mapa-card {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 7.5rem);
+  min-height: 28rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 20px rgba(35, 64, 107, 0.08),
+    0 18px 48px rgba(35, 64, 107, 0.1);
+}
+
+.polos-split__mapa-topo {
+  flex-shrink: 0;
+  margin-bottom: 0.75rem;
+  padding: 0 0.15rem;
+}
+
+.polos-split__mapa-topo .section__label {
+  margin-bottom: 0.25rem;
+}
+
+.polos-split__mapa-dica {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+.polos-mapa__container--split {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  border-radius: 12px;
+}
+
+@media (max-width: 1024px) {
+  .polos-split__shell {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .polos-split__mapa-wrap {
+    position: relative;
+    top: auto;
+    order: -1;
+  }
+
+  .polos-split__mapa-card {
+    height: min(52vh, 26rem);
+    min-height: 280px;
+  }
+
+  .polos-split__painel {
+    max-height: none;
+  }
+
+  .polos-split__lista {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 .polo-card {
@@ -2549,16 +3014,76 @@ body.has-radio-player .contato-setad {
   background: var(--cor-primaria);
   box-shadow: 0 4px 12px rgba(35, 64, 107, 0.35);
   transform: rotate(-45deg);
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
 }
+
 
 .polos-mapa__popup-wrap .leaflet-popup-content-wrapper {
   border-radius: 10px;
   box-shadow: 0 10px 28px rgba(35, 64, 107, 0.18);
 }
 
+.polos-mapa__popup-wrap--com-foto .leaflet-popup-content-wrapper {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
 .polos-mapa__popup-wrap .leaflet-popup-content {
   margin: 0.85rem 1rem;
   line-height: 1.5;
+}
+
+.polos-mapa__popup-wrap--com-foto .leaflet-popup-content {
+  margin: 0;
+  width: min(300px, 78vw) !important;
+}
+
+.polos-mapa__popup--com-foto .polos-mapa__popup-corpo {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.polos-mapa__popup-foto-wrap {
+  position: relative;
+  min-height: 9.5rem;
+  overflow: hidden;
+}
+
+.polos-mapa__popup-foto {
+  min-height: 9.5rem;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.polos-mapa__popup-foto-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(13, 20, 26, 0.82) 0%,
+    rgba(35, 64, 107, 0.35) 42%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+.polos-mapa__popup-titulo--foto {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  line-height: 1.25;
+  color: var(--cor-branco);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
 .polos-mapa__popup-titulo {

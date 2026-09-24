@@ -6,6 +6,7 @@ const {
   replaceJsonCollection,
   upsertJson
 } = require("./db");
+const { importarAutorizadosIniciais } = require("./staff-ativacao");
 
 const LIVROS_INICIAIS = require("./seed-data/livros.json");
 const FUNCIONARIOS_INICIAIS = require("./seed-data/funcionarios.json");
@@ -41,6 +42,12 @@ function seedIfNeeded() {
     INSERT INTO users (id, email, password_hash, nome, perfil, modulo, matricula_id, verificado, created_at, verified_at)
     VALUES (@id, @email, @password_hash, @nome, @perfil, @modulo, @matricula_id, @verificado, @created_at, @verified_at)
   `);
+
+  importarAutorizadosIniciais([
+    { email: "diretor@setad.org.br", nome: "Dir. SETAD", perfil: "diretor" },
+    { email: "contador@setad.org.br", nome: "Contador SETAD", perfil: "contador" },
+    { email: "secretaria@setad.org.br", nome: "Secretaria SETAD", perfil: "secretaria" }
+  ]);
 
   STAFF_USERS.forEach((u) => {
     insertUser.run({

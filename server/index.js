@@ -3,6 +3,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
+const { importarAutorizadosIniciais } = require("./staff-ativacao");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
 const {
@@ -16,6 +17,17 @@ const ROOT = path.join(__dirname, "..");
 
 validarSegredosProducao();
 seedIfNeeded();
+
+(function carregarStaffAutorizadosEnv() {
+  const raw = (process.env.SETAD_STAFF_AUTORIZADOS_JSON || "").trim();
+  if (!raw) return;
+  try {
+    importarAutorizadosIniciais(JSON.parse(raw));
+    console.log("[SETAD] Lista de e-mails institucionais carregada de SETAD_STAFF_AUTORIZADOS_JSON.");
+  } catch (erro) {
+    console.error("[SETAD] SETAD_STAFF_AUTORIZADOS_JSON inválido:", erro.message);
+  }
+})();
 
 const app = express();
 

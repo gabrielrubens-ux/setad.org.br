@@ -57,33 +57,44 @@
   </header>
 
   <main>
-    <section class="pagina-polos__hero">
-      <div class="container">
+    <section class="pagina-polos__hero pagina-polos__hero--compacta">
+      <div class="container container--wide">
         <a href="../index.html" class="pagina-polos__voltar">&larr; Voltar à página principal</a>
         <p class="section__label">Onde estamos</p>
         <h1 class="pagina-polos__titulo">Conheça nossos polos</h1>
         <p class="pagina-polos__texto">
-          O SETAD está presente em diversas localidades para levar formação teológica
-          de qualidade mais perto de você. Confira os endereços de cada polo abaixo.
+          Explore a lista ao lado e o mapa interativo — destaque automático ao passar o mouse ou ao selecionar um polo.
         </p>
       </div>
     </section>
 
-    <section class="section polos-lista">
-      <div class="container container--wide">
-        <div id="polosContainer" class="polos-grid" aria-live="polite"></div>
-      </div>
-    </section>
+    <section class="polos-split fade-in" id="mapa-polos">
+      <div class="container container--wide polos-split__shell">
+        <aside class="polos-split__painel" aria-label="Lista de polos do SETAD">
+          <div class="polos-split__painel-head">
+            <h2 class="polos-split__painel-titulo">Polos em Belém</h2>
+            <p class="polos-split__painel-texto">
+              Clique em um polo para abrir no mapa. Use os links para rotas no Google Maps.
+            </p>
+            <p class="polos-split__contagem" id="polosContagem" aria-live="polite"></p>
+          </div>
+          <div id="polosContainer" class="polos-split__lista" aria-live="polite"></div>
+        </aside>
 
-    <section class="section polos-mapa fade-in" id="mapa-polos">
-      <div class="container container--wide">
-        <p class="section__label">Mapa geral</p>
-        <h2 class="section__title">Polos em Belém e região</h2>
-        <p class="section__text polos-mapa__intro">
-          Visualize todos os polos do SETAD no mapa. Clique em um pin para ver detalhes,
-          abrir a rota no Google Maps ou ir até o card do polo.
-        </p>
-        <div id="polosMapa" class="polos-mapa__container" role="region" aria-label="Mapa interativo dos polos do SETAD em Belém"></div>
+        <div class="polos-split__mapa-wrap">
+          <div class="polos-split__mapa-card">
+            <div class="polos-split__mapa-topo">
+              <p class="section__label">Mapa interativo</p>
+              <p class="polos-split__mapa-dica">Pins sincronizados com a lista à esquerda</p>
+            </div>
+            <div
+              id="polosMapa"
+              class="polos-mapa__container polos-mapa__container--split"
+              role="region"
+              aria-label="Mapa interativo dos polos do SETAD em Belém"
+            ></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -92,6 +103,7 @@
   <script src="/js/setad-sync.js"></script>
   <script src="../js/dados.js"></script>
   <script src="../js/polos.js"></script>
+  <script src="../js/polos-coordenadas.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="../js/polos-mapa.js"></script>
   <script src="../js/script.js"></script>

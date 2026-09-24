@@ -3,35 +3,10 @@
    Lê automaticamente de POLOS_SETAD em polos.js
    ============================================================ */
 
-const BELEM_COORDS = { lat: -1.4558, lng: -48.4902 };
+const BELEM_COORDS = window.SETADPolosCoord.BELEM_COORDS;
 
-function obterCoordenadasPolo(polo) {
-  if (polo.lat != null && polo.lng != null) {
-    return { lat: Number(polo.lat), lng: Number(polo.lng) };
-  }
-
-  if (!polo.mapsUrl) return null;
-
-  const matchPreciso = polo.mapsUrl.match(/!8m2!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
-  if (matchPreciso) {
-    return { lat: parseFloat(matchPreciso[1]), lng: parseFloat(matchPreciso[2]) };
-  }
-
-  const matchArroba = polo.mapsUrl.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
-  if (matchArroba) {
-    return { lat: parseFloat(matchArroba[1]), lng: parseFloat(matchArroba[2]) };
-  }
-
-  return null;
-}
-
-function montarEnderecoPolo(polo) {
-  return [
-    polo.endereco,
-    polo.bairro,
-    polo.cidade && polo.estado ? polo.cidade + "/" + polo.estado : polo.cidade
-  ].filter(Boolean).join(" - ");
-}
+const marcadoresPolosPorId = {};
+let mapaPolosInstancia = null;
 
 function criarIconePolo() {
   return L.divIcon({
@@ -43,14 +18,86 @@ function criarIconePolo() {
   });
 }
 
+function destacarPoloNoMapaPolos(poloId) {
+  window.SETADPolosCoord.destacarMarcadoresLeaflet(marcadoresPolosPorId, poloId || null);
+}
+
+function marcarPoloAtivoNaLista(poloId) {
+  document.querySelectorAll(".polo-card--ativo").forEach(function (card) {
+    card.classList.remove("polo-card--ativo");
+  });
+
+  if (!poloId) return;
+
+  const card = document.getElementById("polo-" + poloId);
+  if (!card) return;
+
+  card.classList.add("polo-card--ativo");
+  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function focarPoloNoMapa(poloId, abrirPopup) {
+  const marker = marcadoresPolosPorId[poloId];
+  const mapa = mapaPolosInstancia;
+  if (!marker || !mapa) return;
+
+  const alvo = marker.getLatLng();
+  const zoom = Math.max(mapa.getZoom(), 14);
+  const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduzir) {
+    mapa.setView(alvo, zoom);
+  } else {
+    mapa.flyTo(alvo, zoom, { duration: 0.65 });
+  }
+
+  if (abrirPopup) {
+    window.setTimeout(function () {
+      marker.openPopup();
+    }, 420);
+  }
+
+  destacarPoloNoMapaPolos(poloId);
+  marcarPoloAtivoNaLista(poloId);
+}
+
+function vincularHoverCardsAoMapa() {
+  document.querySelectorAll(".polo-card[id^='polo-']").forEach(function (card) {
+    if (card.dataset.mapaHoverBound === "1") return;
+    card.dataset.mapaHoverBound = "1";
+
+    const poloId = card.id.replace(/^polo-/, "");
+
+    card.addEventListener("mouseenter", function () {
+      destacarPoloNoMapaPolos(poloId);
+    });
+
+    card.addEventListener("mouseleave", function () {
+      if (!card.classList.contains("polo-card--ativo")) {
+        destacarPoloNoMapaPolos(null);
+      }
+    });
+
+    card.addEventListener("click", function (evento) {
+      if (evento.target.closest("a")) return;
+      focarPoloNoMapa(poloId, true);
+    });
+
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("role", "button");
+    card.addEventListener("keydown", function (evento) {
+      if (evento.key !== "Enter" && evento.key !== " ") return;
+      evento.preventDefault();
+      focarPoloNoMapa(poloId, true);
+    });
+  });
+}
+
 function renderizarMapaPolos(containerId) {
   const container = document.getElementById(containerId);
   if (!container || typeof L === "undefined" || !Array.isArray(POLOS_SETAD)) return;
 
-  const polosComCoordenadas = POLOS_SETAD.map(function (polo) {
-    const coords = obterCoordenadasPolo(polo);
-    return coords ? { polo: polo, coords: coords } : null;
-  }).filter(Boolean);
+  const polosComCoordenadas = window.SETADPolosCoord.listarPolosComCoordenadas(POLOS_SETAD);
 
   if (polosComCoordenadas.length === 0) {
     container.innerHTML =
@@ -63,6 +110,8 @@ function renderizarMapaPolos(containerId) {
     zoomControl: true
   }).setView([BELEM_COORDS.lat, BELEM_COORDS.lng], 12);
 
+  mapaPolosInstancia = mapa;
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(mapa);
@@ -70,37 +119,39 @@ function renderizarMapaPolos(containerId) {
   const grupoMarcadores = L.featureGroup();
   const icone = criarIconePolo();
 
+  Object.keys(marcadoresPolosPorId).forEach(function (chave) {
+    delete marcadoresPolosPorId[chave];
+  });
+
   polosComCoordenadas.forEach(function (item) {
     const polo = item.polo;
-    const endereco = montarEnderecoPolo(polo);
-    const local = polo.local
-      ? '<p class="polos-mapa__popup-local">' + escaparHtml(polo.local) + "</p>"
-      : "";
-    const linkMaps = polo.mapsUrl
-      ? '<a href="' + escaparHtml(polo.mapsUrl) + '" class="polos-mapa__popup-link" target="_blank" rel="noopener noreferrer">Abrir no Google Maps</a>'
-      : "";
-    const linkCard =
-      '<a href="#polo-' + escaparHtml(polo.id) + '" class="polos-mapa__popup-link polos-mapa__popup-link--card">Ver card do polo</a>';
+    const popupHtml = window.SETADPolosCoord.montarHtmlPopupPolo(polo, { incluirLinkCard: true });
+    const popupClass = window.SETADPolosCoord.classePopupPolo(polo);
 
-    const popupHtml =
-      '<div class="polos-mapa__popup">' +
-        '<strong class="polos-mapa__popup-titulo">' + escaparHtml(polo.nome) + "</strong>" +
-        local +
-        (endereco ? '<p class="polos-mapa__popup-endereco">' + escaparHtml(endereco) + "</p>" : "") +
-        '<div class="polos-mapa__popup-acoes">' + linkCard + linkMaps + "</div>" +
-      "</div>";
-
-    L.marker([item.coords.lat, item.coords.lng], { icon: icone })
-      .bindPopup(popupHtml, { maxWidth: 280, className: "polos-mapa__popup-wrap" })
+    const marker = L.marker([item.coords.lat, item.coords.lng], { icon: icone })
+      .bindPopup(popupHtml, { maxWidth: 300, className: popupClass })
       .addTo(grupoMarcadores);
+
+    if (polo.id) {
+      marcadoresPolosPorId[polo.id] = marker;
+      marker.on("click", function () {
+        focarPoloNoMapa(polo.id, false);
+      });
+    }
   });
 
   grupoMarcadores.addTo(mapa);
   mapa.fitBounds(grupoMarcadores.getBounds().pad(0.12));
+  window.SETADPolosCoord.configurarFecharPopupForaDoMapa(mapa);
 
   window.setTimeout(function () {
     mapa.invalidateSize();
+    vincularHoverCardsAoMapa();
   }, 120);
+
+  window.addEventListener("resize", function () {
+    mapa.invalidateSize();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
