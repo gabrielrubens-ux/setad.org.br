@@ -4,7 +4,7 @@
 
 - O código está no GitHub: `https://github.com/gabrielrubens-ux/setad.org.br`
 - `package.json` tem `build` e `start` (exigido pelo deploy Node da Hostinger).
-- **`setad.org.br` ainda não resolve na internet (DNS)** — sem isso ninguém abre o domínio no navegador, mesmo com o app no ar.
+- Domínio no **Registro.br**; hospedagem Node na Hostinger já usa **`setad.org.br`**. Falta **DNS A/CNAME** apontando para a Hostinger — ver `docs/REGISTRO-BR-DNS-SETAD.md`.
 
 O servidor **no seu PC** já pode rodar em `http://localhost:3456` (só para você / rede local).
 
