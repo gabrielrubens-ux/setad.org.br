@@ -21,7 +21,7 @@ A API da Hostinger **substitui a lista inteira** ao salvar — sempre envie o co
 
 | Nome | Valor |
 |------|--------|
-| `SETAD_STAFF_AUTORIZADOS_JSON` | JSON em **uma linha**, ex.: `[{"email":"diretor@setad.org.br","nome":"Direção SETAD","perfil":"diretor"},{"email":"contador@exemplo.com","nome":"Contabilidade","perfil":"contador"}]` |
+| `SETAD_STAFF_AUTORIZADOS_JSON` | JSON em **uma linha** — lista atual em `docs/CADASTRO-STAFF-INSTITUCIONAL.md` e em `.env.hostinger.local` (local, não commitar) |
 
 Perfis aceitos: `diretor`, `contador`, `secretaria`. Detalhes: `docs/STAFF-PRIMEIRO-ACESSO.md`.
 

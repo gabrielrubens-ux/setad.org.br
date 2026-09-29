@@ -18,7 +18,7 @@ A Hostinger **não** aplicou patch automático: todos os itens estavam com `is_p
 3. **`overrides`** no `package.json` forçam versões corrigidas nas dependências aninhadas:
    - `tar` → `^7.5.21`
    - `uuid` → `^11.1.1`
-   - `sharp` → `^0.35.4`
+   - `sharp` → `^0.35.5` (via `@capacitor/assets` no override)
 
 ## O que você precisa rodar localmente
 

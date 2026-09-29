@@ -2,10 +2,67 @@
 
 O domínio está **registrado no Registro.br** (nameservers `a.auto.dns.br`). A hospedagem Node já está criada na Hostinger com site **`setad.org.br`**, mas o DNS público **ainda não aponta** para a Hostinger — por isso o site pode retornar **503** e o SSL falha com *Domain challenge failed*.
 
-## Passo 1 — Registro.br (obrigatório)
+## Não confundir: “Servidores DNS” × “Registro A”
+
+No Registro.br existem **duas telas diferentes**:
+
+| Tela no Registro.br | O que colocar | Exemplo |
+|---------------------|---------------|---------|
+| **Alterar servidores DNS** / delegação | Só **nomes** (hostname), **nunca IP** | `ns1.hostinger.com`, `ns2.hostinger.com` |
+| **DNS → Modo avançado** / **Editar zona** | **Registros** do site: tipo **A**, **CNAME**, etc. | A `@` → `77.37.42.143` |
+
+A mensagem *“endereço IP não pode ser usado como servidores DNS”* aparece quando você coloca `77.37.42.xxx` no campo **Servidor DNS**. IP vai só no **registro tipo A** (abaixo).
+
+---
+
+## Caminho A — Manter DNS no Registro.br (recomendado se o domínio ficou no Registro.br)
+
+1. [registro.br](https://registro.br) → **setad.org.br** → **DNS**.
+2. Use **DNS do Registro.br** (não troque servidores DNS por IP).
+3. Abra **Modo avançado** / **Configurar endereçamento** → **Modo avançado** / **Editar zona**.
+4. **Adicione** (não altere os servidores `a.auto.dns.br` / `b.auto.dns.br`):
+
+| Tipo | Nome / Host | Valor | TTL |
+|------|-------------|--------|-----|
+| **A** | `@` (ou vazio) | `77.37.42.143` | 3600 |
+| **A** | `@` | `89.116.213.220` | 3600 (se permitir 2º A) |
+| **CNAME** | `www` | `setad.org.br` | 3600 |
+
+Use **`77.37.42.143`** (não `.134` — confira o dígito). Se só puder um A, use esse.
+
+5. Salve e aguarde propagação.
+
+---
+
+## Caminho B — Delegar DNS inteiro para a Hostinger
+
+Só se quiser gerenciar DNS no **hPanel** da Hostinger:
+
+1. hPanel → **Websites** → **setad.org.br** → **DNS** / **Nameservers** — copie os **4 nameservers** exibidos (costumam ser):
+   - `ns1.dns-parking.com`
+   - `ns2.dns-parking.com`  
+   ou, em contas novas:
+   - `ns1.hostinger.com`
+   - `ns2.hostinger.com`
+   - `ns3.hostinger.com`
+   - `ns4.hostinger.com`  
+   **Use os que o hPanel mostrar para o seu site** (podem variar).
+
+2. No Registro.br → **setad.org.br** → **Alterar servidores DNS**:
+   - Servidor 1: `ns1.hostinger.com` (ou o 1º do hPanel)
+   - Servidor 2: `ns2.hostinger.com` (ou o 2º do hPanel)
+   - Servidor 3 e 4: se o Registro.br pedir, preencha com o 3º e 4º do hPanel.
+
+3. **Não** coloque IP nesses campos — só hostnames.
+
+4. Na Hostinger, a zona DNS do site deve ter os registros A/CNAME criados automaticamente ou você adiciona no hPanel.
+
+---
+
+## Passo 1 (resumo caminho A) — Registro.br
 
 1. Acesse [https://registro.br](https://registro.br) → login → domínio **setad.org.br**.
-2. **DNS** / **Editar zona** (DNS do Registro.br, não Hostinger).
+2. **DNS** → **Modo avançado** (não “servidores DNS” com IP).
 3. Crie ou ajuste:
 
 | Tipo | Nome / Host | Valor | TTL |
