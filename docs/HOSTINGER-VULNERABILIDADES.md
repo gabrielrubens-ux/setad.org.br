@@ -16,7 +16,7 @@ A Hostinger **não** aplicou patch automático: todos os itens estavam com `is_p
 1. **`nodemailer`** atualizado para `^10.0.10` (dependência de produção).
 2. **Capacitor + `sharp`** movidos para `devDependencies` (app Android / ícones — não necessários no `npm start` da API).
 3. **`overrides`** no `package.json` forçam versões corrigidas nas dependências aninhadas:
-   - `tar` → `^7.5.21`
+   - `tar` → `^7.5.22` (node-tar ≥ 7.5.21; override em `@capacitor/cli` e raiz)
    - `uuid` → `^11.1.1`
    - `sharp` → `^0.35.5` (via `@capacitor/assets` no override)
 
