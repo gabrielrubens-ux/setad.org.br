@@ -9,7 +9,7 @@ No Registro.br existem **duas telas diferentes**:
 | Tela no Registro.br | O que colocar | Exemplo |
 |---------------------|---------------|---------|
 | **Alterar servidores DNS** / delegação | Só **nomes** (hostname), **nunca IP** | `ns1.hostinger.com`, `ns2.hostinger.com` |
-| **DNS → Modo avançado** / **Editar zona** | **Registros** do site: tipo **A**, **CNAME**, etc. | A `@` → `77.37.42.143` |
+| **DNS → Modo avançado** / **Editar zona** | **Registros** do site: tipo **A**, **CNAME**, etc. | A `@` → IPs da CDN (veja tabela abaixo) |
 
 A mensagem *“endereço IP não pode ser usado como servidores DNS”* aparece quando você coloca `77.37.42.xxx` no campo **Servidor DNS**. IP vai só no **registro tipo A** (abaixo).
 
@@ -20,17 +20,18 @@ A mensagem *“endereço IP não pode ser usado como servidores DNS”* aparece 
 1. [registro.br](https://registro.br) → **setad.org.br** → **DNS**.
 2. Use **DNS do Registro.br** (não troque servidores DNS por IP).
 3. Abra **Modo avançado** / **Configurar endereçamento** → **Modo avançado** / **Editar zona**.
-4. **Adicione** (não altere os servidores `a.auto.dns.br` / `b.auto.dns.br`):
+4. **Remova** qualquer registro **A** em `@` que aponte para **`200.160.2.95`** (hoje o domínio cai em página errada / WhatsApp, não na Hostinger).
+5. **Adicione** (não altere os servidores `a.auto.dns.br` / `b.auto.dns.br`):
 
 | Tipo | Nome / Host | Valor | TTL |
 |------|-------------|--------|-----|
-| **A** | `@` (ou vazio) | `77.37.42.143` | 3600 |
-| **A** | `@` | `89.116.213.220` | 3600 (se permitir 2º A) |
+| **A** | `@` (ou vazio) | `147.79.105.195` | 3600 |
+| **A** | `@` | `91.108.127.233` | 3600 (se permitir 2º A) |
 | **CNAME** | `www` | `setad.org.br` | 3600 |
 
-Use **`77.37.42.143`** (não `.134` — confira o dígito). Se só puder um A, use esse.
+IPs conferidos em `setad.org.br.cdn.hstgr.net` (CDN Hostinger do site). Podem mudar com o tempo — confira no hPanel ou com `Resolve-DnsName setad.org.br.cdn.hstgr.net`. Se só puder um A, use o primeiro.
 
-5. Salve e aguarde propagação.
+6. Salve e aguarde propagação.
 
 ---
 
@@ -67,11 +68,11 @@ Só se quiser gerenciar DNS no **hPanel** da Hostinger:
 
 | Tipo | Nome / Host | Valor | TTL |
 |------|-------------|--------|-----|
-| **A** | `@` (ou vazio) | `77.37.42.143` | 3600 |
-| **A** | `@` | `89.116.213.220` | 3600 |
+| **A** | `@` (ou vazio) | `147.79.105.195` | 3600 |
+| **A** | `@` | `91.108.127.233` | 3600 |
 | **CNAME** | `www` | `setad.org.br` | 3600 |
 
-Se o painel só permitir **um** registro A em `@`, use **`77.37.42.143`** (IP da CDN Hostinger usada pelo plano).
+Remova o A antigo `200.160.2.95`. Se o painel só permitir **um** registro A em `@`, use **`147.79.105.195`**.
 
 4. Salve e aguarde propagação (15 min a 48 h).
 
