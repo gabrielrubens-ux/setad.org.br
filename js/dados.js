@@ -442,39 +442,67 @@ function sanitizarMatriculaRegistro(matricula) {
   if (!matricula || typeof matricula !== "object") return null;
 
   const email = normalizarEmailMatricula(matricula.email);
-  if (!email) return null;
+  const cpfDigitos = normalizarCpfMatricula(matricula.cpf);
+  const nome = (matricula.nomeCompleto || "").trim();
+  const quadroSeminario = !!matricula.quadroSeminario;
+
+  if (!email) {
+    if (!quadroSeminario || cpfDigitos.length < 11 || !nome) {
+      return null;
+    }
+    return Object.assign({}, matricula, {
+      email: "",
+      cpf: matricula.cpf ? String(matricula.cpf).trim() : "",
+      nomeCompleto: nome,
+      quadroSeminario: true
+    });
+  }
 
   return Object.assign({}, matricula, {
     email: email,
     cpf: matricula.cpf ? String(matricula.cpf).trim() : "",
-    nomeCompleto: (matricula.nomeCompleto || "").trim()
+    nomeCompleto: nome
   });
 }
 
 function repararArmazenamentoMatriculas() {
   const matriculas = obterMatriculasBrutas();
   const porEmail = {};
+  const quadroSemEmailPorId = {};
 
   matriculas.forEach(function (matricula) {
     const registro = sanitizarMatriculaRegistro(matricula);
     if (!registro) return;
 
-    const atual = porEmail[registro.email];
+    const emailChave = normalizarEmailMatricula(registro.email);
+    if (!emailChave && registro.quadroSeminario && registro.id) {
+      quadroSemEmailPorId[registro.id] = registro;
+      return;
+    }
+    if (!emailChave) return;
+
+    const atual = porEmail[emailChave];
     if (!atual) {
-      porEmail[registro.email] = registro;
+      porEmail[emailChave] = registro;
       return;
     }
 
     const dataAtual = new Date(atual.dataMatricula || 0).getTime();
     const dataNova = new Date(registro.dataMatricula || 0).getTime();
     if (dataNova >= dataAtual) {
-      porEmail[registro.email] = registro;
+      porEmail[emailChave] = registro;
     }
   });
 
-  const normalizadas = Object.keys(porEmail).map(function (email) {
-    return porEmail[email];
-  });
+  const normalizadas = Object.keys(porEmail)
+    .map(function (email) {
+      return porEmail[email];
+    })
+    .concat(
+      Object.keys(quadroSemEmailPorId).map(function (id) {
+        return quadroSemEmailPorId[id];
+      })
+    );
 
   const invalidas = matriculas.length - matriculas.filter(sanitizarMatriculaRegistro).length;
   const precisaSalvar =
@@ -551,22 +579,43 @@ function normalizarCpfSomenteDigitos(cpf) {
   return String(cpf || "").replace(/\D/g, "");
 }
 
-function obterMatriculaPorCpfOuEmail(termo) {
+function obterMatriculaPorCpfOuEmailBruta(termo) {
   const bruto = String(termo || "").trim();
   if (!bruto) return null;
 
+  const lista = obterMatriculasBrutas();
+
   if (bruto.indexOf("@") > 0) {
-    return obterMatriculaPorEmail(bruto);
+    const emailNorm = normalizarEmailMatricula(bruto);
+    return (
+      lista.find(function (m) {
+        return normalizarEmailMatricula(m.email) === emailNorm;
+      }) || null
+    );
   }
 
   const digitos = normalizarCpfSomenteDigitos(bruto);
   if (digitos.length < 11) return null;
 
   return (
-    obterMatriculas().find(function (m) {
+    lista.find(function (m) {
       return normalizarCpfSomenteDigitos(m.cpf) === digitos;
     }) || null
   );
+}
+
+function obterMatriculaPorCpfOuEmail(termo) {
+  const encontrada = obterMatriculaPorCpfOuEmailBruta(termo);
+  if (!encontrada) return null;
+
+  const emailNorm = normalizarEmailMatricula(encontrada.email);
+  if (!emailNorm && encontrada.quadroSeminario) {
+    return encontrada;
+  }
+
+  return obterMatriculas().find(function (m) {
+    return m.id === encontrada.id;
+  }) || encontrada;
 }
 
 function atualizarDadosMatricula(matriculaId, patch) {
@@ -583,14 +632,14 @@ function atualizarDadosMatricula(matriculaId, patch) {
   return { ok: true, matricula: matriculas[indice] };
 }
 
-function verificarEmailDisponivelParaMatricula(email) {
+function verificarEmailDisponivelParaMatricula(email, matriculaIdIgnorar) {
   const emailNormalizado = normalizarEmailMatricula(email);
   if (!emailNormalizado) {
     return { ok: false, erro: "Informe um e-mail válido." };
   }
 
   const existente = obterMatriculaPorEmail(emailNormalizado);
-  if (!existente) {
+  if (!existente || (matriculaIdIgnorar && existente.id === matriculaIdIgnorar)) {
     return { ok: true };
   }
 
@@ -602,6 +651,98 @@ function verificarEmailDisponivelParaMatricula(email) {
       (typeof formatarData === "function" ? formatarData(existente.dataMatricula) : "data não informada") +
       "). Se necessário, exclua o cadastro anterior em Novos alunos."
   };
+}
+
+function salvarAlunoQuadroSeminario(dados, sessao, termoBusca) {
+  const emailNormalizado = normalizarEmailMatricula(dados.email);
+  if (!emailNormalizado) {
+    return { ok: false, erro: "Informe o e-mail para o acesso ao site." };
+  }
+
+  const cpfDigitos = normalizarCpfMatricula(dados.cpf);
+  if (cpfDigitos.length < 11) {
+    return { ok: false, erro: "Informe o CPF do aluno do quadro." };
+  }
+
+  const termo = String(termoBusca || dados.cpf || dados.email || "").trim();
+  let existente = termo ? obterMatriculaPorCpfOuEmailBruta(termo) : null;
+  if (!existente) {
+    existente = obterMatriculaPorCpfOuEmailBruta(dados.cpf);
+  }
+  if (!existente && dados.email) {
+    existente = obterMatriculaPorCpfOuEmailBruta(dados.email);
+  }
+
+  const outroComCpf = obterMatriculas().find(function (m) {
+    if (existente && m.id === existente.id) return false;
+    return normalizarCpfMatricula(m.cpf) === cpfDigitos;
+  });
+  if (outroComCpf) {
+    return {
+      ok: false,
+      erro:
+        "Este CPF já está vinculado a outro cadastro (" +
+        outroComCpf.nomeCompleto +
+        "). Verifique os dados."
+    };
+  }
+
+  const verificacaoEmail = verificarEmailDisponivelParaMatricula(
+    emailNormalizado,
+    existente ? existente.id : null
+  );
+  if (!verificacaoEmail.ok) {
+    return verificacaoEmail;
+  }
+
+  const agora = new Date().toISOString();
+  const patchComum = {
+    nomeCompleto: dados.nomeCompleto,
+    email: emailNormalizado,
+    telefone: dados.telefone,
+    cpf: dados.cpf,
+    dataNascimento: dados.dataNascimento,
+    cidade: dados.cidade,
+    estado: dados.estado,
+    modulo: dados.modulo,
+    igreja: dados.igreja || "",
+    observacoes: dados.observacoes || "",
+    origem: "quadro",
+    quadroSeminario: true,
+    status: "ativo",
+    emailVinculadoPor: sessao.email,
+    emailVinculadoEm: agora
+  };
+
+  if (existente) {
+    const atualizado = atualizarDadosMatricula(existente.id, patchComum);
+    if (!atualizado.ok) return atualizado;
+    return {
+      ok: true,
+      matricula: atualizado.matricula,
+      acao: "atualizado"
+    };
+  }
+
+  const erroValidacao = typeof validarMatricula === "function" ? validarMatricula(dados) : null;
+  if (erroValidacao) {
+    return { ok: false, erro: erroValidacao };
+  }
+
+  const matriculas = obterMatriculas();
+  const novaMatricula = Object.assign({}, dados, patchComum, {
+    id: gerarId("mat"),
+    dataMatricula: agora,
+    cadastradoPor: sessao.email
+  });
+  matriculas.push(novaMatricula);
+  salvarMatriculas(matriculas);
+
+  if (typeof garantirExtratoAluno === "function") {
+    garantirExtratoAluno({ email: emailNormalizado, nome: novaMatricula.nomeCompleto, modulo: novaMatricula.modulo });
+  }
+
+  return { ok: true, matricula: novaMatricula, acao: "criado" };
 }
 
 function emailJaMatriculado(email) {

@@ -194,6 +194,7 @@ function obterLabelOrigemMatricula(origem) {
   var labels = {
     site: "Site",
     presencial: "Presencial",
+    quadro: "Quadro do seminário",
     whatsapp: "WhatsApp"
   };
   return labels[origem] || origem || "Site";

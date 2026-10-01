@@ -97,7 +97,7 @@ function renderizarVisaoSecretaria() {
   if (!container) return;
 
   var matriculas = obterMatriculas();
-  var porOrigem = { site: 0, presencial: 0, whatsapp: 0 };
+  var porOrigem = { site: 0, presencial: 0, quadro: 0, whatsapp: 0 };
   var pendentes = 0;
 
   matriculas.forEach(function (m) {
