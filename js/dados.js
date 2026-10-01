@@ -609,16 +609,11 @@ function verificarEmailDisponivelParaMatriculaAsync(email) {
       return { ok: true };
     }
 
-    const existente = resposta.matricula || {};
     return {
       ok: false,
       erro:
-        "Este e-mail já possui matrícula registrada para " +
-        (existente.nomeCompleto || "outro aluno") + " (" +
-        (typeof formatarData === "function" && existente.dataMatricula
-          ? formatarData(existente.dataMatricula)
-          : "data não informada") +
-        "). Se necessário, exclua o cadastro anterior em Novos alunos."
+        "Este e-mail já possui matrícula registrada. " +
+        "Use o login do aluno ou contate a secretaria se precisar de ajuda."
     };
   });
 }

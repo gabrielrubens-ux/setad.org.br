@@ -36,7 +36,7 @@ const POLOS_SETAD = [
   {
     id: "curio-utinga-i",
     nome: "Polo Curió Utinga I",
-    local: "AD Templo do Utinga",
+    local: "Assembleia de Deus — Templo do Utinga",
     endereco: "R. do Utinga, 389",
     bairro: "Utinga",
     cidade: "Belém",
@@ -47,7 +47,7 @@ const POLOS_SETAD = [
   {
     id: "guama-ii",
     nome: "Polo Guamá II",
-    local: "AD Monte Horebe",
+    local: "Assembleia de Deus Monte Horebe",
     endereco: "Tv. Francisco Monteiro, 130",
     bairro: "Guamá",
     cidade: "Belém",
@@ -113,7 +113,7 @@ const POLOS_SETAD = [
   {
     id: "castanheira-ii",
     nome: "Polo Castanheira II",
-    local: "AD Sta. Odília",
+    local: "Assembleia de Deus Santa Odília",
     endereco: "Rua Santa Odília, 112A",
     bairro: "Castanheira",
     cidade: "Belém",
@@ -125,7 +125,7 @@ const POLOS_SETAD = [
   {
     id: "marambaia-iii",
     nome: "Polo Marambaia III",
-    local: "AD Tavares Bastos",
+    local: "Assembleia de Deus Tavares Bastos",
     endereco: "Av. Rodolfo Chermont, 1470",
     bairro: "Marambaia",
     cidade: "Belém",
@@ -148,7 +148,7 @@ const POLOS_SETAD = [
   {
     id: "condor-i",
     nome: "Polo Condor I",
-    local: "AD Condor",
+    local: "Assembleia de Deus — Condor",
     endereco: "Av. Alcindo Cacela, 4200",
     bairro: "Condor",
     cidade: "Belém",
@@ -160,8 +160,8 @@ const POLOS_SETAD = [
   {
     id: "sacramenta-i",
     nome: "Polo Sacramenta I",
-    local: "AD Angustura",
-    endereco: "Travessa Angustura",
+    local: "Assembleia de Deus Angústura",
+    endereco: "Travessa Angústura",
     bairro: "Sacramenta",
     cidade: "Belém",
     estado: "PA",
@@ -171,7 +171,7 @@ const POLOS_SETAD = [
   {
     id: "sacramenta-ii",
     nome: "Polo Sacramenta II",
-    local: "AD Templo Sacramenta",
+    local: "Assembleia de Deus Templo Sacramenta",
     endereco: "Av. Senador Lemos, 4234",
     bairro: "Sacramenta",
     cidade: "Belém",
@@ -182,7 +182,7 @@ const POLOS_SETAD = [
   {
     id: "bengui",
     nome: "Polo Bengui",
-    local: "AD Templo São Clemente",
+    local: "Assembleia de Deus Templo São Clemente",
     endereco: "Rua São Bento, 7 c/ Tv. São Roque",
     bairro: "Bengui",
     cidade: "Belém",

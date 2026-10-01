@@ -13,8 +13,8 @@ function origensCorsPermitidas() {
     /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
     /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
     /^https:\/\/[a-z0-9-]+\.hostingersite\.com$/,
-    /^https:\/\/setad\.org\.br$/,
-    /^https:\/\/www\.setad\.org\.br$/
+    /^https?:\/\/setad\.org\.br$/,
+    /^https?:\/\/www\.setad\.org\.br$/
   ];
 
   const extra = (process.env.SETAD_CORS_ORIGIN || "")
@@ -45,6 +45,8 @@ function headersSeguranca(_req, res, next) {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-site");
   if (process.env.NODE_ENV === "production") {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
@@ -63,12 +65,15 @@ function validarSegredosProducao() {
   }
 }
 
-function criarLimiteLogin() {
-  const janelaMs = 15 * 60 * 1000;
-  const maxTentativas = 20;
+function criarLimitePorIp(opcoes) {
+  const janelaMs = opcoes.janelaMs || 15 * 60 * 1000;
+  const maxTentativas = opcoes.maxTentativas || 60;
+  const mensagem =
+    opcoes.mensagem ||
+    "Muitas solicitações deste endereço. Aguarde alguns minutos e tente novamente.";
   const tentativas = new Map();
 
-  return function limitarLogin(req, res, next) {
+  return function limitarPorIp(req, res, next) {
     const chave = req.ip || req.socket.remoteAddress || "unknown";
     const agora = Date.now();
     const registro = tentativas.get(chave) || { count: 0, inicio: agora };
@@ -82,19 +87,38 @@ function criarLimiteLogin() {
     tentativas.set(chave, registro);
 
     if (registro.count > maxTentativas) {
-      return res.status(429).json({
-        ok: false,
-        erro: "Muitas tentativas de login. Aguarde alguns minutos e tente novamente."
-      });
+      return res.status(429).json({ ok: false, erro: mensagem });
     }
 
     next();
   };
 }
 
+function criarLimiteLogin() {
+  return criarLimitePorIp({
+    janelaMs: 15 * 60 * 1000,
+    maxTentativas: 20,
+    mensagem: "Muitas tentativas de login. Aguarde alguns minutos e tente novamente."
+  });
+}
+
+const LIMITE_FOTO_DATA_URL_BYTES = 4 * 1024 * 1024;
+
+function validarDataUrlImagem(dataUrl) {
+  if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+    return { ok: false, erro: "Envie uma imagem válida (data URL)." };
+  }
+  if (dataUrl.length > LIMITE_FOTO_DATA_URL_BYTES) {
+    return { ok: false, erro: "Imagem muito grande. Use até 4 MB." };
+  }
+  return { ok: true };
+}
+
 module.exports = {
   corsPermitido,
   headersSeguranca,
   validarSegredosProducao,
-  criarLimiteLogin
+  criarLimiteLogin,
+  criarLimitePorIp,
+  validarDataUrlImagem
 };

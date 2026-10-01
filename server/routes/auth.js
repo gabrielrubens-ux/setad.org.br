@@ -11,7 +11,11 @@ const {
   toSessionUser
 } = require("../middleware/auth");
 
-const { criarLimiteLogin } = require("../middleware/security");
+const { criarLimiteLogin, criarLimitePorIp } = require("../middleware/security");
+
+function codigoRespostaDemo(codigo) {
+  return process.env.NODE_ENV === "production" ? undefined : codigo;
+}
 const {
   iniciarAtivacao,
   definirSenhaAtivacao,
@@ -26,6 +30,16 @@ const {
 
 const router = express.Router();
 const limitarLogin = criarLimiteLogin();
+const limitarVerificacao = criarLimitePorIp({
+  janelaMs: 15 * 60 * 1000,
+  maxTentativas: 25,
+  mensagem: "Muitas solicitações de verificação. Aguarde alguns minutos."
+});
+const limitarAtivacaoStaff = criarLimitePorIp({
+  janelaMs: 15 * 60 * 1000,
+  maxTentativas: 30,
+  mensagem: "Muitas tentativas de ativação. Aguarde alguns minutos."
+});
 
 function findUserByEmail(email) {
   return db.prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").get(email.trim().toLowerCase());
@@ -80,7 +94,7 @@ router.get("/me", authRequired, function (req, res) {
   res.json({ ok: true, user: toSessionUser(user) });
 });
 
-router.post("/aluno/register", function (req, res) {
+router.post("/aluno/register", limitarVerificacao, function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const senha = req.body.senha || "";
 
@@ -132,11 +146,11 @@ router.post("/aluno/register", function (req, res) {
   res.json({
     ok: true,
     email,
-    codigoDemo: codigo
+    codigoDemo: codigoRespostaDemo(codigo)
   });
 });
 
-router.post("/aluno/verify", function (req, res) {
+router.post("/aluno/verify", limitarVerificacao, function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const codigo = String(req.body.codigo || "").trim();
 
@@ -188,7 +202,7 @@ router.post("/aluno/verify", function (req, res) {
   });
 });
 
-router.post("/aluno/resend-code", function (req, res) {
+router.post("/aluno/resend-code", limitarVerificacao, function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const pendente = db.prepare("SELECT * FROM verificacoes_pendentes WHERE email = ?").get(email);
 
@@ -205,7 +219,7 @@ router.post("/aluno/resend-code", function (req, res) {
     WHERE email = ?
   `).run(codigo, codigoExpiraEm, email);
 
-  res.json({ ok: true, email, codigoDemo: codigo });
+  res.json({ ok: true, email, codigoDemo: codigoRespostaDemo(codigo) });
 });
 
 router.get("/aluno/verificacao-pendente", function (req, res) {
@@ -214,7 +228,7 @@ router.get("/aluno/verificacao-pendente", function (req, res) {
   res.json({ ok: true, pendente: !!pendente });
 });
 
-router.post("/staff/ativacao/iniciar", function (req, res) {
+router.post("/staff/ativacao/iniciar", limitarAtivacaoStaff, function (req, res) {
   const email = (req.body.email || "").trim();
   const resultado = iniciarAtivacao(email);
   if (!resultado.ok) {
@@ -224,7 +238,7 @@ router.post("/staff/ativacao/iniciar", function (req, res) {
   res.json(resultado);
 });
 
-router.post("/staff/ativacao/senha", function (req, res) {
+router.post("/staff/ativacao/senha", limitarAtivacaoStaff, function (req, res) {
   const email = (req.body.email || "").trim();
   const senha = req.body.senha || "";
   const confirmar = req.body.confirmarSenha || req.body.confirmar || "";
@@ -244,12 +258,12 @@ router.post("/staff/ativacao/senha", function (req, res) {
       email: resultado.email,
       perfil: resultado.perfil,
       etapa: "verificacao",
-      codigoDemo: process.env.NODE_ENV === "production" ? undefined : resultado.codigo
+      codigoDemo: codigoRespostaDemo(resultado.codigo)
     });
   });
 });
 
-router.post("/staff/ativacao/verificar", function (req, res) {
+router.post("/staff/ativacao/verificar", limitarAtivacaoStaff, function (req, res) {
   const email = (req.body.email || "").trim();
   const codigo = String(req.body.codigo || "").trim();
 
@@ -280,7 +294,7 @@ router.post("/staff/ativacao/reenviar-codigo", function (req, res) {
     res.json({
       ok: true,
       email: resultado.email,
-      codigoDemo: process.env.NODE_ENV === "production" ? undefined : resultado.codigo
+      codigoDemo: codigoRespostaDemo(resultado.codigo)
     });
   });
 });

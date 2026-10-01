@@ -2,6 +2,16 @@
 (function () {
   "use strict";
 
+  if (document.documentElement.dataset.setadMobileViewport !== "1") {
+    document.documentElement.dataset.setadMobileViewport = "1";
+    var srcBoot = (document.currentScript && document.currentScript.getAttribute("src")) || "js/contato-setad.js";
+    var baseBoot = (srcBoot.match(/^(\.\.\/)+/) || [""])[0];
+    var mv = document.createElement("script");
+    mv.src = baseBoot + "js/mobile-viewport.js";
+    mv.defer = true;
+    document.head.appendChild(mv);
+  }
+
   var script = document.currentScript;
   if (!script || document.getElementById("contato")) return;
 

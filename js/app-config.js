@@ -17,4 +17,12 @@
     APP_NAME: "SETAD",
     THEME_COLOR: "#23406b"
   };
+
+  if (document.documentElement.dataset.setadMobileViewport !== "1") {
+    document.documentElement.dataset.setadMobileViewport = "1";
+    var mv = document.createElement("script");
+    mv.src = "/js/mobile-viewport.js";
+    mv.defer = true;
+    document.head.appendChild(mv);
+  }
 })();

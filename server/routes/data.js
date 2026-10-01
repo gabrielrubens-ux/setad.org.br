@@ -4,11 +4,18 @@ const {
   listJson,
   replaceJsonCollection,
   upsertJson,
-  deleteJson
+  deleteJson,
+  getJsonById
 } = require("../db");
 const { authRequired, requirePerfis } = require("../middleware/auth");
+const { criarLimitePorIp, validarDataUrlImagem } = require("../middleware/security");
 
 const router = express.Router();
+const limitarMatriculaPublica = criarLimitePorIp({
+  janelaMs: 15 * 60 * 1000,
+  maxTentativas: 40,
+  mensagem: "Muitas solicitações de matrícula. Tente novamente em alguns minutos."
+});
 
 const COLLECTIONS = {
   matriculas: "matriculas",
@@ -97,27 +104,29 @@ router.get("/snapshot", authRequired, function (req, res) {
   res.json({ ok: true, snapshot });
 });
 
-router.get("/public/matriculas/check-email", function (req, res) {
+router.get("/public/matriculas/check-email", limitarMatriculaPublica, function (req, res) {
   const email = (req.query.email || "").trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, erro: "Informe um e-mail válido." });
+  }
   const matricula = listJson(COLLECTIONS.matriculas).find((m) => (m.email || "").toLowerCase() === email);
   if (!matricula) {
     return res.json({ ok: true, disponivel: true });
   }
   res.json({
     ok: true,
-    disponivel: false,
-    matricula: {
-      nomeCompleto: matricula.nomeCompleto,
-      dataMatricula: matricula.dataMatricula
-    }
+    disponivel: false
   });
 });
 
-router.get("/public/matriculas/:id", function (req, res) {
+router.get("/public/matriculas/:id", limitarMatriculaPublica, function (req, res) {
   const email = (req.query.email || "").trim().toLowerCase();
+  if (!email) {
+    return res.status(400).json({ ok: false, erro: "Informe o e-mail vinculado à matrícula." });
+  }
   const matricula = getJsonById(COLLECTIONS.matriculas, req.params.id);
 
-  if (!matricula || (email && (matricula.email || "").toLowerCase() !== email)) {
+  if (!matricula || (matricula.email || "").toLowerCase() !== email) {
     return res.status(404).json({ ok: false, erro: "Matrícula não encontrada." });
   }
 
@@ -128,7 +137,7 @@ router.get("/public/matriculas/:id", function (req, res) {
   res.json({ ok: true, matricula, pagamento });
 });
 
-router.post("/public/matriculas", function (req, res) {
+router.post("/public/matriculas", limitarMatriculaPublica, function (req, res) {
   const dados = req.body || {};
   const email = (dados.email || "").trim().toLowerCase();
 
@@ -263,8 +272,9 @@ router.put("/fotos/alunos/:email", authRequired, function (req, res) {
   }
 
   const dataUrl = req.body.dataUrl;
-  if (!dataUrl) {
-    return res.status(400).json({ ok: false, erro: "dataUrl obrigatório." });
+  const validacaoFoto = validarDataUrlImagem(dataUrl);
+  if (!validacaoFoto.ok) {
+    return res.status(400).json({ ok: false, erro: validacaoFoto.erro });
   }
 
   const atualizadoEm = new Date().toISOString();
@@ -279,8 +289,9 @@ router.put("/fotos/alunos/:email", authRequired, function (req, res) {
 router.put("/fotos/staff/:email", authRequired, requirePerfis("diretor", "contador", "secretaria", "professor", "autorizado"), function (req, res) {
   const email = req.params.email.trim().toLowerCase();
   const dataUrl = req.body.dataUrl;
-  if (!dataUrl) {
-    return res.status(400).json({ ok: false, erro: "dataUrl obrigatório." });
+  const validacaoFoto = validarDataUrlImagem(dataUrl);
+  if (!validacaoFoto.ok) {
+    return res.status(400).json({ ok: false, erro: validacaoFoto.erro });
   }
 
   const atualizadoEm = new Date().toISOString();
