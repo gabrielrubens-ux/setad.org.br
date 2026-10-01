@@ -547,6 +547,42 @@ function obterMatriculaPorEmail(email) {
   }) || null;
 }
 
+function normalizarCpfSomenteDigitos(cpf) {
+  return String(cpf || "").replace(/\D/g, "");
+}
+
+function obterMatriculaPorCpfOuEmail(termo) {
+  const bruto = String(termo || "").trim();
+  if (!bruto) return null;
+
+  if (bruto.indexOf("@") > 0) {
+    return obterMatriculaPorEmail(bruto);
+  }
+
+  const digitos = normalizarCpfSomenteDigitos(bruto);
+  if (digitos.length < 11) return null;
+
+  return (
+    obterMatriculas().find(function (m) {
+      return normalizarCpfSomenteDigitos(m.cpf) === digitos;
+    }) || null
+  );
+}
+
+function atualizarDadosMatricula(matriculaId, patch) {
+  const matriculas = obterMatriculas();
+  const indice = matriculas.findIndex(function (m) {
+    return m.id === matriculaId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Matrícula não encontrada." };
+  }
+
+  matriculas[indice] = Object.assign({}, matriculas[indice], patch);
+  salvarMatriculas(matriculas);
+  return { ok: true, matricula: matriculas[indice] };
+}
+
 function verificarEmailDisponivelParaMatricula(email) {
   const emailNormalizado = normalizarEmailMatricula(email);
   if (!emailNormalizado) {

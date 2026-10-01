@@ -277,6 +277,173 @@ function registrarPagamentoAluno(pagamentoId, formaPagamento, instituicaoId) {
   return { ok: true };
 }
 
+var FORMAS_PAGAMENTO_PRESENCIAL = [
+  "Dinheiro",
+  "PIX",
+  "Cartão de débito",
+  "Cartão de crédito",
+  "Transferência bancária",
+  "Cheque"
+];
+
+function obterReferenciaMensalidadeAtual() {
+  const agora = new Date();
+  return (
+    "Mensalidade " +
+    String(agora.getMonth() + 1).padStart(2, "0") +
+    "/" +
+    agora.getFullYear()
+  );
+}
+
+function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
+  if (!matricula || !matricula.id) {
+    return { ok: false, erro: "Matrícula inválida para o pagamento." };
+  }
+  if (!sessao || !sessao.email) {
+    return { ok: false, erro: "Sessão da secretaria inválida." };
+  }
+
+  inicializarDadosFinanceiros();
+  if (typeof inicializarDadosContabilidade === "function") {
+    inicializarDadosContabilidade();
+  }
+
+  const tipo = opcoes.tipoCobranca || "matricula";
+  const situacao = opcoes.situacaoPagamento || "pago_presencial";
+  const forma = opcoes.formaPagamento || null;
+  const instituicaoId = opcoes.instituicaoId || null;
+  const valor = Number(opcoes.valor);
+
+  if (!valor || valor <= 0) {
+    return { ok: false, erro: "Informe um valor válido para o pagamento." };
+  }
+  if (situacao === "pago_presencial" && !forma) {
+    return { ok: false, erro: "Selecione a forma de pagamento presencial." };
+  }
+
+  const pagamentos = obterPagamentosAlunos();
+  let pagamento = null;
+
+  if (tipo === "matricula") {
+    const existente = pagamentos.find(function (p) {
+      return p.matriculaId === matricula.id && (!p.tipo || p.tipo === "matricula");
+    });
+    if (existente) {
+      pagamento = existente;
+      pagamento.valor = valor;
+    } else {
+      pagamento = criarRegistroPagamentoMatricula(matricula);
+      pagamento.valor = valor;
+      pagamentos.push(pagamento);
+    }
+  } else if (tipo === "mensalidade") {
+    const ref = opcoes.referenciaMensalidade || obterReferenciaMensalidadeAtual();
+    const parcelaExistente = pagamentos.find(function (p) {
+      return (
+        p.matriculaId === matricula.id &&
+        p.tipo === "mensalidade" &&
+        p.referencia === ref
+      );
+    });
+    if (parcelaExistente) {
+      pagamento = parcelaExistente;
+      pagamento.valor = valor;
+    } else {
+      pagamento = {
+        id: gerarId("pag"),
+        matriculaId: matricula.id,
+        alunoNome: matricula.nomeCompleto,
+        alunoEmail: matricula.email,
+        modulo: matricula.modulo,
+        tipo: "mensalidade",
+        valor: valor,
+        referencia: ref,
+        vencimento: new Date().toISOString(),
+        status: "pendente",
+        formaPagamento: null,
+        dataPagamento: null,
+        criadoEm: new Date().toISOString(),
+        canal: "presencial"
+      };
+      pagamentos.push(pagamento);
+    }
+  } else {
+    const refOutro = (opcoes.referenciaOutro || "Recebimento presencial").trim();
+    pagamento = {
+      id: gerarId("pag"),
+      matriculaId: matricula.id,
+      alunoNome: matricula.nomeCompleto,
+      alunoEmail: matricula.email,
+      modulo: matricula.modulo,
+      tipo: "outro",
+      valor: valor,
+      referencia: refOutro,
+      vencimento: new Date().toISOString(),
+      status: "pendente",
+      formaPagamento: null,
+      dataPagamento: null,
+      criadoEm: new Date().toISOString(),
+      canal: "presencial",
+      observacoes: opcoes.observacoesPagamento || ""
+    };
+    pagamentos.push(pagamento);
+  }
+
+  pagamento.canal = "presencial";
+  pagamento.registradoPorSecretaria = sessao.email;
+
+  if (situacao === "pago_presencial") {
+    pagamento.status = "pago";
+    pagamento.formaPagamento = forma;
+    pagamento.instituicaoId = instituicaoId;
+    pagamento.dataPagamento = new Date().toISOString();
+    pagamento.pagoPor = "secretaria";
+  } else {
+    pagamento.status = "pendente";
+    pagamento.formaPagamento = null;
+    pagamento.dataPagamento = null;
+  }
+
+  salvarPagamentosAlunos(pagamentos);
+
+  if (pagamento.status === "pago" && typeof adicionarLancamentoContabil === "function") {
+    const mesRef =
+      new Date().getFullYear() +
+      "-" +
+      String(new Date().getMonth() + 1).padStart(2, "0");
+    const tituloReceita =
+      (tipo === "matricula"
+        ? "Taxa de matrícula"
+        : tipo === "mensalidade"
+          ? "Mensalidade"
+          : "Receita") +
+      " — " +
+      matricula.nomeCompleto;
+    adicionarLancamentoContabil(
+      {
+        codigo: "1.1",
+        tipo: "receita",
+        titulo: tituloReceita,
+        valor: valor,
+        referente: pagamento.referencia || tituloReceita,
+        periodicidade: "mensal",
+        referencia: mesRef,
+        origem: "pagamento_presencial",
+        vinculoId: pagamento.id
+      },
+      sessao
+    );
+  }
+
+  if (pagamento.status === "pago" && typeof atualizarStatusMatricula === "function") {
+    const novoStatus = tipo === "matricula" ? "confirmado" : "ativo";
+    atualizarStatusMatricula(matricula.id, novoStatus);
+  }
+
+  return { ok: true, pagamento: pagamento };
+}
+
 function obterPagamentosPorAluno(email) {
   const emailNorm = email.trim().toLowerCase();
   return obterPagamentosAlunos()
