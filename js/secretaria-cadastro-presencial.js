@@ -33,21 +33,71 @@ function atualizarValorSugeridoPresencial() {
   }
 }
 
+var CAMPOS_OBRIGATORIOS_PRESENCIAL = [
+  "secNome",
+  "secEmail",
+  "secTelefone",
+  "secCpf",
+  "secNascimento",
+  "secModulo",
+  "secCidade",
+  "secEstado"
+];
+
+function alternarObrigatoriedadeFormPresencial(quadro) {
+  CAMPOS_OBRIGATORIOS_PRESENCIAL.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.required = !quadro;
+  });
+}
+
+function obterTipoIdentificadorQuadro() {
+  var marcado = document.querySelector('input[name="secQuadroTipoId"]:checked');
+  return marcado ? marcado.value : "email";
+}
+
+function atualizarCampoIdentificadorQuadro() {
+  var tipo = obterTipoIdentificadorQuadro();
+  var input = document.getElementById("secQuadroIdentificador");
+  var label = document.getElementById("secQuadroIdentificadorLabel");
+  if (!input || !label) return;
+
+  if (tipo === "cpf") {
+    label.textContent = "CPF do aluno *";
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.placeholder = "000.000.000-00";
+    input.autocomplete = "off";
+    if (input.dataset.mascaraCpf !== "1" && typeof aplicarMascaraCpf === "function") {
+      aplicarMascaraCpf(input);
+      input.dataset.mascaraCpf = "1";
+    }
+  } else {
+    label.textContent = "E-mail do aluno *";
+    input.type = "email";
+    input.inputMode = "email";
+    input.placeholder = "aluno@email.com";
+    input.autocomplete = "email";
+  }
+  input.value = "";
+}
+
 function aplicarModoTipoAlunoPresencial() {
   var novo = document.getElementById("secTipoAlunoNovo");
-  var busca = document.getElementById("secBuscaQuadro");
   var balaoEmail = document.getElementById("secBalaoEmailQuadro");
   var matriculaId = document.getElementById("secMatriculaId");
-  if (!novo || !busca) return;
+  if (!novo) return;
 
   var quadro = !novo.checked;
-  busca.hidden = !quadro;
   if (balaoEmail) balaoEmail.hidden = !quadro;
+  alternarObrigatoriedadeFormPresencial(quadro);
 
   if (!quadro) {
     if (matriculaId) matriculaId.value = "";
     limparMensagemQuadro();
     limparMensagemEmailQuadro();
+  } else {
+    atualizarCampoIdentificadorQuadro();
   }
 }
 
@@ -63,6 +113,23 @@ function limparMensagemQuadro() {
   if (!msg) return;
   msg.className = "form-mensagem";
   msg.textContent = "";
+}
+
+function sincronizarIdentificadorQuadroComMatricula(matricula) {
+  var input = document.getElementById("secQuadroIdentificador");
+  if (!input || !matricula) return;
+
+  if (matricula.email) {
+    var emailRadio = document.querySelector('input[name="secQuadroTipoId"][value="email"]');
+    if (emailRadio) emailRadio.checked = true;
+    atualizarCampoIdentificadorQuadro();
+    input.value = matricula.email;
+  } else if (matricula.cpf) {
+    var cpfRadio = document.querySelector('input[name="secQuadroTipoId"][value="cpf"]');
+    if (cpfRadio) cpfRadio.checked = true;
+    atualizarCampoIdentificadorQuadro();
+    input.value = matricula.cpf;
+  }
 }
 
 function preencherFormularioComMatricula(matricula) {
@@ -142,42 +209,40 @@ function configurarCadastroPresencial(sessao) {
   document.querySelectorAll('input[name="secTipoAluno"]').forEach(function (radio) {
     radio.addEventListener("change", aplicarModoTipoAlunoPresencial);
   });
+  document.querySelectorAll('input[name="secQuadroTipoId"]').forEach(function (radio) {
+    radio.addEventListener("change", atualizarCampoIdentificadorQuadro);
+  });
   aplicarModoTipoAlunoPresencial();
 
   var btnBuscar = document.getElementById("secBtnBuscarQuadro");
   if (btnBuscar) {
     btnBuscar.addEventListener("click", function () {
-      var termo = document.getElementById("secBuscaTermo").value.trim();
+      var termo = document.getElementById("secQuadroIdentificador").value.trim();
       var msg = document.getElementById("secQuadroMensagem");
       limparMensagemQuadro();
+      limparMensagemEmailQuadro();
 
       if (!termo) {
         msg.className = "form-mensagem form-mensagem--erro visible";
-        msg.textContent = "Informe o e-mail ou CPF do aluno.";
+        msg.textContent = "Informe o e-mail ou o CPF conforme a opção selecionada.";
         return;
       }
 
       var matricula = obterMatriculaPorCpfOuEmail(termo);
       if (!matricula) {
-        msg.className = "form-mensagem form-mensagem--erro visible";
+        msg.className = "form-mensagem visible";
         msg.textContent =
-          "Nenhum cadastro digital encontrado. Preencha os dados abaixo e use " +
-          "“Salvar aluno do quadro no sistema” para criar o registro com e-mail.";
+          "Ainda não há cadastro com esse dado. Clique em “Incluir no quadro digital” para lançar o aluno.";
         return;
       }
 
       preencherFormularioComMatricula(matricula);
-      var emailQuadro = document.getElementById("secEmailQuadroDigital");
-      if (emailQuadro && matricula.email) {
-        emailQuadro.value = matricula.email;
-      }
+      sincronizarIdentificadorQuadroComMatricula(matricula);
       msg.className = "form-mensagem form-mensagem--sucesso visible";
       msg.textContent =
-        matricula.email
-          ? "Aluno localizado: " +
-            matricula.nomeCompleto +
-            ". Atualize o e-mail se necessário ou registre o pagamento."
-          : "Aluno do quadro localizado (sem e-mail no sistema). Informe o e-mail no balão abaixo e salve.";
+        "Aluno localizado: " +
+        matricula.nomeCompleto +
+        ". Complete os dados abaixo se necessário ou registre pagamento.";
     });
   }
 
@@ -347,23 +412,22 @@ function salvarCadastroDigitalQuadro(sessao) {
   var sucessoEl = document.getElementById("cadastroPresencialSucesso");
   var mensagemForm = document.getElementById("cadastroPresencialMensagem");
   limparMensagemEmailQuadro();
+  limparMensagemQuadro();
   if (mensagemForm) {
     mensagemForm.className = "form-mensagem";
     mensagemForm.textContent = "";
   }
   if (sucessoEl) sucessoEl.classList.remove("matricula-sucesso--visivel");
 
-  var emailBalao = document.getElementById("secEmailQuadroDigital");
+  var tipoId = obterTipoIdentificadorQuadro();
+  var identificador = document.getElementById("secQuadroIdentificador").value.trim();
   var emailForm = document.getElementById("secEmail");
-  var email =
-    (emailBalao && emailBalao.value.trim()) ||
-    (emailForm && emailForm.value.trim().toLowerCase());
 
   var dados = {
     nomeCompleto: document.getElementById("secNome").value.trim(),
-    email: email,
+    email: tipoId === "email" ? identificador.toLowerCase() : (emailForm ? emailForm.value.trim().toLowerCase() : ""),
     telefone: document.getElementById("secTelefone").value.trim(),
-    cpf: document.getElementById("secCpf").value.trim(),
+    cpf: tipoId === "cpf" ? identificador : document.getElementById("secCpf").value.trim(),
     dataNascimento: document.getElementById("secNascimento").value,
     cidade: document.getElementById("secCidade").value.trim(),
     estado: document.getElementById("secEstado").value,
@@ -372,21 +436,16 @@ function salvarCadastroDigitalQuadro(sessao) {
     observacoes: document.getElementById("secObservacoes").value.trim()
   };
 
-  if (emailForm && emailBalao && emailBalao.value.trim()) {
-    emailForm.value = emailBalao.value.trim().toLowerCase();
-  }
-
-  var termoBusca = document.getElementById("secBuscaTermo")
-    ? document.getElementById("secBuscaTermo").value.trim()
-    : "";
-
   if (typeof salvarAlunoQuadroSeminario !== "function") {
     msg.className = "form-mensagem form-mensagem--erro visible";
     msg.textContent = "Função de cadastro do quadro indisponível.";
     return;
   }
 
-  var resultado = salvarAlunoQuadroSeminario(dados, sessao, termoBusca);
+  var resultado = salvarAlunoQuadroSeminario(dados, sessao, {
+    tipoId: tipoId,
+    identificador: identificador
+  });
   if (!resultado.ok) {
     msg.className = "form-mensagem form-mensagem--erro visible";
     msg.textContent = resultado.erro || "Não foi possível salvar o aluno do quadro.";
@@ -394,22 +453,30 @@ function salvarCadastroDigitalQuadro(sessao) {
   }
 
   document.getElementById("secMatriculaId").value = resultado.matricula.id;
-  if (emailForm) emailForm.value = resultado.matricula.email;
+  preencherFormularioComMatricula(resultado.matricula);
+  sincronizarIdentificadorQuadroComMatricula(resultado.matricula);
 
   msg.className = "form-mensagem form-mensagem--sucesso visible";
-  msg.textContent =
-    resultado.acao === "criado"
-      ? "Aluno incluído no sistema com e-mail para acesso ao site."
-      : "Cadastro do quadro atualizado com o e-mail informado.";
+  if (resultado.modo === "cpf" && !resultado.matricula.email) {
+    msg.textContent =
+      "Aluno lançado no quadro pelo CPF. Complete os dados abaixo e vincule o e-mail quando o aluno for criar acesso ao site.";
+  } else {
+    msg.textContent =
+      resultado.acao === "criado"
+        ? "Aluno incluído no quadro digital. Ele já pode finalizar o cadastro em Entrar no site ou no app."
+        : "Cadastro do quadro atualizado.";
+  }
 
   if (sucessoEl) {
     sucessoEl.classList.add("matricula-sucesso--visivel");
+    var detalheAcesso = resultado.matricula.email
+      ? "E-mail <strong>" + escaparHtml(resultado.matricula.email) + "</strong> — oriente o aluno a criar a senha em <strong>Entrar</strong> (site ou app)."
+      : "CPF registrado — quando houver e-mail, inclua no cadastro para liberar o acesso à área do aluno.";
     sucessoEl.innerHTML =
       "<strong>Quadro digital salvo!</strong><br>" +
       escaparHtml(resultado.matricula.nomeCompleto) +
-      " — e-mail <strong>" +
-      escaparHtml(resultado.matricula.email) +
-      "</strong>. O aluno já pode criar senha em Entrar no site.";
+      "<br>" +
+      detalheAcesso;
   }
 
   renderizarVisaoSecretaria();

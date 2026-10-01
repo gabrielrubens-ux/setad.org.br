@@ -653,66 +653,131 @@ function verificarEmailDisponivelParaMatricula(email, matriculaIdIgnorar) {
   };
 }
 
-function salvarAlunoQuadroSeminario(dados, sessao, termoBusca) {
-  const emailNormalizado = normalizarEmailMatricula(dados.email);
-  if (!emailNormalizado) {
-    return { ok: false, erro: "Informe o e-mail para o acesso ao site." };
+function interpretarIdentificadorQuadro(tipoId, valorBruto) {
+  const valor = String(valorBruto || "").trim();
+  if (!valor) {
+    return { ok: false, erro: "Informe o e-mail ou o CPF do aluno." };
   }
 
-  const cpfDigitos = normalizarCpfMatricula(dados.cpf);
-  if (cpfDigitos.length < 11) {
-    return { ok: false, erro: "Informe o CPF do aluno do quadro." };
+  const tipo = tipoId === "cpf" ? "cpf" : "email";
+
+  if (tipo === "email") {
+    const email = normalizarEmailMatricula(valor);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { ok: false, erro: "Informe um e-mail válido." };
+    }
+    return { ok: true, tipo: "email", email: email, cpfDigitos: "" };
   }
 
-  const termo = String(termoBusca || dados.cpf || dados.email || "").trim();
-  let existente = termo ? obterMatriculaPorCpfOuEmailBruta(termo) : null;
-  if (!existente) {
-    existente = obterMatriculaPorCpfOuEmailBruta(dados.cpf);
+  const cpfDigitos = normalizarCpfMatricula(valor);
+  if (cpfDigitos.length !== 11 || (typeof validarCpf === "function" && !validarCpf(valor))) {
+    return { ok: false, erro: "Informe um CPF válido." };
   }
-  if (!existente && dados.email) {
-    existente = obterMatriculaPorCpfOuEmailBruta(dados.email);
+  return { ok: true, tipo: "cpf", email: "", cpfDigitos: cpfDigitos };
+}
+
+function mesclarCampoQuadro(novo, antigo) {
+  if (novo !== undefined && novo !== null && String(novo).trim() !== "") {
+    return novo;
+  }
+  return antigo || "";
+}
+
+function salvarAlunoQuadroSeminario(dados, sessao, opcoes) {
+  const tipoId = opcoes && opcoes.tipoId ? opcoes.tipoId : "email";
+  const identificador =
+    (opcoes && opcoes.identificador) ||
+    dados.email ||
+    dados.cpf ||
+    "";
+
+  const idInfo = interpretarIdentificadorQuadro(tipoId, identificador);
+  if (!idInfo.ok) return idInfo;
+
+  const emailDoForm = normalizarEmailMatricula(dados.email);
+  const cpfFormDigitos = normalizarCpfMatricula(dados.cpf);
+  const emailNormalizado =
+    idInfo.tipo === "email" ? idInfo.email : emailDoForm || "";
+  const cpfDigitos =
+    idInfo.tipo === "cpf" ? idInfo.cpfDigitos : cpfFormDigitos;
+
+  if (idInfo.tipo === "email" && !emailNormalizado) {
+    return { ok: false, erro: "Informe o e-mail do aluno." };
+  }
+  if (idInfo.tipo === "cpf" && cpfDigitos.length !== 11) {
+    return { ok: false, erro: "Informe o CPF do aluno." };
   }
 
-  const outroComCpf = obterMatriculas().find(function (m) {
-    if (existente && m.id === existente.id) return false;
-    return normalizarCpfMatricula(m.cpf) === cpfDigitos;
-  });
-  if (outroComCpf) {
-    return {
-      ok: false,
-      erro:
-        "Este CPF já está vinculado a outro cadastro (" +
-        outroComCpf.nomeCompleto +
-        "). Verifique os dados."
-    };
+  let existente = obterMatriculaPorCpfOuEmailBruta(identificador);
+  if (!existente && emailNormalizado) {
+    existente = obterMatriculaPorCpfOuEmailBruta(emailNormalizado);
+  }
+  if (!existente && cpfDigitos.length === 11) {
+    existente = obterMatriculaPorCpfOuEmailBruta(cpfDigitos);
   }
 
-  const verificacaoEmail = verificarEmailDisponivelParaMatricula(
-    emailNormalizado,
-    existente ? existente.id : null
-  );
-  if (!verificacaoEmail.ok) {
-    return verificacaoEmail;
+  if (cpfDigitos.length === 11) {
+    const outroComCpf = obterMatriculas().find(function (m) {
+      if (existente && m.id === existente.id) return false;
+      return normalizarCpfMatricula(m.cpf) === cpfDigitos;
+    });
+    if (outroComCpf) {
+      return {
+        ok: false,
+        erro:
+          "Este CPF já está vinculado a outro cadastro (" +
+          outroComCpf.nomeCompleto +
+          "). Verifique os dados."
+      };
+    }
+  }
+
+  if (emailNormalizado) {
+    const verificacaoEmail = verificarEmailDisponivelParaMatricula(
+      emailNormalizado,
+      existente ? existente.id : null
+    );
+    if (!verificacaoEmail.ok) {
+      return verificacaoEmail;
+    }
   }
 
   const agora = new Date().toISOString();
+  const nomeInformado = (dados.nomeCompleto || "").trim();
+  const nomePadrao =
+    idInfo.tipo === "cpf"
+      ? "Aluno do quadro (completar cadastro)"
+      : "Aluno do quadro";
+
   const patchComum = {
-    nomeCompleto: dados.nomeCompleto,
+    nomeCompleto: mesclarCampoQuadro(
+      nomeInformado,
+      existente ? existente.nomeCompleto : nomePadrao
+    ),
     email: emailNormalizado,
-    telefone: dados.telefone,
-    cpf: dados.cpf,
-    dataNascimento: dados.dataNascimento,
-    cidade: dados.cidade,
-    estado: dados.estado,
-    modulo: dados.modulo,
-    igreja: dados.igreja || "",
-    observacoes: dados.observacoes || "",
+    telefone: mesclarCampoQuadro(dados.telefone, existente && existente.telefone),
+    cpf: cpfDigitos.length === 11
+      ? mesclarCampoQuadro(dados.cpf, identificador)
+      : mesclarCampoQuadro(dados.cpf, existente && existente.cpf),
+    dataNascimento: mesclarCampoQuadro(dados.dataNascimento, existente && existente.dataNascimento),
+    cidade: mesclarCampoQuadro(dados.cidade, existente && existente.cidade),
+    estado: mesclarCampoQuadro(dados.estado, existente && existente.estado),
+    modulo: mesclarCampoQuadro(dados.modulo, existente && existente.modulo) || "medio",
+    igreja: mesclarCampoQuadro(dados.igreja, existente && existente.igreja),
+    observacoes: mesclarCampoQuadro(dados.observacoes, existente && existente.observacoes),
     origem: "quadro",
     quadroSeminario: true,
+    cadastroDigitalPendente: !nomeInformado || !dados.modulo,
     status: "ativo",
-    emailVinculadoPor: sessao.email,
-    emailVinculadoEm: agora
+    identificadoPor: idInfo.tipo,
+    quadroRegistradoPor: sessao.email,
+    quadroRegistradoEm: agora
   };
+
+  if (emailNormalizado) {
+    patchComum.emailVinculadoPor = sessao.email;
+    patchComum.emailVinculadoEm = agora;
+  }
 
   if (existente) {
     const atualizado = atualizarDadosMatricula(existente.id, patchComum);
@@ -720,13 +785,9 @@ function salvarAlunoQuadroSeminario(dados, sessao, termoBusca) {
     return {
       ok: true,
       matricula: atualizado.matricula,
-      acao: "atualizado"
+      acao: "atualizado",
+      modo: idInfo.tipo
     };
-  }
-
-  const erroValidacao = typeof validarMatricula === "function" ? validarMatricula(dados) : null;
-  if (erroValidacao) {
-    return { ok: false, erro: erroValidacao };
   }
 
   const matriculas = obterMatriculas();
@@ -738,11 +799,20 @@ function salvarAlunoQuadroSeminario(dados, sessao, termoBusca) {
   matriculas.push(novaMatricula);
   salvarMatriculas(matriculas);
 
-  if (typeof garantirExtratoAluno === "function") {
-    garantirExtratoAluno({ email: emailNormalizado, nome: novaMatricula.nomeCompleto, modulo: novaMatricula.modulo });
+  if (emailNormalizado && typeof garantirExtratoAluno === "function") {
+    garantirExtratoAluno({
+      email: emailNormalizado,
+      nome: novaMatricula.nomeCompleto,
+      modulo: novaMatricula.modulo
+    });
   }
 
-  return { ok: true, matricula: novaMatricula, acao: "criado" };
+  return {
+    ok: true,
+    matricula: novaMatricula,
+    acao: "criado",
+    modo: idInfo.tipo
+  };
 }
 
 function emailJaMatriculado(email) {

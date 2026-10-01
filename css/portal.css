@@ -1938,6 +1938,21 @@
   min-width: 0;
 }
 
+.presencial-tipo-id {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.presencial-busca-quadro__linha--id {
+  align-items: flex-end;
+}
+
+.presencial-quadro-acoes {
+  margin-top: 0.75rem;
+}
+
 .origem-badge {
   display: inline-block;
   padding: 0.2rem 0.55rem;
