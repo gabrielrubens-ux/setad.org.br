@@ -10,6 +10,7 @@
   var corpo = painel.querySelector(".culto-janela__corpo");
   var btnExpandir = document.getElementById("cultoJanelaExpandir");
   var btnFechar = document.getElementById("cultoJanelaFechar");
+  var btnFecharOverlay = document.getElementById("cultoJanelaFecharOverlay");
   var btnPlayPause = document.getElementById("cultoJanelaPlayPause");
   var video = document.getElementById("cultoJanelaVideo");
   var iconePlay = btnPlayPause ? btnPlayPause.querySelector(".culto-janela__icone-play") : null;
@@ -74,9 +75,17 @@
     });
   }
 
+  function liberarArrasto() {
+    arrastando = false;
+    moveuArrasto = false;
+    janela.classList.remove("culto-janela--arrastando");
+  }
+
   function fechar() {
+    liberarArrasto();
     fechadaPeloUsuario = true;
     janela.hidden = true;
+    janela.setAttribute("aria-hidden", "true");
 
     if (window.SETADCultoPlayer) {
       window.SETADCultoPlayer.pausar(true);
@@ -85,6 +94,24 @@
     if (window.SETADAudio) {
       window.SETADAudio.solicitarRadio(true);
     }
+  }
+
+  function registrarBotaoFechar(botao) {
+    if (!botao) return;
+
+    function executarFechar(evento) {
+      if (evento) {
+        evento.preventDefault();
+        evento.stopPropagation();
+        if (typeof evento.stopImmediatePropagation === "function") {
+          evento.stopImmediatePropagation();
+        }
+      }
+      fechar();
+    }
+
+    botao.addEventListener("click", executarFechar, true);
+    botao.addEventListener("touchend", executarFechar, { passive: false, capture: true });
   }
 
   function garantirPosicaoAbsoluta() {
@@ -133,7 +160,7 @@
   }
 
   function iniciarArrasto(evento) {
-    if (evento.target.closest("button, a, input")) return;
+    if (evento.target.closest("button, a, input, .culto-janela__fechar-flutuante")) return;
 
     if (janela.classList.contains("culto-janela--expandida") && evento.target.closest("video")) {
       return;
@@ -266,12 +293,12 @@
     });
   }
 
-  if (btnFechar) {
-    btnFechar.addEventListener("click", function (evento) {
-      evento.stopPropagation();
-      fechar();
-    });
+  if (window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768) {
+    janela.classList.add("culto-janela--touch");
   }
+
+  registrarBotaoFechar(btnFechar);
+  registrarBotaoFechar(btnFecharOverlay);
 
   if (linkTelaCheia) {
     linkTelaCheia.addEventListener("click", function () {
