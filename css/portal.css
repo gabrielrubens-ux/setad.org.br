@@ -2184,6 +2184,21 @@
 
 .colaboradores-form__acoes {
   margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.colaboradores-tabela__acoes {
+  white-space: nowrap;
+}
+
+.colaboradores-tabela__acoes .btn {
+  margin: 0.15rem 0;
+}
+
+.colaboradores-linha--inativo {
+  opacity: 0.72;
 }
 
 .pagamentos-extrato {

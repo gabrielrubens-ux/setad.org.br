@@ -719,14 +719,21 @@ function obterLabelVinculoColaborador(vinculo) {
   return VINCULOS_COLABORADOR[vinculo] || vinculo || "—";
 }
 
-function emailFuncionarioJaCadastrado(email) {
+function emailFuncionarioJaCadastrado(email, ignorarFuncionarioId) {
   const emailNormalizado = email.trim().toLowerCase();
   return obterFuncionarios().some(function (f) {
+    if (ignorarFuncionarioId && f.id === ignorarFuncionarioId) return false;
     return f.email === emailNormalizado && f.ativo;
   });
 }
 
-function validarCadastroColaborador(dados) {
+function obterFuncionarioPorId(funcionarioId) {
+  return obterFuncionarios().find(function (f) {
+    return f.id === funcionarioId;
+  }) || null;
+}
+
+function validarCadastroColaborador(dados, funcionarioIdEdicao) {
   if (!dados.nome || dados.nome.length < 3) {
     return "Informe o nome completo do colaborador.";
   }
@@ -741,7 +748,7 @@ function validarCadastroColaborador(dados) {
   if (dados.salario < 0 || dados.ajudaCusto < 0 || dados.valeTransporte < 0) {
     return "Valores financeiros não podem ser negativos.";
   }
-  if (emailFuncionarioJaCadastrado(dados.email)) {
+  if (emailFuncionarioJaCadastrado(dados.email, funcionarioIdEdicao || null)) {
     return "Já existe um colaborador ativo com este e-mail.";
   }
   return null;
@@ -756,6 +763,90 @@ function cadastrarFuncionario(dados) {
   funcionarios.push(novo);
   salvarFuncionarios(funcionarios);
   return novo;
+}
+
+function atualizarFuncionario(funcionarioId, dados) {
+  const funcionarios = obterFuncionarios();
+  const indice = funcionarios.findIndex(function (f) {
+    return f.id === funcionarioId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Colaborador não encontrado." };
+  }
+
+  const anterior = funcionarios[indice];
+  funcionarios[indice] = Object.assign({}, anterior, normalizarColaborador(dados), {
+    id: anterior.id,
+    ativo: anterior.ativo,
+    dataCadastro: anterior.dataCadastro,
+    cadastradoPor: anterior.cadastradoPor,
+    atualizadoPor: dados.atualizadoPor || null,
+    atualizadoEm: new Date().toISOString()
+  });
+  salvarFuncionarios(funcionarios);
+  return { ok: true, funcionario: funcionarios[indice] };
+}
+
+function desativarColaborador(funcionarioId, sessao) {
+  const funcionarios = obterFuncionarios();
+  const indice = funcionarios.findIndex(function (f) {
+    return f.id === funcionarioId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Colaborador não encontrado." };
+  }
+
+  funcionarios[indice].ativo = false;
+  funcionarios[indice].desativadoEm = new Date().toISOString();
+  funcionarios[indice].desativadoPor = sessao && sessao.email ? sessao.email : null;
+  salvarFuncionarios(funcionarios);
+  return { ok: true, funcionario: funcionarios[indice] };
+}
+
+function reativarColaborador(funcionarioId, sessao) {
+  const funcionario = obterFuncionarioPorId(funcionarioId);
+  if (!funcionario) {
+    return { ok: false, erro: "Colaborador não encontrado." };
+  }
+  if (emailFuncionarioJaCadastrado(funcionario.email, funcionarioId)) {
+    return {
+      ok: false,
+      erro: "Outro colaborador ativo já utiliza este e-mail. Ajuste o e-mail antes de reativar."
+    };
+  }
+
+  const funcionarios = obterFuncionarios();
+  const indice = funcionarios.findIndex(function (f) {
+    return f.id === funcionarioId;
+  });
+  funcionarios[indice].ativo = true;
+  funcionarios[indice].reativadoEm = new Date().toISOString();
+  funcionarios[indice].reativadoPor = sessao && sessao.email ? sessao.email : null;
+  salvarFuncionarios(funcionarios);
+  return { ok: true, funcionario: funcionarios[indice] };
+}
+
+function excluirColaboradorDefinitivo(funcionarioId) {
+  const folha = obterFolhaPagamento().filter(function (f) {
+    return f.funcionarioId === funcionarioId;
+  });
+  if (folha.length > 0) {
+    return {
+      ok: false,
+      erro:
+        "Este colaborador possui histórico na folha de pagamento. Use “Desativar” para manter os registros."
+    };
+  }
+
+  const listaAtual = obterFuncionarios();
+  const funcionarios = listaAtual.filter(function (f) {
+    return f.id !== funcionarioId;
+  });
+  if (funcionarios.length === listaAtual.length) {
+    return { ok: false, erro: "Colaborador não encontrado." };
+  }
+  salvarFuncionarios(funcionarios);
+  return { ok: true };
 }
 
 function obterFolhaPagamento() {
@@ -1057,6 +1148,68 @@ function montarOpcoesSelect(mapa, valorSelecionado) {
   }).join("");
 }
 
+function lerDadosFormularioColaborador(sessao) {
+  return {
+    nome: document.getElementById("colabNome").value.trim(),
+    email: document.getElementById("colabEmail").value.trim().toLowerCase(),
+    telefone: document.getElementById("colabTelefone").value.trim(),
+    tipo: document.getElementById("colabTipo").value,
+    vinculo: document.getElementById("colabVinculo").value,
+    cargo: document.getElementById("colabCargo").value.trim(),
+    setor: document.getElementById("colabSetor").value.trim(),
+    dataAdmissao: document.getElementById("colabAdmissao").value,
+    salario: parseFloat(document.getElementById("colabSalario").value),
+    ajudaCusto: parseFloat(document.getElementById("colabAjuda").value) || 0,
+    valeTransporte: parseFloat(document.getElementById("colabVale").value) || 0,
+    outrosBeneficios: document.getElementById("colabBeneficios").value.trim(),
+    observacoes: document.getElementById("colabObs").value.trim(),
+    cadastradoPor: sessao ? sessao.nome : "Sistema",
+    atualizadoPor: sessao ? sessao.email : null
+  };
+}
+
+function preencherFormularioColaborador(funcionario) {
+  document.getElementById("colabEditId").value = funcionario.id;
+  document.getElementById("colabNome").value = funcionario.nome || "";
+  document.getElementById("colabEmail").value = funcionario.email || "";
+  document.getElementById("colabTelefone").value = funcionario.telefone || "";
+  document.getElementById("colabTipo").value = funcionario.tipo || "";
+  document.getElementById("colabVinculo").value = funcionario.vinculo || "clt";
+  document.getElementById("colabCargo").value = funcionario.cargo || "";
+  document.getElementById("colabSetor").value = funcionario.setor || "";
+  document.getElementById("colabAdmissao").value =
+    funcionario.dataAdmissao || new Date().toISOString().slice(0, 10);
+  document.getElementById("colabSalario").value = String(funcionario.salario || 0);
+  document.getElementById("colabAjuda").value = String(funcionario.ajudaCusto || 0);
+  document.getElementById("colabVale").value = String(funcionario.valeTransporte || 0);
+  document.getElementById("colabBeneficios").value = funcionario.outrosBeneficios || "";
+  document.getElementById("colabObs").value = funcionario.observacoes || "";
+
+  const titulo = document.getElementById("colabFormTitulo");
+  const btnCancelar = document.getElementById("colabBtnCancelar");
+  const btnSalvar = document.getElementById("colabBtnSalvar");
+  if (titulo) titulo.textContent = "Editar colaborador";
+  if (btnCancelar) btnCancelar.hidden = false;
+  if (btnSalvar) btnSalvar.textContent = "Salvar alterações";
+}
+
+function resetFormularioColaborador(hoje) {
+  const form = document.getElementById("formColaborador");
+  if (form) form.reset();
+  document.getElementById("colabEditId").value = "";
+  document.getElementById("colabAdmissao").value = hoje;
+  document.getElementById("colabAjuda").value = "0";
+  document.getElementById("colabVale").value = "0";
+  document.getElementById("colabVinculo").value = "clt";
+
+  const titulo = document.getElementById("colabFormTitulo");
+  const btnCancelar = document.getElementById("colabBtnCancelar");
+  const btnSalvar = document.getElementById("colabBtnSalvar");
+  if (titulo) titulo.textContent = "Novo colaborador";
+  if (btnCancelar) btnCancelar.hidden = true;
+  if (btnSalvar) btnSalvar.textContent = "Salvar colaborador";
+}
+
 function renderizarCadastroColaboradores(containerId, sessao) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1067,13 +1220,16 @@ function renderizarCadastroColaboradores(containerId, sessao) {
   });
 
   const hoje = new Date().toISOString().slice(0, 10);
+  const editIdPreservar = container.dataset.colabEditId || "";
 
   container.innerHTML =
     '<p class="financeiro-aviso">Cadastro de professores e colaboradores do seminário. ' +
-      "Os valores informados alimentam a folha de pagamento na contabilidade.</p>" +
+      "Os valores informados alimentam a folha de pagamento na contabilidade. " +
+      "Use <strong>Editar</strong> para alterar dados e remuneração; <strong>Desativar</strong> encerra o vínculo ativo (mantém histórico na folha).</p>" +
     '<div id="colabMensagem" class="form-mensagem" role="alert"></div>' +
     '<form id="formColaborador" class="financeiro-form-agendar colaboradores-form">' +
-      "<h3>Novo colaborador</h3>" +
+      '<input type="hidden" id="colabEditId" value="' + escaparHtml(editIdPreservar) + '">' +
+      '<h3 id="colabFormTitulo">Novo colaborador</h3>' +
       '<div class="financeiro-form-grid colaboradores-form__grid">' +
         '<div class="form-group form-group--full"><label for="colabNome">Nome completo *</label>' +
           '<input type="text" id="colabNome" required autocomplete="name"></div>' +
@@ -1107,22 +1263,34 @@ function renderizarCadastroColaboradores(containerId, sessao) {
         '<div class="form-group form-group--full"><label for="colabObs">Observações</label>' +
           '<textarea id="colabObs" rows="2" placeholder="Informações adicionais do RH..."></textarea></div>' +
         '<div class="form-group form-group--full colaboradores-form__acoes">' +
-          '<button type="submit" class="btn btn--primary">Salvar colaborador</button>' +
+          '<button type="submit" class="btn btn--primary" id="colabBtnSalvar">Salvar colaborador</button>' +
+          '<button type="button" class="btn btn--secondary" id="colabBtnCancelar" hidden>Cancelar edição</button>' +
         "</div>" +
       "</div>" +
     "</form>" +
     "<h3 class=\"financeiro-subtitulo\">Equipe cadastrada (" + funcionarios.length + ")</h3>" +
     (funcionarios.length === 0
       ? '<p class="lista-vazia">Nenhum colaborador cadastrado ainda.</p>'
-      : '<table class="data-table">' +
+      : '<table class="data-table colaboradores-tabela">' +
           "<thead><tr>" +
             "<th>Nome</th><th>Tipo</th><th>Cargo / Setor</th>" +
-            "<th>Salário</th><th>Ajuda custo</th><th>Total</th><th>Status</th>" +
+            "<th>Salário</th><th>Ajuda custo</th><th>Total</th><th>Status</th><th>Ações</th>" +
           "</tr></thead><tbody>" +
           funcionarios.map(function (f) {
             const total = calcularRemuneracaoTotal(f);
+            const acoes = f.ativo
+              ? '<button type="button" class="btn btn--sm btn--secondary" data-colab-acao="editar" data-colab-id="' +
+                escaparHtml(f.id) + '">Editar</button> ' +
+                '<button type="button" class="btn btn--sm btn--danger" data-colab-acao="desativar" data-colab-id="' +
+                escaparHtml(f.id) + '">Desativar</button>'
+              : '<button type="button" class="btn btn--sm btn--secondary" data-colab-acao="editar" data-colab-id="' +
+                escaparHtml(f.id) + '">Editar</button> ' +
+                '<button type="button" class="btn btn--sm btn--primary" data-colab-acao="reativar" data-colab-id="' +
+                escaparHtml(f.id) + '">Reativar</button> ' +
+                '<button type="button" class="btn btn--sm btn--danger" data-colab-acao="excluir" data-colab-id="' +
+                escaparHtml(f.id) + '">Excluir</button>';
             return (
-              "<tr>" +
+              "<tr" + (f.ativo ? "" : ' class="colaboradores-linha--inativo"') + ">" +
                 "<td><strong>" + escaparHtml(f.nome) + "</strong><br>" +
                   "<small>" + escaparHtml(f.email) + "</small>" +
                   (f.telefone ? "<br><small>" + escaparHtml(f.telefone) + "</small>" : "") +
@@ -1140,6 +1308,7 @@ function renderizarCadastroColaboradores(containerId, sessao) {
                   : '<span class="status-badge status--pendente">Inativo</span>') +
                   (f.cadastradoPor ? "<br><small>por " + escaparHtml(f.cadastradoPor) + "</small>" : "") +
                 "</td>" +
+                '<td class="colaboradores-tabela__acoes">' + acoes + "</td>" +
               "</tr>"
             );
           }).join("") +
@@ -1150,33 +1319,111 @@ function renderizarCadastroColaboradores(containerId, sessao) {
     aplicarMascaraTelefone(telefoneInput);
   }
 
+  if (editIdPreservar) {
+    const emEdicao = obterFuncionarioPorId(editIdPreservar);
+    if (emEdicao) preencherFormularioColaborador(emEdicao);
+    else resetFormularioColaborador(hoje);
+  } else {
+    resetFormularioColaborador(hoje);
+  }
+
+  const btnCancelar = document.getElementById("colabBtnCancelar");
+  if (btnCancelar) {
+    btnCancelar.addEventListener("click", function () {
+      container.dataset.colabEditId = "";
+      resetFormularioColaborador(hoje);
+      const mensagemEl = document.getElementById("colabMensagem");
+      mensagemEl.className = "form-mensagem";
+      mensagemEl.textContent = "";
+    });
+  }
+
+  container.querySelectorAll("[data-colab-acao]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const id = btn.getAttribute("data-colab-id");
+      const acao = btn.getAttribute("data-colab-acao");
+      const mensagemEl = document.getElementById("colabMensagem");
+      const funcionario = obterFuncionarioPorId(id);
+      if (!funcionario) return;
+
+      if (acao === "editar") {
+        container.dataset.colabEditId = id;
+        preencherFormularioColaborador(funcionario);
+        mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
+        mensagemEl.textContent = "Editando: " + funcionario.nome + ". Altere os campos e salve.";
+        document.getElementById("formColaborador").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (acao === "desativar") {
+        if (!confirm("Desativar " + funcionario.nome + "? Ele deixa de aparecer na folha ativa, mas o histórico é mantido.")) {
+          return;
+        }
+        const res = desativarColaborador(id, sessao);
+        if (!res.ok) {
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = res.erro;
+          return;
+        }
+        container.dataset.colabEditId = "";
+        renderizarCadastroColaboradores(containerId, sessao);
+        return;
+      }
+
+      if (acao === "reativar") {
+        const res = reativarColaborador(id, sessao);
+        if (!res.ok) {
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = res.erro;
+          return;
+        }
+        renderizarCadastroColaboradores(containerId, sessao);
+        return;
+      }
+
+      if (acao === "excluir") {
+        if (!confirm("Excluir permanentemente " + funcionario.nome + "? Só é possível sem histórico na folha.")) {
+          return;
+        }
+        const res = excluirColaboradorDefinitivo(id);
+        if (!res.ok) {
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = res.erro;
+          return;
+        }
+        container.dataset.colabEditId = "";
+        renderizarCadastroColaboradores(containerId, sessao);
+      }
+    });
+  });
+
   document.getElementById("formColaborador").addEventListener("submit", function (evento) {
     evento.preventDefault();
     const mensagemEl = document.getElementById("colabMensagem");
     mensagemEl.className = "form-mensagem";
     mensagemEl.textContent = "";
 
-    const dados = {
-      nome: document.getElementById("colabNome").value.trim(),
-      email: document.getElementById("colabEmail").value.trim().toLowerCase(),
-      telefone: document.getElementById("colabTelefone").value.trim(),
-      tipo: document.getElementById("colabTipo").value,
-      vinculo: document.getElementById("colabVinculo").value,
-      cargo: document.getElementById("colabCargo").value.trim(),
-      setor: document.getElementById("colabSetor").value.trim(),
-      dataAdmissao: document.getElementById("colabAdmissao").value,
-      salario: parseFloat(document.getElementById("colabSalario").value),
-      ajudaCusto: parseFloat(document.getElementById("colabAjuda").value) || 0,
-      valeTransporte: parseFloat(document.getElementById("colabVale").value) || 0,
-      outrosBeneficios: document.getElementById("colabBeneficios").value.trim(),
-      observacoes: document.getElementById("colabObs").value.trim(),
-      cadastradoPor: sessao ? sessao.nome : "Sistema"
-    };
+    const editId = document.getElementById("colabEditId").value.trim();
+    const dados = lerDadosFormularioColaborador(sessao);
 
-    const erro = validarCadastroColaborador(dados);
+    const erro = validarCadastroColaborador(dados, editId || null);
     if (erro) {
       mensagemEl.className = "form-mensagem form-mensagem--erro visible";
       mensagemEl.textContent = erro;
+      return;
+    }
+
+    if (editId) {
+      const resultado = atualizarFuncionario(editId, dados);
+      if (!resultado.ok) {
+        mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+        mensagemEl.textContent = resultado.erro;
+        return;
+      }
+      container.dataset.colabEditId = "";
+      mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
+      mensagemEl.textContent = "Cadastro de " + resultado.funcionario.nome + " atualizado.";
+      renderizarCadastroColaboradores(containerId, sessao);
       return;
     }
 
