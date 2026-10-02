@@ -173,4 +173,28 @@ function inicializarPainelContador() {
   renderizarInstituicoesContador("instituicoesContainer", sessao);
   renderizarRelatoriosContador("relatoriosContainer");
   inicializarPerfilProfessor(sessao);
+  ativarAbaContadorPorHash();
+}
+
+function ativarAbaContadorPorHash() {
+  const bruto = (window.location.hash || "").replace(/^#/, "");
+  if (!bruto) return;
+  const tabId = bruto.indexOf("tab-") === 0 ? bruto : "tab-" + bruto;
+  if (document.getElementById(tabId)) {
+    ativarAbaPainelContador(tabId);
+  }
+}
+
+function inicializarRelatorioAlunoPagamentosContador() {
+  configurarLogoutPainelInstitucional("login-direcao.html");
+
+  const sessao = protegerPainelDirecao("contador");
+  if (!sessao) return;
+
+  inicializarDadosFinanceiros();
+
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get("email") || "";
+
+  renderizarRelatorioAlunoPagamentosContador("relatorioAlunoPagamentosContainer", email);
 }

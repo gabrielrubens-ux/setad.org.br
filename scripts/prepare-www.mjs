@@ -23,7 +23,8 @@ const COPY_FILES = [
   "painel-professor.html",
   "painel-diretor.html",
   "painel-secretaria.html",
-  "painel-contador.html"
+  "painel-contador.html",
+  "painel-contador-aluno-pagamentos.html"
 ];
 
 const SKIP_IN_COPY = new Set([

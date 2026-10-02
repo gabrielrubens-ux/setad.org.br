@@ -1601,12 +1601,38 @@
   color: var(--cor-primaria);
 }
 
+.painel--relatorio-aluno {
+  display: block;
+  min-height: 100vh;
+}
+
+.painel__main--relatorio-aluno {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 2.5rem;
+}
+
+.painel__header--relatorio-aluno {
+  margin-bottom: 1rem;
+}
+
+.contador-relatorio-voltar {
+  margin: 0 0 0.75rem;
+}
+
 .contador-aluno-detalhe {
   margin-top: 1.25rem;
   padding: 1rem 1.1rem;
   border: 1px solid var(--cor-borda);
   border-radius: 8px;
   background: var(--cor-branco);
+}
+
+.contador-aluno-detalhe--pagina {
+  margin-top: 0;
+  border: none;
+  padding: 0;
+  background: transparent;
 }
 
 .contador-aluno-detalhe__topo {

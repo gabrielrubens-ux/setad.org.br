@@ -283,7 +283,17 @@ function registrarPagamentoAluno(pagamentoId, formaPagamento, instituicaoId) {
   return { ok: true };
 }
 
-var contadorEmailAlunoPagamentos = null;
+function obterUrlRelatorioAlunoPagamentosContador(email) {
+  return (
+    "painel-contador-aluno-pagamentos.html?email=" +
+    encodeURIComponent(String(email || "").trim())
+  );
+}
+
+function navegarRelatorioAlunoPagamentosContador(email) {
+  if (!email || !String(email).trim()) return;
+  window.location.href = obterUrlRelatorioAlunoPagamentosContador(email);
+}
 
 function isoParaInputData(iso) {
   if (!iso) return "";
@@ -1675,13 +1685,12 @@ function montarDetalheAlunoPagamentosContador(email, instituicoes) {
     : '<p class="painel-vazio">Nenhum lançamento para este aluno.</p>';
 
   return (
-    '<div id="contadorAlunoPagamentoDetalhe" class="contador-aluno-detalhe">' +
+    '<div id="contadorAlunoPagamentoDetalhe" class="contador-aluno-detalhe contador-aluno-detalhe--pagina">' +
       '<div class="contador-aluno-detalhe__topo">' +
         "<div>" +
           "<h3 class=\"financeiro-subtitulo\">" + escaparHtml(nome) + "</h3>" +
-          "<p class=\"contador-painel-hint\">Relatório financeiro completo · clique em <strong>Fechar</strong> para voltar à lista</p>" +
+          "<p class=\"contador-painel-hint\">" + escaparHtml(emailNorm) + " · relatório financeiro completo</p>" +
         "</div>" +
-        '<button type="button" class="btn btn--sm btn--secondary" data-contador-aluno-fechar>Fechar relatório</button>' +
       "</div>" +
       '<div class="modulos-resumo contador-aluno-resumo-financeiro">' +
         '<article class="modulo-card-resumo modulo-card-resumo--avancado">' +
@@ -1705,35 +1714,30 @@ function montarDetalheAlunoPagamentosContador(email, instituicoes) {
   );
 }
 
-function configurarEventosPagamentosAlunosContador(containerId) {
+function configurarListaPagamentosAlunosContador(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
+
+  function abrirRelatorio(email) {
+    navegarRelatorioAlunoPagamentosContador(email);
+  }
 
   container.querySelectorAll("[data-contador-aluno-email]").forEach(function (linha) {
     linha.addEventListener("click", function (evento) {
       if (evento.target.closest("button, a, input, select, form, textarea")) return;
-      contadorEmailAlunoPagamentos = linha.getAttribute("data-contador-aluno-email");
-      renderizarPagamentosAlunosContador(containerId);
-      const detalhe = document.getElementById("contadorAlunoPagamentoDetalhe");
-      if (detalhe) {
-        detalhe.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      abrirRelatorio(linha.getAttribute("data-contador-aluno-email"));
     });
     linha.addEventListener("keydown", function (evento) {
       if (evento.key !== "Enter" && evento.key !== " ") return;
       evento.preventDefault();
-      contadorEmailAlunoPagamentos = linha.getAttribute("data-contador-aluno-email");
-      renderizarPagamentosAlunosContador(containerId);
+      abrirRelatorio(linha.getAttribute("data-contador-aluno-email"));
     });
   });
+}
 
-  const btnFechar = container.querySelector("[data-contador-aluno-fechar]");
-  if (btnFechar) {
-    btnFechar.addEventListener("click", function () {
-      contadorEmailAlunoPagamentos = null;
-      renderizarPagamentosAlunosContador(containerId);
-    });
-  }
+function configurarFormulariosPagamentoContador(containerId, aoAtualizar) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
   container.querySelectorAll(".contador-pagamento-form").forEach(function (form) {
     const btnRapido = form.querySelector("[data-acao-confirmar-rapido]");
@@ -1749,8 +1753,11 @@ function configurarEventosPagamentosAlunosContador(containerId) {
         const id = form.getAttribute("data-pagamento-id");
         const resultado = registrarPagamentoAluno(id, forma, inst);
         if (resultado.ok) {
-          renderizarPagamentosAlunosContador(containerId);
-          renderizarDashboardContador("dashboardContadorContainer");
+          if (typeof aoAtualizar === "function") aoAtualizar();
+          else renderizarPagamentosAlunosContador(containerId);
+          if (document.getElementById("dashboardContadorContainer")) {
+            renderizarDashboardContador("dashboardContadorContainer");
+          }
         } else {
           alert(resultado.erro || "Não foi possível confirmar.");
         }
@@ -1792,9 +1799,46 @@ function configurarEventosPagamentosAlunosContador(containerId) {
         alert(resultado.erro || "Não foi possível salvar.");
         return;
       }
-      renderizarPagamentosAlunosContador(containerId);
-      renderizarDashboardContador("dashboardContadorContainer");
+      if (typeof aoAtualizar === "function") aoAtualizar();
+      else renderizarPagamentosAlunosContador(containerId);
+      if (document.getElementById("dashboardContadorContainer")) {
+        renderizarDashboardContador("dashboardContadorContainer");
+      }
     });
+  });
+}
+
+function renderizarRelatorioAlunoPagamentosContador(containerId, email) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const emailBruto = String(email || "").trim();
+  if (!emailBruto) {
+    container.innerHTML =
+      '<p class="painel-vazio">Nenhum aluno informado.</p>' +
+      '<p><a href="painel-contador.html#tab-pagamentos-alunos">Voltar à lista de pagamentos</a></p>';
+    return;
+  }
+
+  const instituicoes = obterInstituicoesFinanceiras();
+  container.innerHTML = montarDetalheAlunoPagamentosContador(emailBruto, instituicoes);
+
+  const titulo = document.getElementById("relatorioAlunoTitulo");
+  const subtitulo = document.getElementById("relatorioAlunoSubtitulo");
+  const detalhe = document.getElementById("contadorAlunoPagamentoDetalhe");
+  const nomeAluno = detalhe
+    ? detalhe.querySelector(".financeiro-subtitulo")
+    : null;
+  if (titulo && nomeAluno) {
+    titulo.textContent = "Pagamentos — " + nomeAluno.textContent;
+  }
+  if (subtitulo) {
+    subtitulo.textContent =
+      "Extrato, dados da secretaria e edição de cada lançamento deste aluno.";
+  }
+
+  configurarFormulariosPagamentoContador(containerId, function () {
+    renderizarRelatorioAlunoPagamentosContador(containerId, emailBruto);
   });
 }
 
@@ -1802,9 +1846,7 @@ function renderizarPagamentosAlunosContador(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const instituicoes = obterInstituicoesFinanceiras();
   const alunos = listarAlunosResumoPagamentosContador();
-  const emailSelecionado = contadorEmailAlunoPagamentos;
 
   if (alunos.length === 0) {
     container.innerHTML = '<p class="painel-vazio">Nenhum aluno com pagamentos registrado ainda.</p>';
@@ -1814,17 +1856,14 @@ function renderizarPagamentosAlunosContador(containerId) {
   const linhas = alunos
     .map(function (aluno) {
       const resumo = resumoExtratoAluno(aluno.email);
-      const chave = aluno.email.trim().toLowerCase();
-      const ativo =
-        emailSelecionado && emailSelecionado.trim().toLowerCase() === chave;
       const moduloNome =
         aluno.modulo && MODULOS_CURSO[aluno.modulo]
           ? MODULOS_CURSO[aluno.modulo].nome
           : "";
 
       return (
-        '<tr class="contador-aluno-linha' + (ativo ? " contador-aluno-linha--ativa" : "") + '" ' +
-          'tabindex="0" role="button" data-contador-aluno-email="' + escaparHtml(aluno.email) + '">' +
+        '<tr class="contador-aluno-linha" ' +
+          'tabindex="0" role="link" data-contador-aluno-email="' + escaparHtml(aluno.email) + '">' +
           "<td><strong>" + escaparHtml(aluno.nome) + "</strong><br>" +
             "<small>" + escaparHtml(aluno.email) + "</small>" +
             (moduloNome ? "<br><small>" + escaparHtml(moduloNome) + "</small>" : "") +
@@ -1832,35 +1871,22 @@ function renderizarPagamentosAlunosContador(containerId) {
           "<td>" + formatarMoeda(resumo.valorPago) + "<br><small>" + resumo.qtdPagas + " quitado(s)</small></td>" +
           "<td>" + formatarMoeda(resumo.valorPendente + resumo.valorAgendado) + "</td>" +
           "<td>" + formatarMoeda(resumo.valorCurso) + "<br><small>" + resumo.totalParcelas + " lançamento(s)</small></td>" +
-          "<td><span class=\"contador-aluno-linha__hint\">Abrir relatório →</span></td>" +
+          "<td><span class=\"contador-aluno-linha__hint\">Abrir relatório</span></td>" +
         "</tr>"
       );
     })
     .join("");
 
-  let detalheHtml = "";
-  if (emailSelecionado) {
-    const existe = alunos.some(function (a) {
-      return a.email.trim().toLowerCase() === emailSelecionado.trim().toLowerCase();
-    });
-    if (existe) {
-      detalheHtml = montarDetalheAlunoPagamentosContador(emailSelecionado, instituicoes);
-    } else {
-      contadorEmailAlunoPagamentos = null;
-    }
-  }
-
   container.innerHTML =
-    '<p class="contador-painel-hint">Resumo por aluno. Clique em uma linha para abrir o relatório completo, com dados da secretaria e edição de cada pagamento.</p>' +
+    '<p class="contador-painel-hint">Resumo por aluno. Clique em uma linha para abrir o relatório em página dedicada (dados da secretaria e edição de pagamentos).</p>' +
     '<table class="data-table contador-alunos-resumo-table">' +
       "<thead><tr>" +
         "<th>Aluno</th><th>Recebido</th><th>Em aberto</th><th>Total extrato</th><th></th>" +
       "</tr></thead><tbody>" +
       linhas +
-    "</tbody></table>" +
-    detalheHtml;
+    "</tbody></table>";
 
-  configurarEventosPagamentosAlunosContador(containerId);
+  configurarListaPagamentosAlunosContador(containerId);
 }
 
 function renderizarFolhaContador(containerId) {

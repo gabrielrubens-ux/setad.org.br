@@ -42,6 +42,7 @@ const PRECACHE_URLS = [
   "/painel-secretaria.html",
   "/painel-diretor.html",
   "/painel-contador.html",
+  "/painel-contador-aluno-pagamentos.html",
   "/culto-ao-vivo.html",
   "/matricula/index.html",
   "/matricula/pagamento.html",
