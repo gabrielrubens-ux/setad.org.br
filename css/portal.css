@@ -1493,6 +1493,99 @@
   color: var(--cor-erro);
 }
 
+.financeiro-card--interativo {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.financeiro-card--interativo:hover,
+.financeiro-card--interativo:focus-visible {
+  border-color: var(--cor-primaria);
+  box-shadow: 0 4px 14px rgba(35, 64, 107, 0.12);
+  outline: none;
+}
+
+.financeiro-card--interativo.financeiro-card--aberto {
+  border-color: var(--cor-primaria);
+  background: rgba(35, 64, 107, 0.04);
+}
+
+.financeiro-card--interativo small {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave, #64748b);
+}
+
+.contador-painel-detalhe {
+  margin: 0.75rem 0 1.25rem;
+  padding: 1rem;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+}
+
+.contador-painel-detalhe h4 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  color: var(--cor-primaria);
+}
+
+.contador-painel-hint {
+  margin: -0.35rem 0 0.75rem;
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave, #64748b);
+}
+
+.contador-areas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.contador-area-card {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  background: var(--cor-branco);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.contador-area-card:hover {
+  border-color: var(--cor-primaria);
+  background: rgba(35, 64, 107, 0.04);
+}
+
+.contador-area-card strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--cor-primaria);
+}
+
+.contador-area-card span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave, #64748b);
+}
+
+.contador-secretaria-resumo {
+  margin-bottom: 0.75rem;
+}
+
+.contador-secretaria-origens {
+  margin-bottom: 1rem;
+}
+
+.data-table--compact th,
+.data-table--compact td {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+}
+
 .financeiro-aviso {
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;

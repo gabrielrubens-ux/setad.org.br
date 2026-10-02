@@ -1192,22 +1192,159 @@ function obterClassePagamentoStatus(status) {
 
 /* --- Renderização: painel do contador --- */
 
+function obterResumoSecretariaParaContabilidade() {
+  const matriculas = typeof obterMatriculas === "function" ? obterMatriculas() : [];
+  const porOrigem = { site: 0, presencial: 0, quadro: 0, whatsapp: 0 };
+  let ativos = 0;
+  let pendentesMatricula = 0;
+
+  matriculas.forEach(function (m) {
+    const origem = m.origem || "site";
+    if (porOrigem[origem] !== undefined) {
+      porOrigem[origem]++;
+    }
+    if (m.status === "ativo" || m.status === "confirmado") {
+      ativos++;
+    }
+    if (m.status === "pendente") {
+      pendentesMatricula++;
+    }
+  });
+
+  const pagamentos = obterPagamentosAlunos();
+  let qtdPagos = 0;
+  let qtdEmAberto = 0;
+
+  pagamentos.forEach(function (p) {
+    if (p.status === "pago") qtdPagos++;
+    if (p.status === "pendente" || p.status === "agendado") qtdEmAberto++;
+  });
+
+  return {
+    totalMatriculas: matriculas.length,
+    alunosAtivos: ativos,
+    pendentesMatricula: pendentesMatricula,
+    porOrigem: porOrigem,
+    totalPagamentos: pagamentos.length,
+    qtdPagos: qtdPagos,
+    qtdEmAberto: qtdEmAberto
+  };
+}
+
+function listarPagamentosResumoContador(tipo) {
+  const lista = obterPagamentosAlunos().slice().sort(function (a, b) {
+    const da = a.dataPagamento || a.vencimento || a.criadoEm || "";
+    const db = b.dataPagamento || b.vencimento || b.criadoEm || "";
+    return db.localeCompare(da);
+  });
+
+  if (tipo === "recebido") {
+    return lista.filter(function (p) {
+      return p.status === "pago";
+    });
+  }
+  if (tipo === "pendente") {
+    return lista.filter(function (p) {
+      return p.status === "pendente" || p.status === "agendado";
+    });
+  }
+  return lista;
+}
+
+function montarTabelaPagamentosResumoContador(pagamentos, limite) {
+  const fatia = pagamentos.slice(0, limite || 12);
+  if (!fatia.length) {
+    return '<p class="painel-vazio">Nenhum registro nesta categoria.</p>';
+  }
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Aluno</th><th>Referência</th><th>Valor</th><th>Status</th></tr></thead><tbody>" +
+      fatia
+        .map(function (p) {
+          return (
+            "<tr>" +
+              "<td>" + escaparHtml(p.alunoNome || "—") + "</td>" +
+              "<td>" + escaparHtml(p.referencia || "—") + "</td>" +
+              "<td>" + formatarMoeda(p.valor || 0) + "</td>" +
+              '<td><span class="status-badge ' + obterClassePagamentoStatus(p.status) + '">' +
+                obterLabelPagamentoStatus(p.status) + "</span></td>" +
+            "</tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+  );
+}
+
+function ativarAbaPainelContador(tabId) {
+  const link = document.querySelector('.painel__nav-link[data-tab="' + tabId + '"]');
+  if (link) link.click();
+}
+
+function configurarInteracoesDashboardContador(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  function alternarDetalhe(tipo) {
+    const painel = document.getElementById("contadorDetalhe" + tipo);
+    const card = container.querySelector('[data-contador-card="' + tipo + '"]');
+    if (!painel || !card) return;
+
+    const aberto = !painel.hidden;
+    container.querySelectorAll(".contador-painel-detalhe").forEach(function (el) {
+      el.hidden = true;
+    });
+    container.querySelectorAll(".financeiro-card--interativo").forEach(function (el) {
+      el.classList.remove("financeiro-card--aberto");
+    });
+
+    if (!aberto) {
+      painel.hidden = false;
+      card.classList.add("financeiro-card--aberto");
+    }
+  }
+
+  container.querySelectorAll("[data-contador-card]").forEach(function (card) {
+    card.addEventListener("click", function () {
+      alternarDetalhe(card.getAttribute("data-contador-card"));
+    });
+    card.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter" || evento.key === " ") {
+        evento.preventDefault();
+        alternarDetalhe(card.getAttribute("data-contador-card"));
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-contador-ir-aba]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      ativarAbaPainelContador(btn.getAttribute("data-contador-ir-aba"));
+    });
+  });
+}
+
 function renderizarDashboardContador(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const resumo = resumoFinanceiro();
-  const instituicoes = obterInstituicoesFinanceiras();
+  const sec = obterResumoSecretariaParaContabilidade();
+  const pagosLista = listarPagamentosResumoContador("recebido");
+  const pendLista = listarPagamentosResumoContador("pendente");
 
   container.innerHTML =
-    '<div class="financeiro-cards">' +
-      '<article class="financeiro-card">' +
-        '<p class="financeiro-card__label">Recebido (alunos)</p>' +
+    '<div class="financeiro-cards financeiro-cards--destaque">' +
+      '<article class="financeiro-card financeiro-card--interativo" tabindex="0" role="button" ' +
+        'data-contador-card="Recebido" aria-expanded="false">' +
+        '<p class="financeiro-card__label">Recebido (alunos) · clique para detalhes</p>' +
         '<p class="financeiro-card__valor">' + formatarMoeda(resumo.recebidoAlunos) + "</p>" +
+        "<small>" + sec.qtdPagos + " pagamento(s) confirmado(s)</small>" +
       "</article>" +
-      '<article class="financeiro-card">' +
-        '<p class="financeiro-card__label">Pendente (alunos)</p>' +
+      '<article class="financeiro-card financeiro-card--interativo financeiro-card--alerta" tabindex="0" role="button" ' +
+        'data-contador-card="Pendente" aria-expanded="false">' +
+        '<p class="financeiro-card__label">Pendente (alunos) · clique para detalhes</p>' +
         '<p class="financeiro-card__valor financeiro-card__valor--alerta">' + formatarMoeda(resumo.pendenteAlunos) + "</p>" +
+        "<small>" + sec.qtdEmAberto + " em aberto</small>" +
       "</article>" +
       '<article class="financeiro-card">' +
         '<p class="financeiro-card__label">Folha paga</p>' +
@@ -1218,20 +1355,56 @@ function renderizarDashboardContador(containerId) {
         '<p class="financeiro-card__valor">' + formatarMoeda(resumo.agendadoFolha) + "</p>" +
       "</article>" +
     "</div>" +
-    '<p class="financeiro-aviso">' +
-      '<strong>Segurança:</strong> esta é uma demonstração local. Em produção, utilize servidor seguro (HTTPS), ' +
-      "autenticação em dois fatores e APIs oficiais dos bancos." +
-    "</p>" +
-    '<h3 class="financeiro-subtitulo">Instituições conectadas</h3>' +
-    '<ul class="financeiro-instituicoes">' +
-      instituicoes.map(function (inst) {
-        return (
-          "<li><strong>" + escaparHtml(inst.nome) + "</strong> — " +
-          escaparHtml(inst.tipo) +
-          ' <span class="status-badge status--entregue">' + escaparHtml(inst.status) + "</span></li>"
-        );
-      }).join("") +
-    "</ul>";
+    '<div id="contadorDetalheRecebido" class="contador-painel-detalhe" hidden>' +
+      "<h4>Pagamentos recebidos (amostra)</h4>" +
+      montarTabelaPagamentosResumoContador(pagosLista, 15) +
+      '<button type="button" class="btn btn--sm btn--secondary" data-contador-ir-aba="tab-pagamentos-alunos">Ver todos os pagamentos</button>' +
+    "</div>" +
+    '<div id="contadorDetalhePendente" class="contador-painel-detalhe" hidden>' +
+      "<h4>Pagamentos pendentes ou agendados</h4>" +
+      montarTabelaPagamentosResumoContador(pendLista, 15) +
+      '<button type="button" class="btn btn--sm btn--secondary" data-contador-ir-aba="tab-pagamentos-alunos">Ir para pagamentos de alunos</button>' +
+    "</div>" +
+    '<h3 class="financeiro-subtitulo">Resumo da contabilidade</h3>' +
+    '<p class="contador-painel-hint">Acesso rápido às áreas do painel financeiro e contábil.</p>' +
+    '<div class="contador-areas-grid">' +
+      '<button type="button" class="contador-area-card" data-contador-ir-aba="tab-pagamentos-alunos">' +
+        "<strong>Pagamentos de alunos</strong><span>Extrato e confirmações</span></button>" +
+      '<button type="button" class="contador-area-card" data-contador-ir-aba="tab-folha">' +
+        "<strong>Folha de pagamento</strong><span>Funcionários e repasses</span></button>" +
+      '<button type="button" class="contador-area-card" data-contador-ir-aba="tab-funcionarios">' +
+        "<strong>Funcionários</strong><span>Cadastro e remuneração</span></button>" +
+      '<button type="button" class="contador-area-card" data-contador-ir-aba="tab-instituicoes">' +
+        "<strong>Bancos e PIX</strong><span>Contas e convênios</span></button>" +
+      '<button type="button" class="contador-area-card" data-contador-ir-aba="tab-relatorios">' +
+        "<strong>Relatórios e DRE</strong><span>Documentos e demonstrativos</span></button>" +
+    "</div>" +
+    '<h3 class="financeiro-subtitulo">Dados da secretaria (somente leitura)</h3>' +
+    '<p class="contador-painel-hint">Visão consolidada de matrículas e inscrições registradas pela secretaria e pelo site.</p>' +
+    '<div class="modulos-resumo contador-secretaria-resumo">' +
+      '<article class="modulo-card-resumo modulo-card-resumo--medio">' +
+        '<span class="modulo-card-resumo__numero">' + sec.totalMatriculas + "</span>" +
+        '<span class="modulo-card-resumo__nome">Alunos inscritos</span></article>' +
+      '<article class="modulo-card-resumo modulo-card-resumo--avancado">' +
+        '<span class="modulo-card-resumo__numero">' + sec.alunosAtivos + "</span>" +
+        '<span class="modulo-card-resumo__nome">Matrículas ativas</span></article>' +
+      '<article class="modulo-card-resumo modulo-card-resumo--basico">' +
+        '<span class="modulo-card-resumo__numero">' + sec.pendentesMatricula + "</span>" +
+        '<span class="modulo-card-resumo__nome">Cadastros pendentes</span></article>' +
+      '<article class="modulo-card-resumo modulo-card-resumo--teologia">' +
+        '<span class="modulo-card-resumo__numero">' + sec.totalPagamentos + "</span>" +
+        '<span class="modulo-card-resumo__nome">Lançamentos de pagamento</span></article>' +
+    "</div>" +
+    '<div class="secretaria-resumo-origens contador-secretaria-origens">' +
+      "<p><strong>Site:</strong> " + sec.porOrigem.site + " · " +
+      "<strong>Presencial:</strong> " + sec.porOrigem.presencial + " · " +
+      "<strong>Quadro:</strong> " + sec.porOrigem.quadro + " · " +
+      "<strong>WhatsApp:</strong> " + sec.porOrigem.whatsapp + "</p>" +
+      "<p><strong>Pagamentos quitados:</strong> " + sec.qtdPagos +
+      " · <strong>Em aberto:</strong> " + sec.qtdEmAberto + "</p>" +
+    "</div>";
+
+  configurarInteracoesDashboardContador(containerId);
 }
 
 function renderizarPagamentosAlunosContador(containerId) {

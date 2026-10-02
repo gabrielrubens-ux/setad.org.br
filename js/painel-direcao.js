@@ -143,7 +143,26 @@ function inicializarPainelContador() {
     }
   };
 
-  configurarAbasPainel(titulos, "contador");
+  configurarAbasPainel(titulos, "contador", function (tabId) {
+    if (tabId === "tab-dashboard") {
+      renderizarDashboardContador("dashboardContadorContainer");
+    }
+    if (tabId === "tab-pagamentos-alunos") {
+      renderizarPagamentosAlunosContador("pagamentosAlunosContainer");
+    }
+    if (tabId === "tab-folha") {
+      renderizarFolhaContador("folhaContainer");
+    }
+    if (tabId === "tab-funcionarios") {
+      renderizarFuncionariosContador("funcionariosContainer");
+    }
+    if (tabId === "tab-instituicoes") {
+      renderizarInstituicoesContador("instituicoesContainer", sessao);
+    }
+    if (tabId === "tab-relatorios") {
+      renderizarRelatoriosContador("relatoriosContainer");
+    }
+  });
 
   inicializarDadosFinanceiros();
 
