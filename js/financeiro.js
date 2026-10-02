@@ -1678,38 +1678,11 @@ function renderizarInstituicoesContador(containerId, sessao) {
 
   const instituicoes = obterInstituicoesFinanceiras();
   const editId = container.dataset.instEditId || "";
+  const painelFormAberto = editId ? " open" : "";
 
   container.innerHTML =
-    '<p class="financeiro-aviso">Cadastre contas bancárias e o PIX institucional. Os dados são usados em boletos, PIX e repasses. ' +
-      "Integração bancária em tempo real exige credenciais oficiais do banco.</p>" +
+    '<p class="financeiro-aviso">Contas e PIX usados em boletos e repasses. Edite os cartões abaixo quando necessário.</p>' +
     '<div id="instMensagem" class="form-mensagem" role="alert"></div>' +
-    '<form id="formInstituicao" class="financeiro-form-agendar colaboradores-form">' +
-      '<input type="hidden" id="instEditId" value="' + escaparHtml(editId) + '">' +
-      '<h3 id="instFormTitulo">Novo banco / instituição</h3>' +
-      '<div class="financeiro-form-grid colaboradores-form__grid">' +
-        '<div class="form-group form-group--full"><label for="instNome">Nome *</label>' +
-          '<input type="text" id="instNome" required placeholder="Ex.: Caixa, PagBank, PIX SETAD"></div>' +
-        '<div class="form-group"><label for="instTipo">Tipo *</label>' +
-          '<input type="text" id="instTipo" required placeholder="Conta corrente, PIX, boleto..."></div>' +
-        '<div class="form-group"><label for="instCodigoBanco">Código do banco</label>' +
-          '<input type="text" id="instCodigoBanco" placeholder="Ex.: 104, 290"></div>' +
-        '<div class="form-group"><label for="instAgencia">Agência</label>' +
-          '<input type="text" id="instAgencia"></div>' +
-        '<div class="form-group"><label for="instConta">Conta / identificador</label>' +
-          '<input type="text" id="instConta"></div>' +
-        '<div class="form-group form-group--full"><label for="instPixChave">Chave PIX (se aplicável)</label>' +
-          '<input type="text" id="instPixChave" placeholder="CNPJ, e-mail ou chave aleatória"></div>' +
-        '<div class="form-group form-group--full"><label for="instTitular">Titular da conta</label>' +
-          '<input type="text" id="instTitular"></div>' +
-        '<div class="form-group"><label for="instConvenio">Convênio boleto</label>' +
-          '<input type="text" id="instConvenio" placeholder="Número do convênio"></div>' +
-        '<div class="form-group"><label for="instStatus">Status</label>' +
-          '<select id="instStatus"><option value="ativo">Ativo</option><option value="conectado">Conectado</option>' +
-          '<option value="inativo">Inativo</option></select></div>' +
-        '<div class="form-group form-group--full colaboradores-form__acoes">' +
-          '<button type="submit" class="btn btn--primary" id="instBtnSalvar">Salvar instituição</button>' +
-          '<button type="button" class="btn btn--secondary" id="instBtnCancelar" hidden>Cancelar edição</button>' +
-        "</div></div></form>" +
     '<h3 class="financeiro-subtitulo">Instituições cadastradas</h3>' +
     '<div class="financeiro-inst-grid">' +
       instituicoes.map(function (inst) {
@@ -1731,7 +1704,37 @@ function renderizarInstituicoesContador(containerId, sessao) {
           "</article>"
         );
       }).join("") +
-    "</div>";
+    "</div>" +
+    '<details class="inst-banco-novo" id="instPainelNovo"' + painelFormAberto + ">" +
+      '<summary class="inst-banco-novo__toggle">Adicionar novo banco</summary>' +
+      '<div class="inst-banco-novo__corpo">' +
+    '<form id="formInstituicao" class="financeiro-form-agendar colaboradores-form inst-banco-novo__form">' +
+      '<input type="hidden" id="instEditId" value="' + escaparHtml(editId) + '">' +
+      '<p id="instFormTitulo" class="inst-banco-novo__titulo">Novo banco / instituição</p>' +
+      '<div class="financeiro-form-grid colaboradores-form__grid inst-banco-novo__grid">' +
+        '<div class="form-group form-group--full"><label for="instNome">Nome *</label>' +
+          '<input type="text" id="instNome" required placeholder="Ex.: Caixa, PagBank, PIX SETAD"></div>' +
+        '<div class="form-group"><label for="instTipo">Tipo *</label>' +
+          '<input type="text" id="instTipo" required placeholder="Conta corrente, PIX, boleto..."></div>' +
+        '<div class="form-group"><label for="instCodigoBanco">Código do banco</label>' +
+          '<input type="text" id="instCodigoBanco" placeholder="Ex.: 104, 290"></div>' +
+        '<div class="form-group"><label for="instAgencia">Agência</label>' +
+          '<input type="text" id="instAgencia"></div>' +
+        '<div class="form-group"><label for="instConta">Conta / identificador</label>' +
+          '<input type="text" id="instConta"></div>' +
+        '<div class="form-group form-group--full"><label for="instPixChave">Chave PIX (se aplicável)</label>' +
+          '<input type="text" id="instPixChave" placeholder="CNPJ, e-mail ou chave aleatória"></div>' +
+        '<div class="form-group form-group--full"><label for="instTitular">Titular da conta</label>' +
+          '<input type="text" id="instTitular"></div>' +
+        '<div class="form-group"><label for="instConvenio">Convênio boleto</label>' +
+          '<input type="text" id="instConvenio" placeholder="Número do convênio"></div>' +
+        '<div class="form-group"><label for="instStatus">Status</label>' +
+          '<select id="instStatus"><option value="ativo">Ativo</option><option value="conectado">Conectado</option>' +
+          '<option value="inativo">Inativo</option></select></div>' +
+        '<div class="form-group form-group--full colaboradores-form__acoes inst-banco-novo__acoes">' +
+          '<button type="submit" class="btn btn--sm btn--secondary" id="instBtnSalvar">Salvar</button>' +
+          '<button type="button" class="btn btn--sm" id="instBtnCancelar" hidden>Cancelar</button>' +
+        "</div></div></form></div></details>";
 
   if (editId) {
     const emEdicao = obterInstituicaoPorId(editId);
@@ -1806,6 +1809,13 @@ function preencherFormularioInstituicao(inst) {
   document.getElementById("instFormTitulo").textContent = "Editar instituição";
   document.getElementById("instBtnSalvar").textContent = "Salvar alterações";
   document.getElementById("instBtnCancelar").hidden = false;
+  const painel = document.getElementById("instPainelNovo");
+  if (painel) {
+    painel.open = true;
+    painel.classList.add("inst-banco-novo--edicao");
+    const summary = painel.querySelector(".inst-banco-novo__toggle");
+    if (summary) summary.textContent = "Editar instituição";
+  }
 }
 
 /* renderizarRelatoriosContador — definido em contabilidade-relatorios.js */
