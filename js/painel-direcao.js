@@ -40,6 +40,22 @@ function configurarAbasPainel(titulosMap, perfilLogout, aoTrocarAba) {
   configurarLogoutPainelInstitucional("login-direcao.html");
 }
 
+function ativarAbaPainelDiretor(tabId) {
+  const link = document.querySelector('.painel__nav-link[data-tab="' + tabId + '"]');
+  if (link) link.click();
+}
+
+function configurarAtalhosVisaoDiretor(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.querySelectorAll("[data-diretor-ir-aba]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      ativarAbaPainelDiretor(btn.getAttribute("data-diretor-ir-aba"));
+    });
+  });
+}
+
 function inicializarPainelDiretor() {
   configurarLogoutPainelInstitucional("login-direcao.html");
 

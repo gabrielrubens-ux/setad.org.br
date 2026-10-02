@@ -2490,5 +2490,26 @@ function renderizarVisaoDiretor(containerId) {
       '<article class="financeiro-card"><p class="financeiro-card__label">Funcionários ativos</p>' +
         '<p class="financeiro-card__valor">' + resumo.totalFuncionarios + "</p></article>" +
     "</div>" +
-    '<p class="financeiro-aviso">Use as abas ao lado para notas, trabalhos, matrículas, biblioteca, finanças e equipe.</p>';
+    '<h3 class="financeiro-subtitulo">Resumo do painel</h3>' +
+    '<p class="contador-painel-hint">Acesso rápido às áreas do painel da direção.</p>' +
+    '<div class="contador-areas-grid diretor-areas-grid">' +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-notas">' +
+        "<strong>Notas dos alunos</strong><span>Avaliações e desempenho das turmas</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-trabalhos">' +
+        "<strong>Trabalhos enviados</strong><span>Entregas no portal do aluno</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-matriculas">' +
+        "<strong>Matrículas</strong><span>Inscrições, exclusões e auditoria</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-biblioteca">' +
+        "<strong>Biblioteca teológica</strong><span>Acervo digital e cadastro de livros</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-financeiro">' +
+        "<strong>Financeiro</strong><span>Resumo executivo e documentos</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-colaboradores">' +
+        "<strong>Colaboradores</strong><span>Salários, benefícios e cadastro de RH</span></button>" +
+      '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-equipe">' +
+        "<strong>Equipe e cadastros</strong><span>Professores e perfis institucionais</span></button>" +
+    "</div>";
+
+  if (typeof configurarAtalhosVisaoDiretor === "function") {
+    configurarAtalhosVisaoDiretor(containerId);
+  }
 }
