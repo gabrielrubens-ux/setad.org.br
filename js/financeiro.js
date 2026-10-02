@@ -107,8 +107,11 @@ const INSTITUICOES_INICIAIS = [
     id: "banco-002",
     nome: "Caixa Econômica Federal",
     tipo: "Convênio boleto / PIX",
+    codigoBanco: "104",
     agencia: "0187",
     conta: "*****-45",
+    convenioBoleto: "SETAD-2026",
+    titular: "SEMINARIO TEOLOGICO DA ASSEMBLEIA DE DEUS EM BELEM",
     status: "conectado",
     ultimaSync: "2026-09-09T18:30:00.000Z"
   },
@@ -116,8 +119,11 @@ const INSTITUICOES_INICIAIS = [
     id: "banco-003",
     nome: "PIX Institucional SETAD",
     tipo: "Chave PIX (CNPJ)",
-    agencia: "—",
-    conta: "setad@setad.org.br",
+    codigoBanco: "290",
+    agencia: "0001",
+    conta: "86532518-7",
+    pixChave: "21175313000150",
+    titular: "SEMINARIO TEOLOGICO DA ASSEMBLEIA DE DEUS EM BELEM",
     status: "ativo",
     ultimaSync: "2026-09-10T08:15:00.000Z"
   }
@@ -663,11 +669,6 @@ function confirmarPagamentoMatriculaPublico(pagamentoId, email, formaPagamento, 
   };
 }
 
-function gerarLinhaBoletoDemo(pagamentoId) {
-  return "23793.38128 60000.000003 00000.000400 1 " +
-    String(84610000000 + (pagamentoId.length * 137)).slice(0, 10);
-}
-
 function obterFuncionarios() {
   inicializarDadosFinanceiros();
   if (financeiroApiAtivo() && window.SETAD.cache.funcionarios) {
@@ -907,6 +908,238 @@ function obterInstituicoesFinanceiras() {
   }
   const dados = localStorage.getItem(FINANCEIRO_KEYS.instituicoes);
   return dados ? JSON.parse(dados) : [];
+}
+
+function salvarInstituicoesFinanceiras(lista) {
+  if (financeiroApiAtivo()) {
+    window.SETAD.setCache("instituicoes", lista, "instituicoes");
+    return;
+  }
+  localStorage.setItem(FINANCEIRO_KEYS.instituicoes, JSON.stringify(lista));
+}
+
+function obterInstituicaoPorId(instituicaoId) {
+  return obterInstituicoesFinanceiras().find(function (i) {
+    return i.id === instituicaoId;
+  }) || null;
+}
+
+function normalizarInstituicaoFinanceira(dados) {
+  return {
+    nome: (dados.nome || "").trim(),
+    tipo: (dados.tipo || "").trim(),
+    codigoBanco: dados.codigoBanco ? String(dados.codigoBanco).trim() : "",
+    agencia: (dados.agencia || "").trim(),
+    conta: (dados.conta || "").trim(),
+    pixChave: dados.pixChave ? String(dados.pixChave).trim() : "",
+    titular: dados.titular ? String(dados.titular).trim() : "",
+    convenioBoleto: dados.convenioBoleto ? String(dados.convenioBoleto).trim() : "",
+    status: dados.status || "ativo",
+    ultimaSync: dados.ultimaSync || new Date().toISOString()
+  };
+}
+
+function validarInstituicaoFinanceira(dados, instituicaoIdEdicao) {
+  if (!dados.nome || dados.nome.length < 2) {
+    return "Informe o nome do banco ou instituição.";
+  }
+  if (!dados.tipo) return "Informe o tipo de conta ou serviço.";
+  const lista = obterInstituicoesFinanceiras();
+  const duplicado = lista.find(function (i) {
+    if (instituicaoIdEdicao && i.id === instituicaoIdEdicao) return false;
+    return i.nome.toLowerCase() === dados.nome.toLowerCase();
+  });
+  if (duplicado) {
+    return "Já existe uma instituição com este nome.";
+  }
+  return null;
+}
+
+function cadastrarInstituicaoFinanceira(dados, sessao) {
+  const erro = validarInstituicaoFinanceira(dados, null);
+  if (erro) return { ok: false, erro: erro };
+
+  const lista = obterInstituicoesFinanceiras();
+  const nova = Object.assign({}, normalizarInstituicaoFinanceira(dados), {
+    id: gerarId("banco"),
+    cadastradoPor: sessao && sessao.email ? sessao.email : null,
+    cadastradoEm: new Date().toISOString()
+  });
+  lista.push(nova);
+  salvarInstituicoesFinanceiras(lista);
+  return { ok: true, instituicao: nova };
+}
+
+function atualizarInstituicaoFinanceira(instituicaoId, dados, sessao) {
+  const lista = obterInstituicoesFinanceiras();
+  const indice = lista.findIndex(function (i) {
+    return i.id === instituicaoId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Instituição não encontrada." };
+  }
+
+  const erro = validarInstituicaoFinanceira(dados, instituicaoId);
+  if (erro) return { ok: false, erro: erro };
+
+  lista[indice] = Object.assign({}, lista[indice], normalizarInstituicaoFinanceira(dados), {
+    id: lista[indice].id,
+    atualizadoPor: sessao && sessao.email ? sessao.email : null,
+    atualizadoEm: new Date().toISOString()
+  });
+  salvarInstituicoesFinanceiras(lista);
+  return { ok: true, instituicao: lista[indice] };
+}
+
+function obterContaBancariaSetad() {
+  const instituicoes = obterInstituicoesFinanceiras();
+  const pix = instituicoes.find(function (i) {
+    return i.pixChave || (i.tipo && i.tipo.toLowerCase().indexOf("pix") >= 0);
+  });
+  const contaPrincipal = instituicoes.find(function (i) {
+    return i.codigoBanco === "290" || (i.nome && i.nome.toLowerCase().indexOf("pagbank") >= 0);
+  });
+
+  const base = Object.assign({}, CONTA_BANCARIA_SETAD);
+  if (contaPrincipal) {
+    if (contaPrincipal.codigoBanco) base.banco = contaPrincipal.codigoBanco;
+    if (contaPrincipal.nome) base.bancoNome = contaPrincipal.nome;
+    if (contaPrincipal.agencia) base.agencia = contaPrincipal.agencia;
+    if (contaPrincipal.conta) base.conta = contaPrincipal.conta;
+    if (contaPrincipal.titular) base.titular = contaPrincipal.titular;
+  }
+  if (pix && pix.pixChave) {
+    base.pixChave = pix.pixChave.replace(/\s/g, "");
+    const digitos = base.pixChave.replace(/\D/g, "");
+    if (digitos.length === 14) {
+      base.cnpjNumeros = digitos;
+      base.cnpj = digitos.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+    } else {
+      base.cnpjNumeros = digitos || base.cnpjNumeros;
+    }
+  }
+  return base;
+}
+
+function obterInstituicaoEmissaoBoleto() {
+  const lista = obterInstituicoesFinanceiras();
+  return (
+    lista.find(function (i) {
+      return i.convenioBoleto || (i.tipo && i.tipo.toLowerCase().indexOf("boleto") >= 0);
+    }) ||
+    lista.find(function (i) {
+      return i.id === "banco-002";
+    }) ||
+    lista[0] ||
+    { id: "banco-002", nome: "Convênio boleto", agencia: "—", conta: "—" }
+  );
+}
+
+function calcularVencimentoBoleto(diasUteis) {
+  const dias = diasUteis || 3;
+  const data = new Date();
+  let adicionados = 0;
+  while (adicionados < dias) {
+    data.setDate(data.getDate() + 1);
+    const dia = data.getDay();
+    if (dia !== 0 && dia !== 6) adicionados++;
+  }
+  return data.toISOString().slice(0, 10);
+}
+
+function gerarLinhaBoletoDemo(pagamentoId, valor) {
+  const valorCentavos = String(Math.round((Number(valor) || 0) * 100)).padStart(10, "0");
+  const sufixo = String(84610000000 + (String(pagamentoId || "").length * 137)).slice(0, 10);
+  return "23793.38128 60000.00000" + valorCentavos.slice(0, 3) + " 00000.000400 1 " + sufixo;
+}
+
+function emitirBoletoParaPagamento(pagamentoId, emitidoPor) {
+  const pagamentos = obterPagamentosAlunos();
+  const indice = pagamentos.findIndex(function (p) {
+    return p.id === pagamentoId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Pagamento não encontrado." };
+  }
+
+  const pagamento = pagamentos[indice];
+  if (pagamento.status === "pago") {
+    return { ok: false, erro: "Este pagamento já está quitado." };
+  }
+
+  const instituicao = obterInstituicaoEmissaoBoleto();
+  const vencimento = calcularVencimentoBoleto(3);
+  const linhaDigitavel = gerarLinhaBoletoDemo(pagamento.id, pagamento.valor);
+  const boleto = {
+    linhaDigitavel: linhaDigitavel,
+    nossoNumero: gerarId("bol"),
+    vencimento: vencimento,
+    emitidoEm: new Date().toISOString(),
+    emitidoPor: emitidoPor || "sistema",
+    instituicaoId: instituicao.id,
+    bancoNome: instituicao.nome,
+    convenio: instituicao.convenioBoleto || "—"
+  };
+
+  pagamentos[indice].boleto = boleto;
+  pagamentos[indice].formaPagamento = "Boleto";
+  pagamentos[indice].instituicaoId = instituicao.id;
+  salvarPagamentosAlunos(pagamentos);
+
+  const matricula = pagamento.matriculaId
+    ? obterMatriculas().find(function (m) {
+        return m.id === pagamento.matriculaId;
+      })
+    : obterMatriculaPorEmail(pagamento.alunoEmail);
+
+  return {
+    ok: true,
+    pagamento: pagamentos[indice],
+    boleto: boleto,
+    sacado: {
+      nome: pagamento.alunoNome || (matricula && matricula.nomeCompleto) || "Aluno SETAD",
+      email: pagamento.alunoEmail,
+      cpf: matricula && matricula.cpf ? matricula.cpf : "—"
+    },
+    cedente: obterContaBancariaSetad(),
+    instituicao: instituicao
+  };
+}
+
+function criarPagamentoParaBoletoSecretaria(dados, sessao) {
+  const email = (dados.email || "").trim().toLowerCase();
+  const matricula = obterMatriculaPorEmail(email);
+  if (!matricula) {
+    return { ok: false, erro: "Nenhuma matrícula encontrada para este e-mail." };
+  }
+
+  const valor = Number(dados.valor);
+  if (!valor || valor <= 0) {
+    return { ok: false, erro: "Informe um valor válido." };
+  }
+
+  const referencia = (dados.referencia || "Boleto emitido na secretaria").trim();
+  const pagamentos = obterPagamentosAlunos();
+  const novo = {
+    id: gerarId("pag"),
+    matriculaId: matricula.id,
+    alunoNome: matricula.nomeCompleto,
+    alunoEmail: email,
+    modulo: matricula.modulo,
+    tipo: dados.tipoCobranca || "mensalidade",
+    valor: valor,
+    referencia: referencia,
+    vencimento: calcularVencimentoBoleto(3) + "T12:00:00.000Z",
+    status: "pendente",
+    formaPagamento: "Boleto",
+    dataPagamento: null,
+    criadoEm: new Date().toISOString(),
+    canal: "secretaria",
+    registradoPorSecretaria: sessao && sessao.email ? sessao.email : null
+  };
+  pagamentos.push(novo);
+  salvarPagamentosAlunos(pagamentos);
+  return emitirBoletoParaPagamento(novo.id, sessao && sessao.email ? sessao.email : "secretaria");
 }
 
 function resumoFinanceiro() {
@@ -1439,28 +1672,140 @@ function renderizarFuncionariosContador(containerId) {
   });
 }
 
-function renderizarInstituicoesContador(containerId) {
+function renderizarInstituicoesContador(containerId, sessao) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const instituicoes = obterInstituicoesFinanceiras();
+  const editId = container.dataset.instEditId || "";
 
   container.innerHTML =
-    '<p class="financeiro-aviso">Conexões simuladas para demonstração. Integração real exige credenciais OAuth/API do banco.</p>' +
+    '<p class="financeiro-aviso">Cadastre contas bancárias e o PIX institucional. Os dados são usados em boletos, PIX e repasses. ' +
+      "Integração bancária em tempo real exige credenciais oficiais do banco.</p>" +
+    '<div id="instMensagem" class="form-mensagem" role="alert"></div>' +
+    '<form id="formInstituicao" class="financeiro-form-agendar colaboradores-form">' +
+      '<input type="hidden" id="instEditId" value="' + escaparHtml(editId) + '">' +
+      '<h3 id="instFormTitulo">Novo banco / instituição</h3>' +
+      '<div class="financeiro-form-grid colaboradores-form__grid">' +
+        '<div class="form-group form-group--full"><label for="instNome">Nome *</label>' +
+          '<input type="text" id="instNome" required placeholder="Ex.: Caixa, PagBank, PIX SETAD"></div>' +
+        '<div class="form-group"><label for="instTipo">Tipo *</label>' +
+          '<input type="text" id="instTipo" required placeholder="Conta corrente, PIX, boleto..."></div>' +
+        '<div class="form-group"><label for="instCodigoBanco">Código do banco</label>' +
+          '<input type="text" id="instCodigoBanco" placeholder="Ex.: 104, 290"></div>' +
+        '<div class="form-group"><label for="instAgencia">Agência</label>' +
+          '<input type="text" id="instAgencia"></div>' +
+        '<div class="form-group"><label for="instConta">Conta / identificador</label>' +
+          '<input type="text" id="instConta"></div>' +
+        '<div class="form-group form-group--full"><label for="instPixChave">Chave PIX (se aplicável)</label>' +
+          '<input type="text" id="instPixChave" placeholder="CNPJ, e-mail ou chave aleatória"></div>' +
+        '<div class="form-group form-group--full"><label for="instTitular">Titular da conta</label>' +
+          '<input type="text" id="instTitular"></div>' +
+        '<div class="form-group"><label for="instConvenio">Convênio boleto</label>' +
+          '<input type="text" id="instConvenio" placeholder="Número do convênio"></div>' +
+        '<div class="form-group"><label for="instStatus">Status</label>' +
+          '<select id="instStatus"><option value="ativo">Ativo</option><option value="conectado">Conectado</option>' +
+          '<option value="inativo">Inativo</option></select></div>' +
+        '<div class="form-group form-group--full colaboradores-form__acoes">' +
+          '<button type="submit" class="btn btn--primary" id="instBtnSalvar">Salvar instituição</button>' +
+          '<button type="button" class="btn btn--secondary" id="instBtnCancelar" hidden>Cancelar edição</button>' +
+        "</div></div></form>" +
+    '<h3 class="financeiro-subtitulo">Instituições cadastradas</h3>' +
     '<div class="financeiro-inst-grid">' +
       instituicoes.map(function (inst) {
+        const ehPix = inst.pixChave || (inst.tipo && inst.tipo.toLowerCase().indexOf("pix") >= 0);
         return (
           '<article class="financeiro-inst-card">' +
             "<h3>" + escaparHtml(inst.nome) + "</h3>" +
             "<p>" + escaparHtml(inst.tipo) + "</p>" +
-            "<p><strong>Agência:</strong> " + escaparHtml(inst.agencia) + "</p>" +
-            "<p><strong>Conta / Chave:</strong> " + escaparHtml(inst.conta) + "</p>" +
-            '<p><span class="status-badge status--entregue">' + escaparHtml(inst.status) + "</span></p>" +
-            "<p><small>Última sincronização: " + formatarData(inst.ultimaSync) + "</small></p>" +
+            (inst.codigoBanco ? "<p><strong>Banco:</strong> " + escaparHtml(inst.codigoBanco) + "</p>" : "") +
+            "<p><strong>Agência:</strong> " + escaparHtml(inst.agencia || "—") + "</p>" +
+            "<p><strong>Conta:</strong> " + escaparHtml(inst.conta || "—") + "</p>" +
+            (ehPix ? "<p><strong>PIX:</strong> " + escaparHtml(inst.pixChave || inst.conta || "—") + "</p>" : "") +
+            (inst.convenioBoleto ? "<p><strong>Convênio boleto:</strong> " + escaparHtml(inst.convenioBoleto) + "</p>" : "") +
+            (inst.titular ? "<p><small>" + escaparHtml(inst.titular) + "</small></p>" : "") +
+            '<p><span class="status-badge status--entregue">' + escaparHtml(inst.status || "ativo") + "</span></p>" +
+            '<p class="colaboradores-tabela__acoes">' +
+              '<button type="button" class="btn btn--sm btn--secondary" data-inst-edit="' + escaparHtml(inst.id) + '">Editar</button>' +
+            "</p>" +
           "</article>"
         );
       }).join("") +
     "</div>";
+
+  if (editId) {
+    const emEdicao = obterInstituicaoPorId(editId);
+    if (emEdicao) preencherFormularioInstituicao(emEdicao);
+  }
+
+  document.getElementById("formInstituicao").addEventListener("submit", function (evento) {
+    evento.preventDefault();
+    const mensagemEl = document.getElementById("instMensagem");
+    mensagemEl.className = "form-mensagem";
+    mensagemEl.textContent = "";
+
+    const dados = lerDadosFormularioInstituicao();
+    const idEdicao = document.getElementById("instEditId").value.trim();
+    const resultado = idEdicao
+      ? atualizarInstituicaoFinanceira(idEdicao, dados, sessao)
+      : cadastrarInstituicaoFinanceira(dados, sessao);
+
+    if (!resultado.ok) {
+      mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+      mensagemEl.textContent = resultado.erro;
+      return;
+    }
+
+    container.dataset.instEditId = "";
+    renderizarInstituicoesContador(containerId, sessao);
+    mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
+    mensagemEl.textContent = "Instituição salva com sucesso.";
+  });
+
+  const btnCancelar = document.getElementById("instBtnCancelar");
+  if (btnCancelar) {
+    btnCancelar.addEventListener("click", function () {
+      container.dataset.instEditId = "";
+      renderizarInstituicoesContador(containerId, sessao);
+    });
+  }
+
+  container.querySelectorAll("[data-inst-edit]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      container.dataset.instEditId = btn.getAttribute("data-inst-edit");
+      renderizarInstituicoesContador(containerId, sessao);
+    });
+  });
+}
+
+function lerDadosFormularioInstituicao() {
+  return {
+    nome: document.getElementById("instNome").value.trim(),
+    tipo: document.getElementById("instTipo").value.trim(),
+    codigoBanco: document.getElementById("instCodigoBanco").value.trim(),
+    agencia: document.getElementById("instAgencia").value.trim(),
+    conta: document.getElementById("instConta").value.trim(),
+    pixChave: document.getElementById("instPixChave").value.trim(),
+    titular: document.getElementById("instTitular").value.trim(),
+    convenioBoleto: document.getElementById("instConvenio").value.trim(),
+    status: document.getElementById("instStatus").value
+  };
+}
+
+function preencherFormularioInstituicao(inst) {
+  document.getElementById("instEditId").value = inst.id;
+  document.getElementById("instNome").value = inst.nome || "";
+  document.getElementById("instTipo").value = inst.tipo || "";
+  document.getElementById("instCodigoBanco").value = inst.codigoBanco || "";
+  document.getElementById("instAgencia").value = inst.agencia || "";
+  document.getElementById("instConta").value = inst.conta || "";
+  document.getElementById("instPixChave").value = inst.pixChave || "";
+  document.getElementById("instTitular").value = inst.titular || "";
+  document.getElementById("instConvenio").value = inst.convenioBoleto || "";
+  document.getElementById("instStatus").value = inst.status || "ativo";
+  document.getElementById("instFormTitulo").textContent = "Editar instituição";
+  document.getElementById("instBtnSalvar").textContent = "Salvar alterações";
+  document.getElementById("instBtnCancelar").hidden = false;
 }
 
 /* renderizarRelatoriosContador — definido em contabilidade-relatorios.js */

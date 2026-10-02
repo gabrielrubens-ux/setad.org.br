@@ -207,11 +207,22 @@ function abrirCheckoutAluno(sessao, parcela, forma) {
       '<p class="pagamentos-checkout__label">Copie o código PIX abaixo:</p>' +
       '<div class="pagamentos-pix-codigo" id="codigoPixAluno">' + escaparHtml(codigo) + "</div>" +
       '<button type="button" class="btn btn--secondary" id="btnCopiarPix">Copiar código PIX</button>' +
-      "<p><small>Chave PIX (CNPJ): " + escaparHtml(CONTA_BANCARIA_SETAD.cnpj) + "</small></p>";
+      "<p><small>Chave PIX: " + escaparHtml(
+        typeof obterContaBancariaSetad === "function"
+          ? obterContaBancariaSetad().pixChave
+          : CONTA_BANCARIA_SETAD.pixChave
+      ) + "</small></p>";
   } else if (forma === "Boleto") {
+    const emissao = emitirBoletoParaPagamento(parcela.id, sessao.email);
+    const linha = emissao.ok && emissao.boleto
+      ? emissao.boleto.linhaDigitavel
+      : gerarLinhaBoletoDemo(parcela.id, parcela.valor);
+    const venc = emissao.ok && emissao.boleto ? formatarData(emissao.boleto.vencimento) : "—";
     conteudoForma =
       '<p class="pagamentos-checkout__label">Linha digitável do boleto:</p>' +
-      '<div class="pagamentos-pix-codigo">' + escaparHtml(gerarLinhaBoletoDemo(parcela.id)) + "</div>" +
+      '<div class="pagamentos-pix-codigo" id="linhaBoletoAluno">' + escaparHtml(linha) + "</div>" +
+      "<p><strong>Vencimento:</strong> " + escaparHtml(venc) + "</p>" +
+      '<button type="button" class="btn btn--secondary" id="btnImprimirBoletoAluno">Imprimir boleto agora</button>' +
       "<p><small>O boleto será compensado em até 3 dias úteis após o pagamento.</small></p>";
   } else {
     conteudoForma =
@@ -258,6 +269,13 @@ function abrirCheckoutAluno(sessao, parcela, forma) {
       navigator.clipboard.writeText(codigo).then(function () {
         btnCopiar.textContent = "Código copiado!";
       });
+    });
+  }
+
+  const btnImprimirBoleto = document.getElementById("btnImprimirBoletoAluno");
+  if (btnImprimirBoleto && typeof configurarImpressaoBoletoAluno === "function") {
+    btnImprimirBoleto.addEventListener("click", function () {
+      configurarImpressaoBoletoAluno(parcela, sessao);
     });
   }
 

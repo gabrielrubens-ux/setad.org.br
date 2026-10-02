@@ -151,7 +151,7 @@ function inicializarPainelContador() {
   renderizarPagamentosAlunosContador("pagamentosAlunosContainer");
   renderizarFolhaContador("folhaContainer");
   renderizarFuncionariosContador("funcionariosContainer");
-  renderizarInstituicoesContador("instituicoesContainer");
+  renderizarInstituicoesContador("instituicoesContainer", sessao);
   renderizarRelatoriosContador("relatoriosContainer");
   inicializarPerfilProfessor(sessao);
 }

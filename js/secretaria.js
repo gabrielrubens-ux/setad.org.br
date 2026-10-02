@@ -35,6 +35,10 @@ function inicializarPainelSecretaria() {
       titulo: "Colaboradores",
       subtitulo: "Cadastro de professores e funcionários — salário, ajuda de custo e benefícios."
     },
+    "tab-boletos": {
+      titulo: "Boletos bancários",
+      subtitulo: "Emissão e impressão de boletos para alunos do seminário."
+    },
     "tab-whatsapp": {
       titulo: "WhatsApp do Seminário",
       subtitulo: "Conversas integradas — responda e converta contatos em matrículas."
@@ -50,6 +54,9 @@ function inicializarPainelSecretaria() {
   renderizarAlunosSecretaria();
   configurarCadastroPresencial(sessao);
   renderizarCadastroColaboradores("colaboradoresSecretariaContainer", sessao);
+  if (typeof renderizarEmissaoBoletoSecretaria === "function") {
+    renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
+  }
   renderizarInboxWpp(sessao);
 }
 
@@ -83,6 +90,9 @@ function configurarAbasSecretaria(titulosMap, sessao) {
       if (tabId === "tab-alunos") renderizarAlunosSecretaria();
       if (tabId === "tab-colaboradores") {
         renderizarCadastroColaboradores("colaboradoresSecretariaContainer", sessao);
+      }
+      if (tabId === "tab-boletos" && typeof renderizarEmissaoBoletoSecretaria === "function") {
+        renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
       }
       if (tabId === "tab-whatsapp") renderizarInboxWpp(sessao);
       if (tabId === "tab-visao") renderizarVisaoSecretaria();
