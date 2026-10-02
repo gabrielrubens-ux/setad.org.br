@@ -1582,6 +1582,124 @@
 
 .diretor-areas-grid {
   margin-top: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.diretor-panorama-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.diretor-area-detalhe {
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  background: var(--cor-branco);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.diretor-area-detalhe[open] {
+  border-color: rgba(35, 64, 107, 0.35);
+  box-shadow: 0 2px 8px rgba(35, 64, 107, 0.08);
+}
+
+.diretor-area-detalhe__sumario {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.diretor-area-detalhe__sumario::-webkit-details-marker {
+  display: none;
+}
+
+.diretor-area-detalhe__sumario::after {
+  content: "▾";
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave, #64748b);
+  transition: transform 0.15s ease;
+}
+
+.diretor-area-detalhe[open] .diretor-area-detalhe__sumario::after {
+  transform: rotate(180deg);
+}
+
+.diretor-area-detalhe__titulo {
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+
+.diretor-area-detalhe__badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(35, 64, 107, 0.08);
+  color: var(--cor-primaria);
+}
+
+.diretor-area-detalhe__corpo {
+  padding: 0 1rem 0.85rem;
+  border-top: 1px solid var(--cor-borda);
+  background: rgba(35, 64, 107, 0.02);
+}
+
+.diretor-area-detalhe__linha {
+  margin: 0.45rem 0 0;
+  font-size: 0.88rem;
+  color: var(--cor-texto, #334155);
+  line-height: 1.45;
+}
+
+.diretor-area-detalhe__btn {
+  margin-top: 0.65rem;
+}
+
+.diretor-panorama-consolidado {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem 0.65rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  background: rgba(35, 64, 107, 0.03);
+}
+
+.diretor-panorama-subtitulo {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 0.9rem;
+  color: var(--cor-primaria);
+}
+
+.diretor-panorama-cards {
+  margin: 0.5rem 0 0.65rem;
+}
+
+.diretor-panorama-origens {
+  margin: 0.35rem 0 0.5rem;
+}
+
+.diretor-panorama-financeiro {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.financeiro-cards--compacto .financeiro-card {
+  padding: 0.65rem 0.75rem;
+}
+
+.financeiro-cards--compacto .financeiro-card__valor {
+  font-size: 1.15rem;
+}
+
+.diretor-area-detalhe__corpo .data-table {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .contador-alunos-resumo-table .contador-aluno-linha {

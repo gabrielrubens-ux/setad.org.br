@@ -2471,6 +2471,546 @@ function renderizarEquipeDiretor(containerId) {
     "</tbody></table>";
 }
 
+function montarCardsPanoramaDiretor(cards) {
+  if (!cards || !cards.length) return "";
+  return (
+    '<div class="modulos-resumo diretor-panorama-cards">' +
+      cards
+        .map(function (c) {
+          const classeExtra = c.classe ? " " + c.classe : "";
+          return (
+            '<article class="modulo-card-resumo' + classeExtra + '">' +
+              '<span class="modulo-card-resumo__numero">' + c.numero + "</span>" +
+              '<span class="modulo-card-resumo__nome">' + escaparHtml(c.nome) + "</span>" +
+            "</article>"
+          );
+        })
+        .join("") +
+    "</div>"
+  );
+}
+
+function montarTabelaEntregasResumoDiretor(entregas, trabalhos, limite) {
+  const fatia = entregas
+    .slice()
+    .sort(function (a, b) {
+      return (b.dataEnvio || "").localeCompare(a.dataEnvio || "");
+    })
+    .slice(0, limite || 6);
+
+  if (!fatia.length) {
+    return '<p class="painel-vazio">Nenhuma entrega registrada ainda.</p>';
+  }
+
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Aluno</th><th>Trabalho</th><th>Enviado em</th></tr></thead><tbody>" +
+      fatia
+        .map(function (e) {
+          const trabalho = trabalhos.find(function (t) {
+            return t.id === e.trabalhoId;
+          });
+          const tituloTrabalho = trabalho ? trabalho.titulo : "—";
+          return (
+            "<tr>" +
+              "<td>" + escaparHtml(e.alunoNome || e.alunoEmail || "—") + "</td>" +
+              "<td>" + escaparHtml(tituloTrabalho) + "</td>" +
+              "<td>" + (e.dataEnvio ? formatarData(e.dataEnvio) : "—") + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+  );
+}
+
+function montarTabelaMatriculasResumoDiretor(matriculas, limite) {
+  const fatia = matriculas
+    .slice()
+    .sort(function (a, b) {
+      return (b.dataMatricula || "").localeCompare(a.dataMatricula || "");
+    })
+    .slice(0, limite || 6);
+
+  if (!fatia.length) {
+    return '<p class="painel-vazio">Nenhuma matrícula registrada.</p>';
+  }
+
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Aluno</th><th>Módulo</th><th>Status</th></tr></thead><tbody>" +
+      fatia
+        .map(function (m) {
+          const mod =
+            m.modulo && MODULOS_CURSO[m.modulo]
+              ? MODULOS_CURSO[m.modulo].nome
+              : m.modulo || "—";
+          return (
+            "<tr>" +
+              "<td>" + escaparHtml(m.nomeCompleto || "—") + "</td>" +
+              "<td>" + escaparHtml(mod) + "</td>" +
+              "<td>" + escaparHtml(m.status || "—") + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+  );
+}
+
+function montarTabelaLivrosResumoDiretor(livros, limite) {
+  const fatia = livros.slice(0, limite || 5);
+  if (!fatia.length) {
+    return '<p class="painel-vazio">Nenhum livro no acervo.</p>';
+  }
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Título</th><th>Autor</th></tr></thead><tbody>" +
+      fatia
+        .map(function (l) {
+          return (
+            "<tr>" +
+              "<td>" + escaparHtml(l.titulo || "—") + "</td>" +
+              "<td>" + escaparHtml(l.autor || "—") + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+  );
+}
+
+function montarTabelaColaboradoresResumoDiretor(funcionarios, limite) {
+  const ativos = funcionarios
+    .filter(function (f) {
+      return f.ativo;
+    })
+    .slice(0, limite || 6);
+
+  if (!ativos.length) {
+    return '<p class="painel-vazio">Nenhum colaborador ativo cadastrado.</p>';
+  }
+
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Nome</th><th>Cargo</th><th>Remuneração</th></tr></thead><tbody>" +
+      ativos
+        .map(function (f) {
+          return (
+            "<tr>" +
+              "<td>" + escaparHtml(f.nome) + "</td>" +
+              "<td>" + escaparHtml(f.cargo || "—") + "</td>" +
+              "<td>" + formatarMoeda(calcularRemuneracaoTotal(f)) + "</td>" +
+            "</tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>"
+  );
+}
+
+function montarTabelaNotasDemoDiretor() {
+  return (
+    '<table class="data-table data-table--compact">' +
+      "<thead><tr><th>Turma / Disciplina</th><th>Avaliação</th><th>Alunos</th><th>Média</th></tr></thead><tbody>" +
+      "<tr><td>Teologia Sistemática I — Turma A</td><td>Prova 1</td><td>18 / 22</td>" +
+        '<td><span class="nota-badge nota-badge--alta">7,8</span></td></tr>' +
+      "<tr><td>Hermenêutica Bíblica — Turma B</td><td>Prova 1</td><td>22 / 22</td>" +
+        '<td><span class="nota-badge nota-badge--media">7,2</span></td></tr>' +
+      "<tr><td>História da Igreja — Turma A</td><td>Prova 1</td><td>0 / 20</td>" +
+        '<td><span class="nota-badge nota-badge--pendente">Pendente</span></td></tr>' +
+      "</tbody></table>"
+  );
+}
+
+function obterContextoPanoramaDiretor() {
+  const resumo = resumoFinanceiro();
+  const sec = obterResumoSecretariaParaContabilidade();
+  const listaMatriculas = obterMatriculas();
+  const entregas = obterEntregas();
+  const trabalhos =
+    typeof obterTrabalhosAtribuidos === "function" ? obterTrabalhosAtribuidos() : [];
+  const livrosLista = typeof obterLivros === "function" ? obterLivros() : [];
+  const funcionarios = obterFuncionarios();
+  const porModulo =
+    typeof contarMatriculasPorModulo === "function"
+      ? contarMatriculasPorModulo()
+      : { basico: 0, medio: 0, avancado: 0, teologia: 0 };
+
+  const exclusoesPendentes =
+    typeof obterSolicitacoesExclusao === "function"
+      ? obterSolicitacoesExclusao().filter(function (s) {
+          return s.status === "pendente";
+        }).length
+      : 0;
+
+  const alunosComEntrega = {};
+  entregas.forEach(function (e) {
+    if (e.alunoEmail) alunosComEntrega[e.alunoEmail.toLowerCase()] = true;
+  });
+
+  let custoRhAtivo = 0;
+  const colaboradoresAtivos = funcionarios.filter(function (f) {
+    if (f.ativo) custoRhAtivo += calcularRemuneracaoTotal(f);
+    return f.ativo;
+  }).length;
+
+  const staff =
+    (typeof CONTAS_STAFF !== "undefined" ? CONTAS_STAFF : []).concat(
+      typeof CONTAS_DIRECAO !== "undefined" ? CONTAS_DIRECAO : []
+    );
+  if (typeof CREDENCIAIS !== "undefined" && CREDENCIAIS.contador) {
+    staff.push(CREDENCIAIS.contador);
+  }
+
+  const documentosContabeis =
+    typeof obterRelatoriosContabeis === "function"
+      ? obterRelatoriosContabeis().length
+      : 0;
+
+  const pagosLista = listarPagamentosResumoContador("recebido");
+  const pendLista = listarPagamentosResumoContador("pendente");
+
+  return {
+    resumo: resumo,
+    sec: sec,
+    listaMatriculas: listaMatriculas,
+    entregas: entregas,
+    trabalhos: trabalhos,
+    livrosLista: livrosLista,
+    funcionarios: funcionarios,
+    porModulo: porModulo,
+    exclusoesPendentes: exclusoesPendentes,
+    alunosComEntrega: Object.keys(alunosComEntrega).length,
+    colaboradoresAtivos: colaboradoresAtivos,
+    custoRhAtivo: custoRhAtivo,
+    staff: staff,
+    documentosContabeis: documentosContabeis,
+    pagosLista: pagosLista,
+    pendLista: pendLista
+  };
+}
+
+function montarCorpoPanoramaAreaDiretor(areaId, ctx) {
+  if (areaId === "notas") {
+    return (
+      montarCardsPanoramaDiretor([
+        { numero: "3", nome: "Avaliações", classe: "modulo-card-resumo--medio" },
+        { numero: "40", nome: "Alunos avaliados", classe: "modulo-card-resumo--avancado" },
+        { numero: "1", nome: "Prova pendente", classe: "modulo-card-resumo--basico" },
+        { numero: "7,5", nome: "Média geral", classe: "modulo-card-resumo--teologia" }
+      ]) +
+      '<p class="diretor-area-detalhe__linha">Acompanhamento das turmas e lançamento de notas por disciplina.</p>' +
+      "<h4 class=\"diretor-panorama-subtitulo\">Últimas avaliações</h4>" +
+      montarTabelaNotasDemoDiretor()
+    );
+  }
+
+  if (areaId === "trabalhos") {
+    return (
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.entregas.length),
+          nome: "Entregas",
+          classe: "modulo-card-resumo--avancado"
+        },
+        {
+          numero: String(ctx.trabalhos.length),
+          nome: "No calendário",
+          classe: "modulo-card-resumo--medio"
+        },
+        {
+          numero: String(ctx.alunosComEntrega),
+          nome: "Alunos c/ envio",
+          classe: "modulo-card-resumo--basico"
+        }
+      ]) +
+      '<p class="diretor-area-detalhe__linha">Arquivos enviados pelos alunos no portal (PDF, DOC, DOCX).</p>' +
+      "<h4 class=\"diretor-panorama-subtitulo\">Entregas recentes</h4>" +
+      montarTabelaEntregasResumoDiretor(ctx.entregas, ctx.trabalhos, 6)
+    );
+  }
+
+  if (areaId === "matriculas") {
+    return (
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.sec.totalMatriculas),
+          nome: "Inscritos",
+          classe: "modulo-card-resumo--medio"
+        },
+        {
+          numero: String(ctx.sec.alunosAtivos),
+          nome: "Ativos",
+          classe: "modulo-card-resumo--avancado"
+        },
+        {
+          numero: String(ctx.sec.pendentesMatricula),
+          nome: "Pendentes",
+          classe: "modulo-card-resumo--basico"
+        },
+        {
+          numero: String(ctx.exclusoesPendentes),
+          nome: "Exclusões pendentes",
+          classe: "modulo-card-resumo--teologia"
+        }
+      ]) +
+      '<div class="secretaria-resumo-origens diretor-panorama-origens">' +
+        "<p><strong>Site:</strong> " + ctx.sec.porOrigem.site +
+        " · <strong>Presencial:</strong> " + ctx.sec.porOrigem.presencial +
+        " · <strong>Quadro:</strong> " + ctx.sec.porOrigem.quadro +
+        " · <strong>WhatsApp:</strong> " + ctx.sec.porOrigem.whatsapp + "</p>" +
+        "<p><strong>Por módulo:</strong> Básico " + ctx.porModulo.basico +
+        " · Médio " + ctx.porModulo.medio +
+        " · Avançado " + ctx.porModulo.avancado +
+        " · Teologia " + ctx.porModulo.teologia + "</p>" +
+      "</div>" +
+      "<h4 class=\"diretor-panorama-subtitulo\">Matrículas recentes</h4>" +
+      montarTabelaMatriculasResumoDiretor(ctx.listaMatriculas, 6)
+    );
+  }
+
+  if (areaId === "biblioteca") {
+    return (
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.livrosLista.length),
+          nome: "Obras no acervo",
+          classe: "modulo-card-resumo--teologia"
+        },
+        {
+          numero: String(
+            ctx.livrosLista.filter(function (l) {
+              return l.arquivoUrl || l.linkExterno;
+            }).length
+          ),
+          nome: "Com arquivo/link",
+          classe: "modulo-card-resumo--avancado"
+        }
+      ]) +
+      '<p class="diretor-area-detalhe__linha">Acervo digital disponível para consulta dos alunos no portal.</p>' +
+      "<h4 class=\"diretor-panorama-subtitulo\">Destaques do acervo</h4>" +
+      montarTabelaLivrosResumoDiretor(ctx.livrosLista, 5)
+    );
+  }
+
+  if (areaId === "financeiro") {
+    return (
+      '<div class="financeiro-cards financeiro-cards--compacto diretor-panorama-financeiro">' +
+        '<article class="financeiro-card"><p class="financeiro-card__label">Recebido</p>' +
+          '<p class="financeiro-card__valor">' + formatarMoeda(ctx.resumo.recebidoAlunos) + "</p>" +
+          "<small>" + ctx.sec.qtdPagos + " quitado(s)</small></article>" +
+        '<article class="financeiro-card financeiro-card--alerta"><p class="financeiro-card__label">Pendente</p>' +
+          '<p class="financeiro-card__valor financeiro-card__valor--alerta">' +
+            formatarMoeda(ctx.resumo.pendenteAlunos) + "</p>" +
+          "<small>" + ctx.sec.qtdEmAberto + " em aberto</small></article>" +
+        '<article class="financeiro-card"><p class="financeiro-card__label">Folha paga</p>' +
+          '<p class="financeiro-card__valor">' + formatarMoeda(ctx.resumo.pagoFolha) + "</p></article>" +
+        '<article class="financeiro-card"><p class="financeiro-card__label">Folha agendada</p>' +
+          '<p class="financeiro-card__valor">' + formatarMoeda(ctx.resumo.agendadoFolha) + "</p></article>" +
+      "</div>" +
+      '<div class="secretaria-resumo-origens diretor-panorama-origens">' +
+        "<p><strong>Lançamentos de pagamento:</strong> " + ctx.sec.totalPagamentos +
+        " · <strong>Documentos contábeis:</strong> " + ctx.documentosContabeis +
+        ' · <a href="painel-contador.html">Área do contador</a></p>' +
+      "</div>" +
+      "<h4 class=\"diretor-panorama-subtitulo\">Pagamentos recebidos (amostra)</h4>" +
+      montarTabelaPagamentosResumoContador(ctx.pagosLista, 5) +
+      "<h4 class=\"diretor-panorama-subtitulo\">Em aberto (amostra)</h4>" +
+      montarTabelaPagamentosResumoContador(ctx.pendLista, 5)
+    );
+  }
+
+  if (areaId === "colaboradores") {
+    const inativos = ctx.funcionarios.length - ctx.colaboradoresAtivos;
+    return (
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.colaboradoresAtivos),
+          nome: "Ativos",
+          classe: "modulo-card-resumo--avancado"
+        },
+        { numero: String(inativos), nome: "Inativos", classe: "modulo-card-resumo--basico" },
+        {
+          numero: formatarMoeda(ctx.custoRhAtivo),
+          nome: "Custo mensal (ativos)",
+          classe: "modulo-card-resumo--medio"
+        }
+      ]) +
+      '<p class="diretor-area-detalhe__linha">Cadastro de salários, ajuda de custo, benefícios e vínculos de RH.</p>' +
+      "<h4 class=\"diretor-panorama-subtitulo\">Colaboradores ativos</h4>" +
+      montarTabelaColaboradoresResumoDiretor(ctx.funcionarios, 6)
+    );
+  }
+
+  if (areaId === "equipe") {
+    const professores =
+      typeof CONTAS_STAFF !== "undefined"
+        ? CONTAS_STAFF.filter(function (s) {
+            return s.perfil === "professor";
+          }).length
+        : 0;
+
+    return (
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.staff.length),
+          nome: "Perfis institucionais",
+          classe: "modulo-card-resumo--medio"
+        },
+        {
+          numero: String(professores),
+          nome: "Professores",
+          classe: "modulo-card-resumo--avancado"
+        },
+        {
+          numero: String(ctx.funcionarios.length),
+          nome: "Cadastro RH",
+          classe: "modulo-card-resumo--basico"
+        }
+      ]) +
+      '<p class="diretor-area-detalhe__linha">Logins da direção, professores, secretaria e contador; equipe administrativa no RH.</p>' +
+      "<h4 class=\"diretor-panorama-subtitulo\">Acessos institucionais</h4>" +
+      '<table class="data-table data-table--compact"><thead><tr><th>Nome</th><th>Perfil</th></tr></thead><tbody>' +
+        ctx.staff
+          .slice(0, 8)
+          .map(function (s) {
+            return (
+              "<tr><td>" + escaparHtml(s.nome) + "</td><td>" +
+                escaparHtml(obterLabelPerfil(s.perfil)) + "</td></tr>"
+            );
+          })
+          .join("") +
+      "</tbody></table>"
+    );
+  }
+
+  return "";
+}
+
+function obterPanoramaAreasDiretor(ctx) {
+  return [
+    {
+      id: "notas",
+      tab: "tab-notas",
+      titulo: "Notas dos alunos",
+      tituloCurto: "notas",
+      badge: "3 avaliações"
+    },
+    {
+      id: "trabalhos",
+      tab: "tab-trabalhos",
+      titulo: "Trabalhos enviados",
+      tituloCurto: "trabalhos",
+      badge: ctx.entregas.length + " entrega(s)"
+    },
+    {
+      id: "matriculas",
+      tab: "tab-matriculas",
+      titulo: "Matrículas",
+      tituloCurto: "matrículas",
+      badge: ctx.sec.totalMatriculas + " inscrito(s)"
+    },
+    {
+      id: "biblioteca",
+      tab: "tab-biblioteca",
+      titulo: "Biblioteca teológica",
+      tituloCurto: "biblioteca",
+      badge: ctx.livrosLista.length + " livro(s)"
+    },
+    {
+      id: "financeiro",
+      tab: "tab-financeiro",
+      titulo: "Financeiro",
+      tituloCurto: "financeiro",
+      badge: formatarMoeda(ctx.resumo.pendenteAlunos) + " em aberto"
+    },
+    {
+      id: "colaboradores",
+      tab: "tab-colaboradores",
+      titulo: "Colaboradores",
+      tituloCurto: "colaboradores",
+      badge: ctx.colaboradoresAtivos + " ativo(s)"
+    },
+    {
+      id: "equipe",
+      tab: "tab-equipe",
+      titulo: "Equipe e cadastros",
+      tituloCurto: "equipe",
+      badge: ctx.staff.length + " perfil(is)"
+    }
+  ];
+}
+
+function montarPanoramaConsolidadoSecretariaDiretor(ctx) {
+  return (
+    '<div class="diretor-panorama-consolidado">' +
+      '<h4 class="diretor-panorama-subtitulo">Visão institucional (secretaria e portal)</h4>' +
+      '<p class="contador-painel-hint">Mesmos indicadores consolidados usados na contabilidade, para leitura executiva.</p>' +
+      montarCardsPanoramaDiretor([
+        {
+          numero: String(ctx.sec.totalMatriculas),
+          nome: "Alunos inscritos",
+          classe: "modulo-card-resumo--medio"
+        },
+        {
+          numero: String(ctx.sec.alunosAtivos),
+          nome: "Matrículas ativas",
+          classe: "modulo-card-resumo--avancado"
+        },
+        {
+          numero: String(ctx.sec.pendentesMatricula),
+          nome: "Cadastros pendentes",
+          classe: "modulo-card-resumo--basico"
+        },
+        {
+          numero: String(ctx.sec.totalPagamentos),
+          nome: "Lançamentos financeiros",
+          classe: "modulo-card-resumo--teologia"
+        }
+      ]) +
+      '<div class="secretaria-resumo-origens contador-secretaria-origens">' +
+        "<p><strong>Site:</strong> " + ctx.sec.porOrigem.site +
+        " · <strong>Presencial:</strong> " + ctx.sec.porOrigem.presencial +
+        " · <strong>Quadro:</strong> " + ctx.sec.porOrigem.quadro +
+        " · <strong>WhatsApp:</strong> " + ctx.sec.porOrigem.whatsapp + "</p>" +
+        "<p><strong>Pagamentos quitados:</strong> " + ctx.sec.qtdPagos +
+        " · <strong>Em aberto:</strong> " + ctx.sec.qtdEmAberto + "</p>" +
+      "</div>" +
+    "</div>"
+  );
+}
+
+function montarPanoramaInterativoAreasDiretor() {
+  const ctx = obterContextoPanoramaDiretor();
+  const areas = obterPanoramaAreasDiretor(ctx);
+
+  return (
+    '<h3 class="financeiro-subtitulo">Panorama por área</h3>' +
+    '<p class="contador-painel-hint">Expanda cada bloco para ver indicadores, tabelas e amostras — no mesmo espírito do painel da contabilidade.</p>' +
+    montarPanoramaConsolidadoSecretariaDiretor(ctx) +
+    '<div class="diretor-panorama-areas">' +
+      areas
+        .map(function (area) {
+          return (
+            '<details class="diretor-area-detalhe">' +
+              '<summary class="diretor-area-detalhe__sumario">' +
+                '<span class="diretor-area-detalhe__titulo">' + escaparHtml(area.titulo) + "</span>" +
+                '<span class="diretor-area-detalhe__badge">' + area.badge + "</span>" +
+              "</summary>" +
+              '<div class="diretor-area-detalhe__corpo">' +
+                montarCorpoPanoramaAreaDiretor(area.id, ctx) +
+                '<button type="button" class="btn btn--sm btn--primary diretor-area-detalhe__btn" data-diretor-ir-aba="' +
+                  escaparHtml(area.tab) + '">Abrir ' + escaparHtml(area.tituloCurto) + "</button>" +
+              "</div>" +
+            "</details>"
+          );
+        })
+        .join("") +
+    "</div>"
+  );
+}
+
 function renderizarVisaoDiretor(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -2507,7 +3047,8 @@ function renderizarVisaoDiretor(containerId) {
         "<strong>Colaboradores</strong><span>Salários, benefícios e cadastro de RH</span></button>" +
       '<button type="button" class="contador-area-card" data-diretor-ir-aba="tab-equipe">' +
         "<strong>Equipe e cadastros</strong><span>Professores e perfis institucionais</span></button>" +
-    "</div>";
+    "</div>" +
+    montarPanoramaInterativoAreasDiretor();
 
   if (typeof configurarAtalhosVisaoDiretor === "function") {
     configurarAtalhosVisaoDiretor(containerId);
