@@ -149,8 +149,8 @@
             '<button type="button" class="culto-janela__fechar-flutuante" id="cultoJanelaFecharOverlay" aria-label="Fechar janela ao vivo">' +
               '<span aria-hidden="true">&times;</span>' +
             "</button>" +
-            '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay controls title="Transmissão ao vivo — Culto SETAD"></video>' +
-            '<button type="button" class="culto-janela__btn-play" id="cultoJanelaPlayPause" aria-label="Pausar culto ao vivo e ouvir a rádio">' +
+            '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay title="Transmissão ao vivo — Culto SETAD"></video>' +
+            '<button type="button" class="culto-janela__btn-play" id="cultoJanelaPlayPause" aria-label="Pausar transmissão ao vivo">' +
               '<svg class="culto-janela__icone-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' +
               '<svg class="culto-janela__icone-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
             "</button>" +

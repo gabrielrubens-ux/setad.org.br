@@ -13,8 +13,6 @@
   var btnFecharOverlay = document.getElementById("cultoJanelaFecharOverlay");
   var btnPlayPause = document.getElementById("cultoJanelaPlayPause");
   var video = document.getElementById("cultoJanelaVideo");
-  var iconePlay = btnPlayPause ? btnPlayPause.querySelector(".culto-janela__icone-play") : null;
-  var iconePause = btnPlayPause ? btnPlayPause.querySelector(".culto-janela__icone-pause") : null;
   var linkTelaCheia = document.getElementById("cultoJanelaTelaCheia");
   var fechadaPeloUsuario = false;
   var arrastando = false;
@@ -214,37 +212,53 @@
     }
   }
 
-  function cultoEstaAtivo() {
-    if (!window.SETADAudio) return false;
-    return window.SETADAudio.obterPreferencia() === "live";
+  function transmissaoEstaTocando() {
+    if (window.SETADCultoPlayer && typeof window.SETADCultoPlayer.isPlaying === "function") {
+      return window.SETADCultoPlayer.isPlaying();
+    }
+    return video && !video.paused && !video.ended;
   }
 
   function atualizarBotaoPlayPause() {
     if (!btnPlayPause) return;
 
-    var aoVivoAtivo = cultoEstaAtivo();
+    var tocando = transmissaoEstaTocando();
 
-    btnPlayPause.classList.toggle("culto-janela__btn-play--ao-vivo", aoVivoAtivo);
-
-    if (iconePause) iconePause.hidden = !aoVivoAtivo;
-    if (iconePlay) iconePlay.hidden = aoVivoAtivo;
+    btnPlayPause.classList.toggle("culto-janela__btn-play--tocando", tocando);
 
     btnPlayPause.setAttribute(
       "aria-label",
-      aoVivoAtivo
-        ? "Pausar culto ao vivo e ouvir a rádio"
-        : "Retomar culto ao vivo"
+      tocando ? "Pausar transmissão ao vivo" : "Reproduzir transmissão ao vivo"
     );
   }
 
-  function alternarAudio() {
-    if (!window.SETADAudio) return;
-
-    if (cultoEstaAtivo()) {
-      window.SETADAudio.solicitarRadio(false).then(atualizarBotaoPlayPause);
-    } else {
-      window.SETADAudio.solicitarLive(true).then(atualizarBotaoPlayPause);
+  function alternarPlayPauseTransmissao() {
+    if (btnPlayPause) {
+      btnPlayPause.disabled = true;
     }
+
+    function liberarBotao() {
+      if (btnPlayPause) btnPlayPause.disabled = false;
+      atualizarBotaoPlayPause();
+    }
+
+    if (window.SETADAudio && window.SETADCultoPlayer) {
+      if (transmissaoEstaTocando()) {
+        window.SETADAudio.pausarLiveUsuario().then(liberarBotao);
+        return;
+      }
+
+      window.SETADAudio.solicitarLive(false).then(liberarBotao).catch(liberarBotao);
+      return;
+    }
+
+    if (!video) {
+      liberarBotao();
+      return;
+    }
+
+    var promessa = video.paused ? video.play() : Promise.resolve(video.pause());
+    Promise.resolve(promessa).then(liberarBotao).catch(liberarBotao);
   }
 
   window.SETADCultoJanela = {
@@ -310,9 +324,13 @@
   }
 
   if (btnPlayPause) {
-    btnPlayPause.addEventListener("click", function (evento) {
+    btnPlayPause.addEventListener("pointerdown", function (evento) {
       evento.stopPropagation();
-      alternarAudio();
+    });
+    btnPlayPause.addEventListener("click", function (evento) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      alternarPlayPauseTransmissao();
     });
   }
 

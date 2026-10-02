@@ -289,6 +289,8 @@
 
     video.dataset.setadPlayerRegistrado = "1";
 
+    var pausaProgramatica = false;
+
     var player = {
       tocar: function (programatico) {
         if (!video || video.hidden) {
@@ -299,7 +301,7 @@
 
         return video.play().then(function () {
           if (!programatico && window.SETADAudio) {
-            window.SETADAudio.solicitarLive(true);
+            return window.SETADAudio.solicitarLive(true);
           }
         }).catch(function () {
           video.muted = true;
@@ -311,23 +313,36 @@
 
       pausar: function (programatico) {
         if (!video) return;
+
+        pausaProgramatica = true;
         video.pause();
 
         if (!programatico && window.SETADAudio) {
           window.SETADAudio.aoPausarLive();
         }
+
+        window.setTimeout(function () {
+          pausaProgramatica = false;
+        }, 0);
       },
 
       isPlaying: function () {
-        return video && !video.paused && !video.ended;
+        return video && !video.paused && !video.ended && !video.hidden;
       }
     };
 
     video.addEventListener("play", function () {
       if (!window.SETADAudio) return;
 
-      if (window.SETADAudio.obterPreferencia() === "radio") {
+      if (
+        window.SETADAudio.obterPreferencia() === "radio" &&
+        window.SETADAudio.obterFonte() === "radio"
+      ) {
+        pausaProgramatica = true;
         video.pause();
+        window.setTimeout(function () {
+          pausaProgramatica = false;
+        }, 0);
         return;
       }
 
@@ -337,7 +352,7 @@
     });
 
     video.addEventListener("pause", function () {
-      if (video.seeking) return;
+      if (video.seeking || pausaProgramatica) return;
 
       if (window.SETADAudio && window.SETADAudio.obterFonte() === "live") {
         window.SETADAudio.aoPausarLive();

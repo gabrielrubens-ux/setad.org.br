@@ -100,6 +100,26 @@
       window.SETADAudio.solicitarRadio(true);
     },
 
+    /** Pausa só a transmissão (botão da janela ao vivo), sem retomar a rádio. */
+    pausarLiveUsuario: function () {
+      definirPreferencia("live");
+      definirFonte("none");
+
+      if (window.SETADRadio) {
+        window.SETADRadio.pause(true);
+      }
+
+      if (window.SETADCultoPlayer) {
+        window.SETADCultoPlayer.pausar(true);
+      }
+
+      if (window.SETADCultoJanela && window.SETADCultoJanela.atualizarControles) {
+        window.SETADCultoJanela.atualizarControles();
+      }
+
+      return Promise.resolve();
+    },
+
     entrarPaginaCulto: function () {
       var radioTocando = window.SETADRadio && window.SETADRadio.isPlaying();
       sessionStorage.setItem(STORAGE_RADIO_ANTES_CULTO, radioTocando ? "1" : "0");
