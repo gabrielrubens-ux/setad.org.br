@@ -1580,6 +1580,119 @@
   margin-bottom: 1rem;
 }
 
+.contador-alunos-resumo-table .contador-aluno-linha {
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.contador-alunos-resumo-table .contador-aluno-linha:hover,
+.contador-alunos-resumo-table .contador-aluno-linha:focus-visible {
+  background: rgba(35, 64, 107, 0.06);
+}
+
+.contador-alunos-resumo-table .contador-aluno-linha--ativa {
+  background: rgba(35, 64, 107, 0.08);
+  outline: 2px solid rgba(35, 64, 107, 0.25);
+  outline-offset: -2px;
+}
+
+.contador-aluno-linha__hint {
+  font-size: 0.8rem;
+  color: var(--cor-primaria);
+}
+
+.contador-aluno-detalhe {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  background: var(--cor-branco);
+}
+
+.contador-aluno-detalhe__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.contador-aluno-detalhe__topo .financeiro-subtitulo {
+  margin: 0;
+}
+
+.contador-aluno-resumo-financeiro {
+  margin-bottom: 1rem;
+}
+
+.contador-aluno-dados-matricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(35, 64, 107, 0.04);
+  border-radius: 8px;
+}
+
+.contador-aluno-dados-matricula dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cor-texto-suave, #64748b);
+}
+
+.contador-aluno-dados-matricula dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+
+.contador-pagamentos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.contador-pagamento-item {
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem 0.85rem;
+  background: #fafbfc;
+}
+
+.contador-pagamento-item__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.contador-pagamento-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem 0.75rem;
+}
+
+.contador-pagamento-form__grid .form-group--full {
+  grid-column: 1 / -1;
+}
+
+.contador-pagamento-form__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.contador-pagamento-meta {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave, #64748b);
+}
+
 .data-table--compact th,
 .data-table--compact td {
   padding: 0.4rem 0.5rem;

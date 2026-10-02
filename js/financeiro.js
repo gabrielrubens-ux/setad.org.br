@@ -283,6 +283,139 @@ function registrarPagamentoAluno(pagamentoId, formaPagamento, instituicaoId) {
   return { ok: true };
 }
 
+var contadorEmailAlunoPagamentos = null;
+
+function isoParaInputData(iso) {
+  if (!iso) return "";
+  return String(iso).slice(0, 10);
+}
+
+function inputDataParaIso(dataInput) {
+  if (!dataInput) return null;
+  return new Date(dataInput + "T12:00:00").toISOString();
+}
+
+function listarAlunosResumoPagamentosContador() {
+  sincronizarPagamentosDeMatriculas();
+  const porEmail = {};
+
+  obterPagamentosAlunos().forEach(function (p) {
+    const chave = (p.alunoEmail || "").trim().toLowerCase();
+    if (!chave) return;
+    if (!porEmail[chave]) {
+      porEmail[chave] = {
+        email: p.alunoEmail,
+        nome: p.alunoNome || "Aluno",
+        modulo: p.modulo || null
+      };
+    }
+  });
+
+  if (typeof obterMatriculas === "function") {
+    obterMatriculas().forEach(function (m) {
+      const chave = (m.email || "").trim().toLowerCase();
+      if (!chave) return;
+      if (!porEmail[chave]) {
+        porEmail[chave] = {
+          email: m.email,
+          nome: m.nomeCompleto || "Aluno",
+          modulo: m.modulo || null
+        };
+      }
+    });
+  }
+
+  return Object.keys(porEmail)
+    .map(function (chave) {
+      return porEmail[chave];
+    })
+    .sort(function (a, b) {
+      return (a.nome || "").localeCompare(b.nome || "", "pt-BR");
+    });
+}
+
+function atualizarPagamentoContador(pagamentoId, campos) {
+  const pagamentos = obterPagamentosAlunos();
+  const indice = pagamentos.findIndex(function (p) {
+    return p.id === pagamentoId;
+  });
+  if (indice === -1) {
+    return { ok: false, erro: "Pagamento não encontrado." };
+  }
+
+  const pagamento = pagamentos[indice];
+  const statusAnterior = pagamento.status;
+
+  if (campos.valor !== undefined && campos.valor !== null && campos.valor !== "") {
+    const valor = Number(campos.valor);
+    if (!valor || valor <= 0) {
+      return { ok: false, erro: "Informe um valor válido." };
+    }
+    pagamento.valor = valor;
+  }
+
+  if (campos.referencia !== undefined) {
+    pagamento.referencia = String(campos.referencia || "").trim();
+    if (!pagamento.referencia) {
+      return { ok: false, erro: "A referência não pode ficar vazia." };
+    }
+  }
+
+  if (campos.vencimento !== undefined) {
+    pagamento.vencimento = campos.vencimento
+      ? inputDataParaIso(campos.vencimento)
+      : pagamento.vencimento;
+  }
+
+  if (campos.observacoes !== undefined) {
+    pagamento.observacoes = String(campos.observacoes || "").trim();
+  }
+
+  if (campos.status) {
+    const novoStatus = campos.status;
+    if (novoStatus === "pago") {
+      const forma = campos.formaPagamento || pagamento.formaPagamento;
+      if (!forma) {
+        return { ok: false, erro: "Selecione a forma de pagamento para marcar como pago." };
+      }
+      pagamento.status = "pago";
+      pagamento.formaPagamento = forma;
+      pagamento.instituicaoId = campos.instituicaoId || pagamento.instituicaoId || null;
+      pagamento.dataPagamento =
+        campos.dataPagamento
+          ? inputDataParaIso(campos.dataPagamento)
+          : pagamento.dataPagamento || new Date().toISOString();
+      pagamento.pagoPor = "contador";
+    } else if (
+      novoStatus === "pendente" ||
+      novoStatus === "agendado" ||
+      novoStatus === "cancelado"
+    ) {
+      pagamento.status = novoStatus;
+      if (statusAnterior === "pago" && novoStatus !== "pago") {
+        pagamento.formaPagamento = null;
+        pagamento.instituicaoId = null;
+        pagamento.dataPagamento = null;
+        pagamento.pagoPor = null;
+      }
+    }
+  } else if (pagamento.status === "pago") {
+    if (campos.formaPagamento) {
+      pagamento.formaPagamento = campos.formaPagamento;
+    }
+    if (campos.instituicaoId !== undefined) {
+      pagamento.instituicaoId = campos.instituicaoId || null;
+    }
+    if (campos.dataPagamento) {
+      pagamento.dataPagamento = inputDataParaIso(campos.dataPagamento);
+    }
+  }
+
+  pagamentos[indice] = pagamento;
+  salvarPagamentosAlunos(pagamentos);
+  return { ok: true, pagamento: pagamento };
+}
+
 var FORMAS_PAGAMENTO_PRESENCIAL = [
   "Dinheiro",
   "PIX",
@@ -1407,70 +1540,327 @@ function renderizarDashboardContador(containerId) {
   configurarInteracoesDashboardContador(containerId);
 }
 
+function obterLabelTipoPagamentoAluno(tipo) {
+  const mapa = {
+    matricula: "Matrícula",
+    mensalidade: "Mensalidade",
+    outro: "Outro"
+  };
+  return mapa[tipo] || tipo || "—";
+}
+
+function montarOpcoesStatusPagamento(valorAtual) {
+  return ["pago", "pendente", "agendado", "cancelado"]
+    .map(function (st) {
+      const sel = st === valorAtual ? " selected" : "";
+      return (
+        '<option value="' + st + '"' + sel + ">" +
+        escaparHtml(obterLabelPagamentoStatus(st)) +
+        "</option>"
+      );
+    })
+    .join("");
+}
+
+function montarFormularioPagamentoContador(p, instituicoes) {
+  const formas =
+    '<option value="">Forma</option>' +
+    ["PIX", "Boleto", "Cartão", "Dinheiro", "Transferência bancária", "Cheque"]
+      .map(function (f) {
+        const sel = p.formaPagamento === f ? " selected" : "";
+        return '<option value="' + escaparHtml(f) + '"' + sel + ">" + escaparHtml(f) + "</option>";
+      })
+      .join("");
+
+  const bancos =
+    '<option value="">Banco / conta</option>' +
+    instituicoes
+      .map(function (i) {
+        const sel = p.instituicaoId === i.id ? " selected" : "";
+        return (
+          '<option value="' + escaparHtml(i.id) + '"' + sel + ">" +
+          escaparHtml(i.nome) +
+          "</option>"
+        );
+      })
+      .join("");
+
+  return (
+    '<form class="contador-pagamento-form" data-pagamento-id="' + escaparHtml(p.id) + '">' +
+      '<div class="contador-pagamento-form__grid">' +
+        '<div class="form-group"><label>Referência</label>' +
+          '<input type="text" name="referencia" value="' + escaparHtml(p.referencia || "") + '" required></div>' +
+        '<div class="form-group"><label>Tipo</label>' +
+          '<input type="text" readonly class="input-readonly" value="' +
+          escaparHtml(obterLabelTipoPagamentoAluno(p.tipo)) + '"></div>' +
+        '<div class="form-group"><label>Valor (R$)</label>' +
+          '<input type="number" name="valor" min="0.01" step="0.01" value="' +
+          escaparHtml(String(p.valor || 0)) + '" required></div>' +
+        '<div class="form-group"><label>Vencimento</label>' +
+          '<input type="date" name="vencimento" value="' + escaparHtml(isoParaInputData(p.vencimento)) + '"></div>' +
+        '<div class="form-group"><label>Status</label>' +
+          '<select name="status">' + montarOpcoesStatusPagamento(p.status) + "</select></div>" +
+        '<div class="form-group"><label>Forma de pagamento</label><select name="formaPagamento">' + formas + "</select></div>" +
+        '<div class="form-group"><label>Conta recebedora</label><select name="instituicaoId">' + bancos + "</select></div>" +
+        '<div class="form-group"><label>Data do pagamento</label>' +
+          '<input type="date" name="dataPagamento" value="' +
+          escaparHtml(isoParaInputData(p.dataPagamento)) + '"></div>' +
+        '<div class="form-group form-group--full"><label>Observações</label>' +
+          '<textarea name="observacoes" rows="2" placeholder="Anotações internas (opcional)">' +
+          escaparHtml(p.observacoes || "") + "</textarea></div>" +
+      "</div>" +
+      '<div class="contador-pagamento-form__acoes">' +
+        '<button type="submit" class="btn btn--small btn--primary">Salvar alterações</button>' +
+        (p.status !== "pago"
+          ? '<button type="button" class="btn btn--small btn--secondary" data-acao-confirmar-rapido="1">' +
+            "Confirmar como pago</button>"
+          : "") +
+        (p.canal ? '<span class="contador-pagamento-meta">Canal: ' + escaparHtml(p.canal) + "</span>" : "") +
+        (p.pagoPor ? '<span class="contador-pagamento-meta">Registrado por: ' + escaparHtml(p.pagoPor) + "</span>" : "") +
+      "</div>" +
+    "</form>"
+  );
+}
+
+function montarDetalheAlunoPagamentosContador(email, instituicoes) {
+  const emailNorm = email.trim().toLowerCase();
+  const parcelas = obterPagamentosPorAluno(email);
+  const resumo = resumoExtratoAluno(email);
+  const matricula = typeof obterMatriculaPorEmail === "function"
+    ? obterMatriculaPorEmail(email)
+    : null;
+  const nome =
+    (matricula && matricula.nomeCompleto) ||
+    (parcelas[0] && parcelas[0].alunoNome) ||
+    "Aluno";
+  const moduloId = (matricula && matricula.modulo) || (parcelas[0] && parcelas[0].modulo);
+  const moduloNome = moduloId && MODULOS_CURSO[moduloId]
+    ? MODULOS_CURSO[moduloId].nome
+    : moduloId || "—";
+
+  let blocoMatricula = "";
+  if (matricula) {
+    blocoMatricula =
+      '<dl class="contador-aluno-dados-matricula">' +
+        "<div><dt>E-mail</dt><dd>" + escaparHtml(matricula.email || "—") + "</dd></div>" +
+        "<div><dt>CPF</dt><dd>" + escaparHtml(matricula.cpf || "—") + "</dd></div>" +
+        "<div><dt>Telefone</dt><dd>" + escaparHtml(matricula.telefone || matricula.whatsapp || "—") + "</dd></div>" +
+        "<div><dt>Status da matrícula</dt><dd>" + escaparHtml(matricula.status || "—") + "</dd></div>" +
+        "<div><dt>Origem</dt><dd>" + escaparHtml(matricula.origem || "site") + "</dd></div>" +
+        "<div><dt>Módulo</dt><dd>" + escaparHtml(moduloNome) + "</dd></div>" +
+        (matricula.dataMatricula
+          ? "<div><dt>Data da inscrição</dt><dd>" + formatarData(matricula.dataMatricula) + "</dd></div>"
+          : "") +
+      "</dl>";
+  } else {
+    blocoMatricula =
+      '<p class="contador-painel-hint">Nenhuma ficha de matrícula vinculada a este e-mail; exibindo apenas lançamentos financeiros.</p>';
+  }
+
+  const listaPagamentos = parcelas.length
+    ? parcelas
+        .map(function (p) {
+          return (
+            '<article class="contador-pagamento-item">' +
+              '<header class="contador-pagamento-item__cabecalho">' +
+                "<strong>" + escaparHtml(p.referencia || "Pagamento") + "</strong>" +
+                '<span class="status-badge ' + obterClassePagamentoStatus(p.status) + '">' +
+                  obterLabelPagamentoStatus(p.status) + "</span>" +
+              "</header>" +
+              montarFormularioPagamentoContador(p, instituicoes) +
+            "</article>"
+          );
+        })
+        .join("")
+    : '<p class="painel-vazio">Nenhum lançamento para este aluno.</p>';
+
+  return (
+    '<div id="contadorAlunoPagamentoDetalhe" class="contador-aluno-detalhe">' +
+      '<div class="contador-aluno-detalhe__topo">' +
+        "<div>" +
+          "<h3 class=\"financeiro-subtitulo\">" + escaparHtml(nome) + "</h3>" +
+          "<p class=\"contador-painel-hint\">Relatório financeiro completo · clique em <strong>Fechar</strong> para voltar à lista</p>" +
+        "</div>" +
+        '<button type="button" class="btn btn--sm btn--secondary" data-contador-aluno-fechar>Fechar relatório</button>' +
+      "</div>" +
+      '<div class="modulos-resumo contador-aluno-resumo-financeiro">' +
+        '<article class="modulo-card-resumo modulo-card-resumo--avancado">' +
+          '<span class="modulo-card-resumo__numero">' + formatarMoeda(resumo.valorPago) + "</span>" +
+          '<span class="modulo-card-resumo__nome">Total recebido</span></article>' +
+        '<article class="modulo-card-resumo modulo-card-resumo--basico">' +
+          '<span class="modulo-card-resumo__numero">' + formatarMoeda(resumo.valorPendente) + "</span>" +
+          '<span class="modulo-card-resumo__nome">Pendente</span></article>' +
+        '<article class="modulo-card-resumo modulo-card-resumo--medio">' +
+          '<span class="modulo-card-resumo__numero">' + formatarMoeda(resumo.valorAgendado) + "</span>" +
+          '<span class="modulo-card-resumo__nome">Agendado</span></article>' +
+        '<article class="modulo-card-resumo modulo-card-resumo--teologia">' +
+          '<span class="modulo-card-resumo__numero">' + formatarMoeda(resumo.valorCurso) + "</span>" +
+          '<span class="modulo-card-resumo__nome">Total do extrato</span></article>' +
+      "</div>" +
+      "<h4>Dados da secretaria / matrícula</h4>" +
+      blocoMatricula +
+      "<h4>Pagamentos e edição</h4>" +
+      '<div class="contador-pagamentos-lista">' + listaPagamentos + "</div>" +
+    "</div>"
+  );
+}
+
+function configurarEventosPagamentosAlunosContador(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.querySelectorAll("[data-contador-aluno-email]").forEach(function (linha) {
+    linha.addEventListener("click", function (evento) {
+      if (evento.target.closest("button, a, input, select, form, textarea")) return;
+      contadorEmailAlunoPagamentos = linha.getAttribute("data-contador-aluno-email");
+      renderizarPagamentosAlunosContador(containerId);
+      const detalhe = document.getElementById("contadorAlunoPagamentoDetalhe");
+      if (detalhe) {
+        detalhe.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+    linha.addEventListener("keydown", function (evento) {
+      if (evento.key !== "Enter" && evento.key !== " ") return;
+      evento.preventDefault();
+      contadorEmailAlunoPagamentos = linha.getAttribute("data-contador-aluno-email");
+      renderizarPagamentosAlunosContador(containerId);
+    });
+  });
+
+  const btnFechar = container.querySelector("[data-contador-aluno-fechar]");
+  if (btnFechar) {
+    btnFechar.addEventListener("click", function () {
+      contadorEmailAlunoPagamentos = null;
+      renderizarPagamentosAlunosContador(containerId);
+    });
+  }
+
+  container.querySelectorAll(".contador-pagamento-form").forEach(function (form) {
+    const btnRapido = form.querySelector("[data-acao-confirmar-rapido]");
+    if (btnRapido) {
+      btnRapido.addEventListener("click", function () {
+        const forma = form.formaPagamento ? form.formaPagamento.value : "";
+        const inst = form.instituicaoId ? form.instituicaoId.value : "";
+        if (!forma) {
+          alert("Selecione a forma de pagamento antes de confirmar.");
+          return;
+        }
+        if (!confirm("Confirmar este pagamento como quitado?")) return;
+        const id = form.getAttribute("data-pagamento-id");
+        const resultado = registrarPagamentoAluno(id, forma, inst);
+        if (resultado.ok) {
+          renderizarPagamentosAlunosContador(containerId);
+          renderizarDashboardContador("dashboardContadorContainer");
+        } else {
+          alert(resultado.erro || "Não foi possível confirmar.");
+        }
+      });
+    }
+
+    form.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+      const id = form.getAttribute("data-pagamento-id");
+      const campos = {
+        referencia: form.referencia.value,
+        valor: form.valor.value,
+        vencimento: form.vencimento ? form.vencimento.value : "",
+        status: form.status.value,
+        formaPagamento: form.formaPagamento ? form.formaPagamento.value : "",
+        instituicaoId: form.instituicaoId ? form.instituicaoId.value : "",
+        dataPagamento: form.dataPagamento ? form.dataPagamento.value : "",
+        observacoes: form.observacoes ? form.observacoes.value : ""
+      };
+
+      const antes = obterPagamentosAlunos().find(function (p) {
+        return p.id === id;
+      });
+      if (antes && antes.status !== "pago" && campos.status === "pago") {
+        if (!confirm("Marcar este lançamento como pago?")) return;
+      }
+      if (antes && antes.status === "pago" && campos.status !== "pago") {
+        if (
+          !confirm(
+            "Reabrir este pagamento (deixar em aberto)? Os dados de quitação serão removidos."
+          )
+        ) {
+          return;
+        }
+      }
+
+      const resultado = atualizarPagamentoContador(id, campos);
+      if (!resultado.ok) {
+        alert(resultado.erro || "Não foi possível salvar.");
+        return;
+      }
+      renderizarPagamentosAlunosContador(containerId);
+      renderizarDashboardContador("dashboardContadorContainer");
+    });
+  });
+}
+
 function renderizarPagamentosAlunosContador(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const pagamentos = obterPagamentosAlunos();
   const instituicoes = obterInstituicoesFinanceiras();
+  const alunos = listarAlunosResumoPagamentosContador();
+  const emailSelecionado = contadorEmailAlunoPagamentos;
 
-  if (pagamentos.length === 0) {
-    container.innerHTML = '<p class="painel-vazio">Nenhum pagamento de aluno registrado ainda.</p>';
+  if (alunos.length === 0) {
+    container.innerHTML = '<p class="painel-vazio">Nenhum aluno com pagamentos registrado ainda.</p>';
     return;
   }
 
-  container.innerHTML =
-    '<table class="data-table">' +
-      "<thead><tr>" +
-        "<th>Aluno</th><th>Referência</th><th>Valor</th><th>Status</th><th>Ação</th>" +
-      "</tr></thead><tbody>" +
-      pagamentos.map(function (p) {
-        const acao = p.status === "pendente"
-          ? '<form class="financeiro-form-inline" data-pagamento-id="' + escaparHtml(p.id) + '">' +
-              '<select name="forma" required>' +
-                '<option value="">Forma</option>' +
-                '<option value="PIX">PIX</option>' +
-                '<option value="Boleto">Boleto</option>' +
-                '<option value="Cartão">Cartão</option>' +
-              "</select>" +
-              '<select name="instituicao" required>' +
-                '<option value="">Banco</option>' +
-                instituicoes.map(function (i) {
-                  return '<option value="' + escaparHtml(i.id) + '">' + escaparHtml(i.nome) + "</option>";
-                }).join("") +
-              "</select>" +
-              '<button type="submit" class="btn btn--small btn--primary">Confirmar pagamento</button>' +
-            "</form>"
-          : (p.dataPagamento ? formatarData(p.dataPagamento) + " · " + escaparHtml(p.formaPagamento || "") : "—");
+  const linhas = alunos
+    .map(function (aluno) {
+      const resumo = resumoExtratoAluno(aluno.email);
+      const chave = aluno.email.trim().toLowerCase();
+      const ativo =
+        emailSelecionado && emailSelecionado.trim().toLowerCase() === chave;
+      const moduloNome =
+        aluno.modulo && MODULOS_CURSO[aluno.modulo]
+          ? MODULOS_CURSO[aluno.modulo].nome
+          : "";
 
-        return (
-          "<tr>" +
-            "<td>" + escaparHtml(p.alunoNome) + "<br><small>" + escaparHtml(p.alunoEmail) + "</small></td>" +
-            "<td>" + escaparHtml(p.referencia) + "</td>" +
-            "<td>" + formatarMoeda(p.valor) + "</td>" +
-            '<td><span class="status-badge ' + obterClassePagamentoStatus(p.status) + '">' +
-              obterLabelPagamentoStatus(p.status) + "</span></td>" +
-            "<td>" + acao + "</td>" +
-          "</tr>"
-        );
-      }).join("") +
-    "</tbody></table>";
+      return (
+        '<tr class="contador-aluno-linha' + (ativo ? " contador-aluno-linha--ativa" : "") + '" ' +
+          'tabindex="0" role="button" data-contador-aluno-email="' + escaparHtml(aluno.email) + '">' +
+          "<td><strong>" + escaparHtml(aluno.nome) + "</strong><br>" +
+            "<small>" + escaparHtml(aluno.email) + "</small>" +
+            (moduloNome ? "<br><small>" + escaparHtml(moduloNome) + "</small>" : "") +
+          "</td>" +
+          "<td>" + formatarMoeda(resumo.valorPago) + "<br><small>" + resumo.qtdPagas + " quitado(s)</small></td>" +
+          "<td>" + formatarMoeda(resumo.valorPendente + resumo.valorAgendado) + "</td>" +
+          "<td>" + formatarMoeda(resumo.valorCurso) + "<br><small>" + resumo.totalParcelas + " lançamento(s)</small></td>" +
+          "<td><span class=\"contador-aluno-linha__hint\">Abrir relatório →</span></td>" +
+        "</tr>"
+      );
+    })
+    .join("");
 
-  container.querySelectorAll(".financeiro-form-inline").forEach(function (form) {
-    form.addEventListener("submit", function (evento) {
-      evento.preventDefault();
-      const id = form.getAttribute("data-pagamento-id");
-      const forma = form.forma.value;
-      const instituicao = form.instituicao.value;
-      if (!confirm("Confirmar registro de pagamento? Esta ação será registrada no sistema.")) return;
-
-      const resultado = registrarPagamentoAluno(id, forma, instituicao);
-      if (resultado.ok) {
-        renderizarPagamentosAlunosContador(containerId);
-        renderizarDashboardContador("dashboardContadorContainer");
-      }
+  let detalheHtml = "";
+  if (emailSelecionado) {
+    const existe = alunos.some(function (a) {
+      return a.email.trim().toLowerCase() === emailSelecionado.trim().toLowerCase();
     });
-  });
+    if (existe) {
+      detalheHtml = montarDetalheAlunoPagamentosContador(emailSelecionado, instituicoes);
+    } else {
+      contadorEmailAlunoPagamentos = null;
+    }
+  }
+
+  container.innerHTML =
+    '<p class="contador-painel-hint">Resumo por aluno. Clique em uma linha para abrir o relatório completo, com dados da secretaria e edição de cada pagamento.</p>' +
+    '<table class="data-table contador-alunos-resumo-table">' +
+      "<thead><tr>" +
+        "<th>Aluno</th><th>Recebido</th><th>Em aberto</th><th>Total extrato</th><th></th>" +
+      "</tr></thead><tbody>" +
+      linhas +
+    "</tbody></table>" +
+    detalheHtml;
+
+  configurarEventosPagamentosAlunosContador(containerId);
 }
 
 function renderizarFolhaContador(containerId) {
