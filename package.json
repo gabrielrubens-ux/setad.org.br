@@ -17,7 +17,8 @@
     "cap:android": "npm run cap:sync && npx cap open android",
     "cap:assets": "npm run assets:cap && npx capacitor-assets generate --android --assetPath resources",
     "serve": "node server/index.js",
-    "pwa:setup": "npm run icons"
+    "pwa:setup": "npm run icons",
+    "verify:dns-email": "node scripts/verificar-dns-email.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
