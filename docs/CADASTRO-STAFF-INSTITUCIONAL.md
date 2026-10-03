@@ -13,6 +13,9 @@ Fluxo: e-mail autorizado → criar senha → código de 6 dígitos (e-mail com S
 | Secretaria | Laís Santiago da Silva | santiagolais324@gmail.com |
 | Secretaria | Ledyanny Maria | ledyannymaria.02@gmail.com |
 | Secretaria | Kathlen Santiago | kathlensantiago@gmail.com |
+| Direção, contabilidade e secretaria | Gabriel Rubens | gabrielrubens0@gmail.com |
+
+Gabriel está autorizado com **três perfis** (`diretor`, `contador`, `secretaria`): um login no [primeiro acesso institucional](primeiro-acesso-institucional.html) permite abrir `painel-diretor.html`, `painel-contador.html` e `painel-secretaria.html`.
 
 ## Destino após ativação
 

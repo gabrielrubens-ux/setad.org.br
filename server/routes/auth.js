@@ -435,7 +435,7 @@ router.get("/staff/autorizados", authRequired, requirePerfis("diretor"), functio
 });
 
 router.post("/staff/autorizados", authRequired, requirePerfis("diretor"), function (req, res) {
-  const resultado = upsertAutorizado(req.body.email, req.body.nome, req.body.perfil);
+  const resultado = upsertAutorizado(req.body.email, req.body.nome, req.body.perfil, req.body.perfis);
   if (!resultado.ok) {
     return res.status(400).json(resultado);
   }

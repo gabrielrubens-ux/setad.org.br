@@ -201,6 +201,24 @@ function getJsonById(table, id) {
 
 initSchema();
 
+(function aplicarMigracoesLeves() {
+  function colunaExiste(tabela, coluna) {
+    return db
+      .prepare("PRAGMA table_info(" + tabela + ")")
+      .all()
+      .some(function (c) {
+        return c.name === coluna;
+      });
+  }
+
+  if (!colunaExiste("staff_autorizados", "perfis_json")) {
+    db.exec("ALTER TABLE staff_autorizados ADD COLUMN perfis_json TEXT");
+  }
+  if (!colunaExiste("users", "perfis_institucionais_json")) {
+    db.exec("ALTER TABLE users ADD COLUMN perfis_institucionais_json TEXT");
+  }
+})();
+
 module.exports = {
   db,
   DB_PATH,

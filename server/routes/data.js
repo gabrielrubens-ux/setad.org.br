@@ -8,6 +8,7 @@ const {
   getJsonById
 } = require("../db");
 const { authRequired, requirePerfis } = require("../middleware/auth");
+const { usuarioTemAlgumPerfil } = require("../perfis-institucionais");
 const { criarLimitePorIp, validarDataUrlImagem } = require("../middleware/security");
 
 const router = express.Router();
@@ -68,18 +69,13 @@ router.get("/snapshot", authRequired, function (req, res) {
     snapshot.exclusoesEmails = listJson(COLLECTIONS.exclusoesEmails);
     snapshot.wppConversas = listJson(COLLECTIONS.wppConversas);
 
-    if (perfil === "diretor" || perfil === "contador") {
+    if (usuarioTemAlgumPerfil(req.user, ["diretor", "contador"])) {
       snapshot.funcionarios = listJson(COLLECTIONS.funcionarios);
       snapshot.folha = listJson(COLLECTIONS.folha);
       snapshot.instituicoes = listJson(COLLECTIONS.instituicoes);
     }
 
-    if (perfil === "contador") {
-      snapshot.relatoriosContabeis = listJson(COLLECTIONS.relatoriosContabeis);
-      snapshot.lancamentosContabeis = listJson(COLLECTIONS.lancamentosContabeis);
-    }
-
-    if (perfil === "diretor") {
+    if (usuarioTemAlgumPerfil(req.user, ["contador", "diretor"])) {
       snapshot.relatoriosContabeis = listJson(COLLECTIONS.relatoriosContabeis);
       snapshot.lancamentosContabeis = listJson(COLLECTIONS.lancamentosContabeis);
     }

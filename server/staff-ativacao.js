@@ -4,8 +4,13 @@ function gerarId(prefixo) {
   return prefixo + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
 }
 const { enviarCodigoVerificacaoInstitucional } = require("./services/email");
-
-const PERFIS_INSTITUCIONAIS = ["diretor", "contador", "secretaria"];
+const {
+  PERFIS_INSTITUCIONAIS,
+  perfilInstitucionalValido,
+  normalizarListaPerfis,
+  perfilPrincipalDaLista,
+  perfisDoRegistro
+} = require("./perfis-institucionais");
 
 const REDIRECT_POR_PERFIL = {
   diretor: "painel-direcao.html",
@@ -15,10 +20,6 @@ const REDIRECT_POR_PERFIL = {
 
 function normalizarEmail(email) {
   return String(email || "").trim().toLowerCase();
-}
-
-function perfilInstitucionalValido(perfil) {
-  return PERFIS_INSTITUCIONAIS.includes(perfil);
 }
 
 function findUserByEmail(email) {
@@ -49,27 +50,58 @@ function redirectPorPerfil(perfil) {
 
 function listarAutorizados() {
   return db
-    .prepare("SELECT email, nome, perfil, ativo, criado_em FROM staff_autorizados ORDER BY perfil, nome")
-    .all();
+    .prepare(
+      "SELECT email, nome, perfil, perfis_json, ativo, criado_em FROM staff_autorizados ORDER BY perfil, nome"
+    )
+    .all()
+    .map(function (row) {
+      const perfis = perfisDoRegistro(row);
+      return {
+        email: row.email,
+        nome: row.nome,
+        perfil: row.perfil,
+        perfis: perfis,
+        ativo: row.ativo,
+        criado_em: row.criado_em
+      };
+    });
 }
 
-function upsertAutorizado(email, nome, perfil) {
+function upsertAutorizado(email, nome, perfil, perfisOpcional) {
   const emailNorm = normalizarEmail(email);
-  if (!emailNorm || !nome || !perfilInstitucionalValido(perfil)) {
+  const listaPerfis = normalizarListaPerfis(perfisOpcional, perfil);
+  const perfilPrincipal = perfilPrincipalDaLista(listaPerfis);
+
+  if (!emailNorm || !nome || !perfilInstitucionalValido(perfilPrincipal)) {
     return { ok: false, erro: "Informe e-mail, nome e perfil válido (diretor, contador ou secretaria)." };
   }
 
+  const perfisJson = JSON.stringify(listaPerfis);
   const agora = new Date().toISOString();
   db.prepare(`
-    INSERT INTO staff_autorizados (email, nome, perfil, ativo, criado_em)
-    VALUES (?, ?, ?, 1, ?)
+    INSERT INTO staff_autorizados (email, nome, perfil, perfis_json, ativo, criado_em)
+    VALUES (?, ?, ?, ?, 1, ?)
     ON CONFLICT(email) DO UPDATE SET
       nome = excluded.nome,
       perfil = excluded.perfil,
+      perfis_json = excluded.perfis_json,
       ativo = 1
-  `).run(emailNorm, nome.trim(), perfil, agora);
+  `).run(emailNorm, nome.trim(), perfilPrincipal, perfisJson, agora);
 
-  return { ok: true, email: emailNorm, nome: nome.trim(), perfil: perfil };
+  const usuario = findUserByEmail(emailNorm);
+  if (usuario) {
+    db.prepare(
+      "UPDATE users SET perfis_institucionais_json = ?, perfil = ? WHERE email = ? COLLATE NOCASE"
+    ).run(perfisJson, perfilPrincipal, emailNorm);
+  }
+
+  return {
+    ok: true,
+    email: emailNorm,
+    nome: nome.trim(),
+    perfil: perfilPrincipal,
+    perfis: listaPerfis
+  };
 }
 
 function desativarAutorizado(email) {
@@ -211,14 +243,16 @@ function verificarCodigoAtivacao(email, codigoInformado) {
 
   const agora = new Date().toISOString();
   const userId = gerarId("user");
+  const perfisJson = autorizado.perfis_json || JSON.stringify(perfisDoRegistro(autorizado));
 
   db.prepare(`
-    INSERT INTO users (id, email, password_hash, nome, perfil, modulo, matricula_id, verificado, created_at, verified_at)
-    VALUES (?, ?, ?, ?, ?, NULL, NULL, 1, ?, ?)
+    INSERT INTO users (id, email, password_hash, nome, perfil, perfis_institucionais_json, modulo, matricula_id, verificado, created_at, verified_at)
+    VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, 1, ?, ?)
     ON CONFLICT(email) DO UPDATE SET
       password_hash = excluded.password_hash,
       nome = excluded.nome,
       perfil = excluded.perfil,
+      perfis_institucionais_json = excluded.perfis_institucionais_json,
       verificado = 1,
       verified_at = excluded.verified_at
   `).run(
@@ -227,6 +261,7 @@ function verificarCodigoAtivacao(email, codigoInformado) {
     pendente.password_hash,
     pendente.nome,
     pendente.perfil,
+    perfisJson,
     agora,
     agora
   );
@@ -317,8 +352,10 @@ async function enviarCodigoPendenteInstitucional(email) {
 function importarAutorizadosIniciais(lista) {
   if (!Array.isArray(lista)) return;
   lista.forEach(function (item) {
-    if (!item || !item.email || !item.nome || !item.perfil) return;
-    upsertAutorizado(item.email, item.nome, item.perfil);
+    if (!item || !item.email || !item.nome) return;
+    const perfil = item.perfil || (item.perfis && item.perfis[0]) || null;
+    if (!perfil) return;
+    upsertAutorizado(item.email, item.nome, perfil, item.perfis);
   });
 }
 

@@ -164,20 +164,44 @@ function salvarSessaoDirecao(conta) {
   localStorage.setItem(STORAGE_SESSAO_DIRECAO, JSON.stringify({
     tipo: "direcao",
     perfil: conta.perfil,
+    perfisInstitucionais: conta.perfisInstitucionais || perfisInstitucionaisDaSessao(conta),
     nome: conta.nome,
     email: conta.email,
     loginEm: new Date().toISOString()
   }));
 }
 
+function perfisInstitucionaisDaSessao(sessao) {
+  if (!sessao) return [];
+  if (sessao.perfisInstitucionais && sessao.perfisInstitucionais.length) {
+    return sessao.perfisInstitucionais;
+  }
+  if (sessao.perfil) return [sessao.perfil];
+  return [];
+}
+
+function sessaoTemPerfilInstitucional(sessao, perfil) {
+  return perfisInstitucionaisDaSessao(sessao).indexOf(perfil) !== -1;
+}
+
 function obterSessaoDirecao() {
   if (authApiAtivo() && window.SETAD.session) {
     const sessao = window.SETAD.session;
-    if (sessao.perfil === "diretor" || sessao.perfil === "contador") return sessao;
+    if (sessaoTemPerfilInstitucional(sessao, "diretor") || sessaoTemPerfilInstitucional(sessao, "contador")) {
+      return sessao;
+    }
   }
 
   const dados = localStorage.getItem(STORAGE_SESSAO_DIRECAO);
-  return dados ? JSON.parse(dados) : null;
+  const sessaoLocal = dados ? JSON.parse(dados) : null;
+  if (
+    sessaoLocal &&
+    (sessaoTemPerfilInstitucional(sessaoLocal, "diretor") ||
+      sessaoTemPerfilInstitucional(sessaoLocal, "contador"))
+  ) {
+    return sessaoLocal;
+  }
+  return null;
 }
 
 function encerrarSessaoDirecao() {
@@ -195,12 +219,16 @@ function encerrarSessaoDirecao() {
  */
 function protegerPainelDirecao(perfilRequerido) {
   const sessao = obterSessaoDirecao();
-  if (!sessao || (sessao.perfil !== "diretor" && sessao.perfil !== "contador")) {
+  if (
+    !sessao ||
+    (!sessaoTemPerfilInstitucional(sessao, "diretor") &&
+      !sessaoTemPerfilInstitucional(sessao, "contador"))
+  ) {
     window.location.href = "login-direcao.html";
     return null;
   }
-  if (perfilRequerido && sessao.perfil !== perfilRequerido) {
-    window.location.href = sessao.perfil === "contador"
+  if (perfilRequerido && !sessaoTemPerfilInstitucional(sessao, perfilRequerido)) {
+    window.location.href = sessaoTemPerfilInstitucional(sessao, "contador")
       ? "painel-contador.html"
       : "painel-diretor.html";
     return null;
@@ -212,6 +240,7 @@ function salvarSessaoSecretaria(conta) {
   localStorage.setItem(STORAGE_SESSAO_SECRETARIA, JSON.stringify({
     tipo: "secretaria",
     perfil: conta.perfil,
+    perfisInstitucionais: conta.perfisInstitucionais || perfisInstitucionaisDaSessao(conta),
     nome: conta.nome,
     email: conta.email,
     loginEm: new Date().toISOString()
@@ -219,12 +248,16 @@ function salvarSessaoSecretaria(conta) {
 }
 
 function obterSessaoSecretaria() {
-  if (authApiAtivo() && window.SETAD.session && window.SETAD.session.perfil === "secretaria") {
+  if (authApiAtivo() && window.SETAD.session && sessaoTemPerfilInstitucional(window.SETAD.session, "secretaria")) {
     return window.SETAD.session;
   }
 
   const dados = localStorage.getItem(STORAGE_SESSAO_SECRETARIA);
-  return dados ? JSON.parse(dados) : null;
+  const sessaoLocal = dados ? JSON.parse(dados) : null;
+  if (sessaoLocal && sessaoTemPerfilInstitucional(sessaoLocal, "secretaria")) {
+    return sessaoLocal;
+  }
+  return null;
 }
 
 function encerrarSessaoSecretaria() {
@@ -238,7 +271,7 @@ function encerrarSessaoSecretaria() {
 
 function protegerPainelSecretaria() {
   const sessao = obterSessaoSecretaria();
-  if (!sessao || sessao.perfil !== "secretaria") {
+  if (!sessao || !sessaoTemPerfilInstitucional(sessao, "secretaria")) {
     window.location.href = "login-direcao.html#secretaria";
     return null;
   }
