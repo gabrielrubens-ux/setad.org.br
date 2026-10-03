@@ -420,35 +420,28 @@
     <section class="section matricula-cta fade-in" id="inscricao">
       <div class="matricula-cta__bg" aria-hidden="true">
         <div class="matricula-cta__grid"></div>
-        <div class="matricula-cta__blob matricula-cta__blob--1"></div>
-        <div class="matricula-cta__blob matricula-cta__blob--2"></div>
-        <div class="matricula-cta__blob matricula-cta__blob--3"></div>
-        <div class="matricula-cta__spotlight"></div>
-        <svg class="matricula-cta__jornada" viewBox="0 0 800 120" preserveAspectRatio="none">
-          <path
-            class="matricula-cta__jornada-linha"
-            d="M 0 80 C 200 20, 400 100, 600 40 S 800 70, 800 50"
-            fill="none"
-          />
-          <circle class="matricula-cta__jornada-ponto" cx="120" cy="68" r="5" />
-          <circle class="matricula-cta__jornada-ponto" cx="400" cy="72" r="5" />
-          <circle class="matricula-cta__jornada-ponto" cx="680" cy="48" r="5" />
-        </svg>
-        <div class="matricula-cta__modulos" data-parallax-layer="6">
-          <span class="matricula-cta__modulo-pill">Básico</span>
-          <span class="matricula-cta__modulo-pill">Médio</span>
-          <span class="matricula-cta__modulo-pill">Avançado</span>
+        <div class="matricula-cta__aurora" data-matricula-aurora>
+          <div class="matricula-cta__blob matricula-cta__blob--1"></div>
+          <div class="matricula-cta__blob matricula-cta__blob--2"></div>
         </div>
+        <div class="matricula-cta__spotlight"></div>
+        <div class="matricula-cta__veil"></div>
       </div>
 
       <div class="container matricula-cta__content">
-        <p class="section__label">Matrícula</p>
-        <h2 class="section__title">Faça parte do SETAD</h2>
-        <p class="section__text">
-          Inscreva-se online e escolha o módulo adequado ao seu momento de formação teológica —
-          Básico, Médio ou Avançado.
-        </p>
-        <a href="matricula/" class="btn btn--primary matricula-cta__btn">Matricule-se agora</a>
+        <div class="matricula-cta__panel">
+          <p class="section__label">Matrícula</p>
+          <h2 class="section__title">Faça parte do SETAD</h2>
+          <p class="section__text matricula-cta__texto">
+            Inscreva-se online e escolha o módulo adequado ao seu momento de formação teológica.
+          </p>
+          <ul class="matricula-cta__niveis" aria-label="Níveis de formação">
+            <li>Básico</li>
+            <li>Médio</li>
+            <li>Avançado</li>
+          </ul>
+          <a href="matricula/" class="btn btn--primary matricula-cta__btn">Matricule-se agora</a>
+        </div>
       </div>
     </section>
 
@@ -508,11 +501,11 @@
       </div>
     </section>
 
-    <!-- MISSÕES — parceiros e projetos (adicione .missoes__card na trilha) -->
+    <!-- MISSÕES — parceiro: card + data-missao-parceiro (ver PARCEIROS em js/missoes-bg.js) -->
     <section class="section missoes fade-in" id="missoes" aria-label="Missões">
       <div class="missoes__bg" aria-hidden="true">
         <div class="missoes__bg-base"></div>
-        <div class="missoes__slideshow" id="missoesBgSlideshow"></div>
+        <div class="missoes__bg-panes" id="missoesBgPanes"></div>
         <div class="missoes__bg-aurora"></div>
         <div class="missoes__bg-veil"></div>
       </div>
@@ -522,7 +515,8 @@
           <div class="missoes__trilha">
             <a
               href="https://boasnovas.net/"
-              class="missoes__card"
+              class="missoes__card missoes__card--boas-novas"
+              data-missao-parceiro="boas-novas"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Boas Novas Belém — TV e Rádio"
@@ -534,6 +528,26 @@
                 class="missoes__logo"
                 width="220"
                 height="96"
+                loading="lazy"
+                decoding="async"
+              >
+            </a>
+
+            <a
+              href="https://educacaocristacontinuada.com.br/"
+              class="missoes__card missoes__card--pecc"
+              data-missao-parceiro="pecc"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Programa de Educação Cristã Continuada — PECC"
+            >
+              <span class="missoes__card-orbit" aria-hidden="true"></span>
+              <img
+                src="assets/images/parceiros/pecc.png"
+                alt="PECC — Programa de Educação Cristã Continuada"
+                class="missoes__logo missoes__logo--pecc"
+                width="280"
+                height="80"
                 loading="lazy"
                 decoding="async"
               >

@@ -1,5 +1,5 @@
 /**
- * Área Missões: duplica logos para rolagem contínua quando houver 2+ links.
+ * Área Missões: rolagem contínua só com 3+ parceiros; 2 ficam lado a lado.
  */
 (function () {
   var fita = document.querySelector("[data-missoes-fita]");
@@ -11,8 +11,8 @@
   var cards = trilha.querySelectorAll(".missoes__card");
   if (cards.length === 0) return;
 
-  if (cards.length === 1) {
-    fita.classList.add("missoes__fita--unico");
+  if (cards.length < 3) {
+    fita.classList.add("missoes__fita--grade");
     return;
   }
 
