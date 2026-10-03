@@ -106,6 +106,15 @@ function authApiAtivo() {
 function aplicarSessaoApi(user) {
   if (!user || !window.SETAD) return;
   window.SETAD.setSession(user);
+  if (
+    sessaoTemPerfilInstitucional(user, "diretor") ||
+    sessaoTemPerfilInstitucional(user, "contador")
+  ) {
+    salvarSessaoDirecao(user);
+  }
+  if (sessaoTemPerfilInstitucional(user, "secretaria")) {
+    salvarSessaoSecretaria(user);
+  }
 }
 
 function finalizarLoginApi(resposta, redirect) {
@@ -357,11 +366,11 @@ function configurarLoginDirecao() {
       if (authApiAtivo() && typeof SETADApi !== "undefined") {
         SETADApi.login(email, senha).then(function (resposta) {
           if (resposta && resposta.ok && resposta.user) {
-            if (resposta.user.perfil === "diretor") {
+            if (sessaoTemPerfilInstitucional(resposta.user, "diretor")) {
               finalizarLoginApi(resposta, CREDENCIAIS.diretor.redirect);
               return;
             }
-            if (resposta.user.perfil === "contador") {
+            if (sessaoTemPerfilInstitucional(resposta.user, "contador")) {
               finalizarLoginApi(resposta, CREDENCIAIS.contador.redirect);
               return;
             }
@@ -403,7 +412,11 @@ function configurarLoginDirecao() {
 
       if (authApiAtivo()) {
         SETADApi.login(email, senha).then(function (resposta) {
-          if (resposta.ok && resposta.user && resposta.user.perfil === "secretaria") {
+          if (
+            resposta.ok &&
+            resposta.user &&
+            sessaoTemPerfilInstitucional(resposta.user, "secretaria")
+          ) {
             finalizarLoginApi(resposta, conta.redirect);
             return;
           }
