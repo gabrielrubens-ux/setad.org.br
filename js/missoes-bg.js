@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  var INTERVALO_SLIDE_MS = 8000;
+  var INTERVALO_SLIDE_MS = 14000;
   var CACHE_PREFIX = "setad_missoes_bg_";
   var CACHE_MAX_IDADE_MS = 24 * 60 * 60 * 1000;
 
@@ -160,6 +160,13 @@
     estado.indices[id] = indice;
   }
 
+  function pararTodosSlideshows() {
+    Object.keys(estado.timers).forEach(function (id) {
+      clearInterval(estado.timers[id]);
+      delete estado.timers[id];
+    });
+  }
+
   function iniciarSlideshow(slideshow, id) {
     if (estado.timers[id]) clearInterval(estado.timers[id]);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -167,6 +174,40 @@
     estado.timers[id] = setInterval(function () {
       if (!document.hidden) avancarSlide(slideshow, id);
     }, INTERVALO_SLIDE_MS);
+  }
+
+  function iniciarSlideshowsDaSecao(section) {
+    estado.parceirosAtivos.forEach(function (id) {
+      var slideshow = section.querySelector(
+        '[data-missao-slideshow="' + id + '"]'
+      );
+      if (slideshow) iniciarSlideshow(slideshow, id);
+    });
+  }
+
+  function configurarInteracao(section) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    section.addEventListener("mouseenter", function () {
+      section.classList.add("missoes--ativa");
+      iniciarSlideshowsDaSecao(section);
+    });
+
+    section.addEventListener("mouseleave", function () {
+      section.classList.remove("missoes--ativa");
+      pararTodosSlideshows();
+    });
+
+    section.addEventListener("focusin", function () {
+      section.classList.add("missoes--ativa");
+      iniciarSlideshowsDaSecao(section);
+    });
+
+    section.addEventListener("focusout", function (evento) {
+      if (section.contains(evento.relatedTarget)) return;
+      section.classList.remove("missoes--ativa");
+      pararTodosSlideshows();
+    });
   }
 
   function criarPainel(id) {
@@ -214,11 +255,9 @@
       var iniciais =
         cache && cache.length ? cache : PARCEIROS[id].imagensLocal.slice();
       renderizarSlides(partes.slideshow, iniciais, id);
-      iniciarSlideshow(partes.slideshow, id);
 
       carregarImagensParceiro(id, PARCEIROS[id]).then(function (imagens) {
         renderizarSlides(partes.slideshow, imagens, id);
-        iniciarSlideshow(partes.slideshow, id);
       });
     });
 
@@ -324,6 +363,7 @@
     if (!ids.length) return;
 
     montarPaineis(section, container, ids);
+    configurarInteracao(section);
     configurarFocoCards(section);
     configurarParallax(section, container);
     configurarTiltCards(section);

@@ -923,11 +923,15 @@ body {
   display: block;
   filter: saturate(0.7) contrast(1.05) brightness(0.75);
   transform: scale(1.06);
-  animation: missoes-kenburns 18s ease-in-out infinite alternate;
+  animation: none;
 }
 
-.missoes__slide:not(.is-active) img {
-  animation: none;
+.missoes--ativa .missoes__slide.is-active img {
+  animation: missoes-kenburns 32s ease-in-out infinite alternate;
+}
+
+.missoes--ativa .missoes__slide {
+  transition: opacity 2.6s ease-in-out;
 }
 
 @keyframes missoes-kenburns {
@@ -1028,11 +1032,12 @@ body {
 
 .missoes__fita--animada .missoes__trilha {
   flex-wrap: nowrap;
-  animation: missoes-marquee 32s linear infinite;
+  animation: none;
+  transform: translateX(0);
 }
 
 .missoes__fita--animada:hover .missoes__trilha {
-  animation-play-state: paused;
+  animation: missoes-marquee 85s linear infinite;
 }
 
 @keyframes missoes-marquee {
@@ -1087,7 +1092,7 @@ body {
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: missoes-orbit-spin 5s linear infinite;
+  animation: none;
   opacity: 0.75;
   pointer-events: none;
 }
@@ -1109,7 +1114,7 @@ body {
 .missoes__card:hover .missoes__card-orbit,
 .missoes__card:focus-visible .missoes__card-orbit {
   opacity: 1;
-  animation-duration: 2.5s;
+  animation: missoes-orbit-spin 20s linear infinite;
 }
 
 .missoes__card--pecc .missoes__card-orbit {
