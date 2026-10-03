@@ -823,6 +823,233 @@ body {
 }
 
 /* ============================================================
+   PARCEIROS — fita de logos com animação
+   ============================================================ */
+.parceiros {
+  position: relative;
+  padding: 3rem 0 3.5rem;
+  background: linear-gradient(180deg, #f4f7fb 0%, #e8eef6 100%);
+  overflow: hidden;
+}
+
+.parceiros__ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  overflow: hidden;
+}
+
+.parceiros__ribbon-linha {
+  display: block;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #23406b,
+    #3b82f6,
+    #06b6d4,
+    #23406b,
+    #3b82f6
+  );
+  background-size: 50% 100%;
+  animation: parceiros-ribbon-shift 6s linear infinite;
+}
+
+@keyframes parceiros-ribbon-shift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.parceiros__inner {
+  text-align: center;
+}
+
+.parceiros__texto {
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2rem;
+}
+
+.parceiros__fita {
+  position: relative;
+  margin: 0 -1rem;
+  padding: 0.5rem 0;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.parceiros__fita--unico .parceiros__trilha {
+  justify-content: center;
+}
+
+.parceiros__trilha {
+  display: flex;
+  align-items: stretch;
+  gap: 1.75rem;
+  width: max-content;
+  padding: 0.25rem 1rem;
+}
+
+.parceiros__fita--animada .parceiros__trilha {
+  animation: parceiros-marquee 28s linear infinite;
+}
+
+.parceiros__fita--animada:hover .parceiros__trilha {
+  animation-play-state: paused;
+}
+
+@keyframes parceiros-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.parceiros__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  min-width: 11rem;
+  padding: 1.35rem 1.75rem;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #1e3a5f;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+  box-shadow:
+    0 10px 28px rgba(35, 64, 107, 0.1),
+    0 0 0 0 rgba(59, 130, 246, 0);
+  overflow: hidden;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  animation: parceiros-card-float 5s ease-in-out infinite;
+}
+
+.parceiros__fita--animada .parceiros__card {
+  animation: none;
+}
+
+.parceiros__fita--animada:hover .parceiros__card {
+  animation: parceiros-card-float 5s ease-in-out infinite;
+}
+
+@keyframes parceiros-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.parceiros__card-shine {
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.65) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%) skewX(-12deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.parceiros__fita--unico .parceiros__card:hover,
+.parceiros__fita--unico .parceiros__card:focus-visible {
+  animation-play-state: paused;
+}
+
+.parceiros__card:hover,
+.parceiros__card:focus-visible {
+  transform: translateY(-6px) scale(1.03);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow:
+    0 16px 36px rgba(35, 64, 107, 0.16),
+    0 0 24px rgba(59, 130, 246, 0.2);
+}
+
+.parceiros__card:hover .parceiros__card-shine,
+.parceiros__card:focus-visible .parceiros__card-shine {
+  transform: translateX(120%) skewX(-12deg);
+}
+
+.parceiros__logo {
+  display: block;
+  width: auto;
+  max-width: 200px;
+  max-height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(35, 64, 107, 0.12));
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.parceiros__card:hover .parceiros__logo,
+.parceiros__card:focus-visible .parceiros__logo {
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 16px rgba(59, 130, 246, 0.25));
+}
+
+.parceiros__nome {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #23406b;
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parceiros__ribbon-linha,
+  .parceiros__trilha,
+  .parceiros__card {
+    animation: none !important;
+  }
+
+  .parceiros__card-shine {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .parceiros {
+    padding: 2.5rem 0 3rem;
+  }
+
+  .parceiros__fita {
+    mask-image: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .parceiros__fita--unico .parceiros__trilha {
+    width: 100%;
+  }
+}
+
+/* ============================================================
    CONTATO SETAD — barra institucional (modelo footer UNIASSELVI)
    ============================================================ */
 .contato-setad {
