@@ -10,7 +10,7 @@ const { upsertAutorizado } = require("../server/staff-ativacao.js");
 
 const email = (process.argv[2] || "gabrielrubens0@gmail.com").trim().toLowerCase();
 const nome = process.argv[3] || "Gabriel Rubens";
-const perfis = ["diretor", "contador", "secretaria"];
+const perfis = ["diretor", "contador", "secretaria", "coordenacao"];
 
 const resultado = upsertAutorizado(email, nome, "diretor", perfis);
 console.log(resultado);

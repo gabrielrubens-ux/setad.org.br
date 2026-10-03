@@ -24,9 +24,9 @@ Quem tem **vários perfis** (ex.: direção + contabilidade) entra com a **mesma
 | Secretaria | Laís Santiago da Silva | santiagolais324@gmail.com |
 | Secretaria | Ledyanny Maria | ledyannymaria.02@gmail.com |
 | Secretaria | Kathlen Santiago | kathlensantiago@gmail.com |
-| Direção, contabilidade e secretaria | Gabriel Rubens | gabrielrubens0@gmail.com |
+| Direção, contabilidade, secretaria e coordenação pedagógica | Gabriel Rubens | gabrielrubens0@gmail.com |
 
-Coordenação pedagógica: cadastrar depois com `perfil: "coordenacao"` (ou em `perfis`) via API / `SETAD_STAFF_AUTORIZADOS_JSON`.
+Gabriel usa **uma senha** para todas as áreas; após login, escolha o painel em [escolher-area-institucional.html](../escolher-area-institucional.html) (perfis: `diretor`, `contador`, `secretaria`, `coordenacao`).
 
 ## Manutenção
 
