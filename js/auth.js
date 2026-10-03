@@ -153,7 +153,12 @@ function processarLoginInstitucionalApi(email, senha, areaPreferida, erroEl, men
   function falhaLogin(msg) {
     if (!erroEl) return;
     erroEl.classList.add("visible");
-    erroEl.textContent = msg || mensagemFalha;
+    var texto = msg || mensagemFalha;
+    if (texto.indexOf("<a ") !== -1) {
+      erroEl.innerHTML = texto;
+    } else {
+      erroEl.textContent = texto;
+    }
   }
 
   if (authApiAtivo() && typeof SETADApi !== "undefined") {
@@ -180,6 +185,13 @@ function processarLoginInstitucionalApi(email, senha, areaPreferida, erroEl, men
         }
       }
       if (typeof tentarDemo === "function" && tentarDemo()) return;
+      if (erroEl && mensagemFalha.indexOf("incorretos") !== -1) {
+        falhaLogin(
+          mensagemFalha +
+            ' Ou use <a href="recuperar-senha-institucional.html">esqueci minha senha</a>.'
+        );
+        return;
+      }
       falhaLogin();
     }).catch(function () {
       if (typeof tentarDemo === "function" && tentarDemo()) return;

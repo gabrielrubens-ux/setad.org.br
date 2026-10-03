@@ -365,6 +365,7 @@ function importarAutorizadosIniciais(lista) {
 
 module.exports = {
   PERFIS_INSTITUCIONAIS,
+  findUserByEmail,
   buscarAutorizado,
   iniciarAtivacao,
   definirSenhaAtivacao,

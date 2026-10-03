@@ -146,17 +146,23 @@ function montarMensagemCodigoVerificacao(nome, codigo, tipo) {
   const loginUrl =
     tipo === "aluno"
       ? urlPublicaSite("/login-aluno.html")
-      : urlPublicaSite("/primeiro-acesso-institucional.html");
+      : tipo === "recuperacao-institucional"
+        ? urlPublicaSite("/recuperar-senha-institucional.html")
+        : urlPublicaSite("/primeiro-acesso-institucional.html");
 
   const contexto =
     tipo === "aluno"
       ? "criação da senha da área do aluno"
-      : "ativação do acesso institucional (direção, contabilidade ou secretaria)";
+      : tipo === "recuperacao-institucional"
+        ? "redefinição da senha da área institucional"
+        : "ativação do acesso institucional (direção, contabilidade, secretaria ou coordenação)";
 
   const assunto =
     tipo === "aluno"
       ? "SETAD — código de verificação (área do aluno)"
-      : "SETAD — código de verificação (acesso institucional)";
+      : tipo === "recuperacao-institucional"
+        ? "SETAD — código para nova senha (área institucional)"
+        : "SETAD — código de verificação (acesso institucional)";
 
   const texto =
     "Olá, " +
@@ -296,6 +302,10 @@ async function enviarCodigoVerificacaoInstitucional(destinatario, nome, codigo) 
   return enviarCodigoVerificacao(destinatario, nome, codigo, "institucional");
 }
 
+async function enviarCodigoRecuperacaoSenhaInstitucional(destinatario, nome, codigo) {
+  return enviarCodigoVerificacao(destinatario, nome, codigo, "recuperacao-institucional");
+}
+
 async function enviarCodigoVerificacaoAluno(destinatario, nome, codigo) {
   return enviarCodigoVerificacao(destinatario, nome, codigo, "aluno");
 }
@@ -320,6 +330,7 @@ module.exports = {
   enviarEmail,
   enviarCodigoVerificacao,
   enviarCodigoVerificacaoInstitucional,
+  enviarCodigoRecuperacaoSenhaInstitucional,
   enviarCodigoVerificacaoAluno,
   urlPublicaSite,
   smtpConfigurado,

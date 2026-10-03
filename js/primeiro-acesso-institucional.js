@@ -95,7 +95,13 @@
 
     SETADApi.post("/auth/staff/ativacao/iniciar", { email: email }).then(function (resposta) {
       if (!resposta.ok) {
-        erroEl.textContent = resposta.erro || "Não foi possível continuar.";
+        if (resposta.jaAtivo) {
+          erroEl.innerHTML =
+            (resposta.erro || "Conta já ativa.") +
+            ' <a href="recuperar-senha-institucional.html">Esqueci minha senha</a>.';
+        } else {
+          erroEl.textContent = resposta.erro || "Não foi possível continuar.";
+        }
         erroEl.classList.add("visible");
         return;
       }

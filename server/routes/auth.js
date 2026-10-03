@@ -65,6 +65,14 @@ const {
   desativarAutorizado,
   PERFIS_INSTITUCIONAIS
 } = require("../staff-ativacao");
+const {
+  iniciarRecuperacaoSenha,
+  definirNovaSenhaRecuperacao,
+  verificarRecuperacaoSenha,
+  reenviarCodigoRecuperacao,
+  enviarCodigoRecuperacaoSePossivel
+} = require("../staff-recuperacao-senha");
+const { perfisDoUsuario } = require("../perfis-institucionais");
 
 const router = express.Router();
 const limitarLogin = criarLimiteLogin();
@@ -101,7 +109,9 @@ router.post("/login", limitarLogin, function (req, res) {
   }
 
   if (!user.verificado) {
-    const perfilInstitucional = PERFIS_INSTITUCIONAIS.includes(user.perfil);
+    const perfilInstitucional = perfisDoUsuario(user).some(function (p) {
+      return PERFIS_INSTITUCIONAIS.includes(p);
+    });
     const mensagem = perfilInstitucional
       ? "Conta pendente. Use Primeiro acesso institucional para criar sua senha."
       : "Conta ainda não verificada.";
@@ -378,6 +388,79 @@ router.post("/staff/ativacao/verificar", limitarAtivacaoStaff, function (req, re
     user: toSessionUser(resultado.user),
     redirect: resultado.redirect
   });
+});
+
+router.post("/staff/recuperar-senha/iniciar", limitarAtivacaoStaff, function (req, res) {
+  const email = (req.body.email || "").trim();
+  const resultado = iniciarRecuperacaoSenha(email);
+  if (!resultado.ok) {
+    const status = resultado.precisaPrimeiroAcesso ? 404 : 403;
+    return res.status(status).json(resultado);
+  }
+  res.json(resultado);
+});
+
+router.post("/staff/recuperar-senha/senha", limitarAtivacaoStaff, function (req, res) {
+  const email = (req.body.email || "").trim();
+  const senha = req.body.senha || "";
+  const confirmar = req.body.confirmarSenha || req.body.confirmar || "";
+
+  const resultado = definirNovaSenhaRecuperacao(email, senha, confirmar);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  enviarCodigoRecuperacaoSePossivel(resultado.email, resultado.nome, resultado.codigo)
+    .then(function (envio) {
+      res.json(
+        anexarMetadadosEnvioEmail(
+          { ok: true, email: resultado.email, etapa: "verificacao" },
+          envio,
+          resultado.codigo
+        )
+      );
+    })
+    .catch(function (erro) {
+      console.error("[SETAD] Erro ao enviar código (recuperar senha):", erro.message);
+      res.status(500).json({ ok: false, erro: "Não foi possível enviar o código por e-mail. Tente novamente." });
+    });
+});
+
+router.post("/staff/recuperar-senha/verificar", limitarAtivacaoStaff, function (req, res) {
+  const email = (req.body.email || "").trim();
+  const codigo = String(req.body.codigo || "").trim();
+
+  const resultado = verificarRecuperacaoSenha(email, codigo);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  const tokenJwt = signToken(resultado.user);
+  setAuthCookie(res, tokenJwt);
+
+  res.json({
+    ok: true,
+    token: tokenJwt,
+    user: toSessionUser(resultado.user),
+    mensagem: "Senha atualizada com sucesso. Você já pode acessar sua área."
+  });
+});
+
+router.post("/staff/recuperar-senha/reenviar-codigo", limitarAtivacaoStaff, function (req, res) {
+  const email = (req.body.email || "").trim();
+  const resultado = reenviarCodigoRecuperacao(email);
+  if (!resultado.ok) {
+    return res.status(400).json(resultado);
+  }
+
+  enviarCodigoRecuperacaoSePossivel(resultado.email, resultado.nome, resultado.codigo)
+    .then(function (envio) {
+      res.json(anexarMetadadosEnvioEmail({ ok: true, email: resultado.email }, envio, resultado.codigo));
+    })
+    .catch(function (erro) {
+      console.error("[SETAD] Erro ao reenviar código (recuperar senha):", erro.message);
+      res.status(500).json({ ok: false, erro: "Não foi possível reenviar o código. Tente novamente." });
+    });
 });
 
 router.post("/staff/ativacao/reenviar-codigo", limitarAtivacaoStaff, function (req, res) {

@@ -151,6 +151,15 @@ function initSchema() {
       senha_definida_em TEXT,
       criado_em TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS recuperacoes_senha_institucional (
+      email TEXT PRIMARY KEY COLLATE NOCASE,
+      nome TEXT NOT NULL,
+      password_hash TEXT,
+      codigo TEXT,
+      codigo_expira_em TEXT,
+      criado_em TEXT NOT NULL
+    );
   `);
 }
 

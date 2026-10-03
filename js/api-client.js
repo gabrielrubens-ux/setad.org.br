@@ -106,6 +106,22 @@
     reenviarCodigoInstitucional: function (email) {
       return request("POST", "/auth/staff/ativacao/reenviar-codigo", { email: email });
     },
+    iniciarRecuperacaoSenhaInstitucional: function (email) {
+      return request("POST", "/auth/staff/recuperar-senha/iniciar", { email: email });
+    },
+    definirSenhaRecuperacaoInstitucional: function (email, senha, confirmarSenha) {
+      return request("POST", "/auth/staff/recuperar-senha/senha", {
+        email: email,
+        senha: senha,
+        confirmarSenha: confirmarSenha
+      });
+    },
+    verificarRecuperacaoSenhaInstitucional: function (email, codigo) {
+      return request("POST", "/auth/staff/recuperar-senha/verificar", { email: email, codigo: codigo });
+    },
+    reenviarCodigoRecuperacaoInstitucional: function (email) {
+      return request("POST", "/auth/staff/recuperar-senha/reenviar-codigo", { email: email });
+    },
     syncCollection: function (nome, items) {
       return request("PUT", "/" + nome, items);
     },
