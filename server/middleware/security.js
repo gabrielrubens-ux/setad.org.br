@@ -63,6 +63,17 @@ function validarSegredosProducao() {
     );
     process.exit(1);
   }
+
+  const smtpOk = Boolean(
+    process.env.SETAD_SMTP_HOST &&
+      process.env.SETAD_SMTP_USER &&
+      process.env.SETAD_SMTP_PASS
+  );
+  if (!smtpOk) {
+    console.error(
+      "[SETAD] SETAD_SMTP_* ausente em produção — códigos de verificação não chegam por e-mail. Veja docs/HOSTINGER-VARIAVEIS-AMBIENTE.md"
+    );
+  }
 }
 
 function criarLimitePorIp(opcoes) {

@@ -35,8 +35,16 @@ function anexarMetadadosEnvioEmail(corpo, envio, codigo) {
   } else {
     payload.codigoDemo = codigoRespostaDemo(codigo);
     if (process.env.NODE_ENV === "production") {
-      payload.avisoEmail =
-        "Não foi possível enviar o e-mail agora. Aguarde alguns minutos, use «Reenviar código» ou contate a secretaria.";
+      if (!smtpConfigurado()) {
+        payload.avisoEmail =
+          "O servidor ainda não está configurado para enviar e-mails (SMTP). Avise a equipe técnica do SETAD.";
+      } else if (envio && envio.modo === "erro") {
+        payload.avisoEmail =
+          "Falha ao enviar o e-mail agora. Aguarde alguns minutos, use «Reenviar código» ou contate a secretaria.";
+      } else {
+        payload.avisoEmail =
+          "Não foi possível enviar o e-mail agora. Aguarde alguns minutos, use «Reenviar código» ou contate a secretaria.";
+      }
     }
     if (envio && envio.erro && process.env.NODE_ENV !== "production") {
       payload.erroEmail = envio.erro;

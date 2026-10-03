@@ -11,7 +11,7 @@ const {
   headersSeguranca,
   validarSegredosProducao
 } = require("./middleware/security");
-const { logStatusSmtpInicializacao } = require("./services/email");
+const { logStatusSmtpInicializacao, smtpConfigurado } = require("./services/email");
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
@@ -54,7 +54,8 @@ app.get("/api/health", function (_req, res) {
     ok: true,
     service: "setad-api",
     version: "1.0.0",
-    mode: "api"
+    mode: "api",
+    emailSmtpConfigurado: smtpConfigurado()
   });
 });
 
