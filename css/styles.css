@@ -926,12 +926,12 @@ body {
   animation: none;
 }
 
-.missoes--ativa .missoes__slide.is-active img {
-  animation: missoes-kenburns 32s ease-in-out infinite alternate;
+.missoes__slide.is-active img {
+  animation: missoes-kenburns 22s ease-in-out infinite alternate;
 }
 
-.missoes--ativa .missoes__slide {
-  transition: opacity 2.6s ease-in-out;
+.missoes__slide:not(.is-active) img {
+  animation: none;
 }
 
 @keyframes missoes-kenburns {
