@@ -558,7 +558,10 @@ function configurarCadastroAluno() {
           return;
         }
         form.reset();
-        mostrarPainelVerificacao(resultado.email, resultado.codigoDemo);
+        mostrarPainelVerificacao(resultado.email, resultado.codigoDemo, {
+          emailEnviado: resultado.emailEnviado,
+          avisoEmail: resultado.avisoEmail
+        });
       }).catch(function () {
         erroEl.textContent = "Não foi possível iniciar o cadastro. Tente novamente.";
         erroEl.classList.add("visible");
@@ -580,20 +583,32 @@ function configurarCadastroAluno() {
 }
 
 /**
- * Simula o envio do código por e-mail (sem backend).
- * Em produção, um servidor enviaria o código ao endereço do aluno.
+ * Mensagem após solicitar o código (API com SMTP ou demonstração local).
  */
-function simularEnvioCodigoEmail(email, codigo) {
+function simularEnvioCodigoEmail(email, codigo, meta) {
   const demoEl = document.getElementById("codigoDemonstracao");
   if (!demoEl) return;
 
+  const info = meta || {};
   let html =
     "Enviamos um código de <strong>6 dígitos</strong> para <strong>" +
     escaparHtml(email) + "</strong>.";
 
+  if (info.emailEnviado) {
+    html +=
+      " Confira a <strong>caixa de entrada</strong> e, no Gmail, também a aba <strong>Promoções</strong> se não aparecer de imediato.";
+  }
+
+  if (info.avisoEmail) {
+    html +=
+      "<br><span class=\"login-card__demo-codigo\">" +
+      escaparHtml(info.avisoEmail) +
+      "</span>";
+  }
+
   if (ambientePermiteDemonstracao() && codigo) {
     html +=
-      "<br><span class=\"login-card__demo-codigo\">Demonstração (sem servidor de e-mail): <strong>" +
+      "<br><span class=\"login-card__demo-codigo\">Demonstração (sem SMTP ou falha de envio): <strong>" +
       escaparHtml(codigo) + "</strong></span>";
   }
 
@@ -604,7 +619,7 @@ function simularEnvioCodigoEmail(email, codigo) {
 /**
  * Exibe o painel de verificação de e-mail com código de 6 dígitos.
  */
-function mostrarPainelVerificacao(email, codigoDemo) {
+function mostrarPainelVerificacao(email, codigoDemo, metaEnvio) {
   const painelLogin = document.getElementById("painelLogin");
   const painelCadastro = document.getElementById("painelCadastro");
   const painelVerificacao = document.getElementById("painelVerificacao");
@@ -635,12 +650,15 @@ function mostrarPainelVerificacao(email, codigoDemo) {
     demoEl.textContent = "";
   }
 
-  if (codigoDemo) {
-    simularEnvioCodigoEmail(email, codigoDemo);
+  const meta = metaEnvio || {};
+  if (codigoDemo || meta.emailEnviado || meta.avisoEmail) {
+    simularEnvioCodigoEmail(email, codigoDemo, meta);
   } else {
     const pendente = obterVerificacaoPendente(email);
     if (pendente) {
-      simularEnvioCodigoEmail(email, pendente.codigo);
+      simularEnvioCodigoEmail(email, pendente.codigo, meta);
+    } else {
+      simularEnvioCodigoEmail(email, null, meta);
     }
   }
 }
@@ -719,9 +737,14 @@ function configurarVerificacaoAluno() {
             erroEl.classList.add("visible");
             return;
           }
-          simularEnvioCodigoEmail(resultado.email, resultado.codigoDemo);
+          simularEnvioCodigoEmail(resultado.email, resultado.codigoDemo, {
+            emailEnviado: resultado.emailEnviado,
+            avisoEmail: resultado.avisoEmail
+          });
           erroEl.classList.remove("visible");
-          sucessoEl.textContent = "Novo código enviado ao seu e-mail.";
+          sucessoEl.textContent = resultado.emailEnviado
+            ? "Novo código enviado ao seu e-mail."
+            : (resultado.avisoEmail || "Solicitação registrada. Tente reenviar em instantes.");
           sucessoEl.classList.add("visible", "login-card__success");
         });
         return;

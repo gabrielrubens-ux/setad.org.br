@@ -13,8 +13,37 @@ const {
 
 const { criarLimiteLogin, criarLimitePorIp } = require("../middleware/security");
 
+const {
+  enviarCodigoVerificacaoAluno,
+  smtpConfigurado,
+  remetentePadrao,
+  avisoAlinhamentoRemetente
+} = require("../services/email");
+
 function codigoRespostaDemo(codigo) {
   return process.env.NODE_ENV === "production" ? undefined : codigo;
+}
+
+function anexarMetadadosEnvioEmail(corpo, envio, codigo) {
+  const payload = Object.assign({}, corpo, {
+    emailEnviado: Boolean(envio && envio.enviado),
+    emailModo: envio ? envio.modo : "desconhecido"
+  });
+
+  if (envio && envio.enviado) {
+    payload.codigoDemo = codigoRespostaDemo(undefined);
+  } else {
+    payload.codigoDemo = codigoRespostaDemo(codigo);
+    if (process.env.NODE_ENV === "production") {
+      payload.avisoEmail =
+        "Não foi possível enviar o e-mail agora. Aguarde alguns minutos, use «Reenviar código» ou contate a secretaria.";
+    }
+    if (envio && envio.erro && process.env.NODE_ENV !== "production") {
+      payload.erroEmail = envio.erro;
+    }
+  }
+
+  return payload;
 }
 const {
   iniciarAtivacao,
@@ -94,7 +123,7 @@ router.get("/me", authRequired, function (req, res) {
   res.json({ ok: true, user: toSessionUser(user) });
 });
 
-router.post("/aluno/register", limitarVerificacao, function (req, res) {
+router.post("/aluno/register", limitarVerificacao, async function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const senha = req.body.senha || "";
 
@@ -143,11 +172,13 @@ router.post("/aluno/register", limitarVerificacao, function (req, res) {
     new Date().toISOString()
   );
 
-  res.json({
-    ok: true,
-    email,
-    codigoDemo: codigoRespostaDemo(codigo)
-  });
+  try {
+    const envio = await enviarCodigoVerificacaoAluno(email, matricula.nomeCompleto, codigo);
+    res.json(anexarMetadadosEnvioEmail({ ok: true, email: email }, envio, codigo));
+  } catch (erro) {
+    console.error("[SETAD] Erro ao enviar código (aluno register):", erro.message);
+    res.status(500).json({ ok: false, erro: "Não foi possível enviar o código por e-mail. Tente novamente." });
+  }
 });
 
 router.post("/aluno/verify", limitarVerificacao, function (req, res) {
@@ -202,7 +233,7 @@ router.post("/aluno/verify", limitarVerificacao, function (req, res) {
   });
 });
 
-router.post("/aluno/resend-code", limitarVerificacao, function (req, res) {
+router.post("/aluno/resend-code", limitarVerificacao, async function (req, res) {
   const email = (req.body.email || "").trim().toLowerCase();
   const pendente = db.prepare("SELECT * FROM verificacoes_pendentes WHERE email = ?").get(email);
 
@@ -219,7 +250,13 @@ router.post("/aluno/resend-code", limitarVerificacao, function (req, res) {
     WHERE email = ?
   `).run(codigo, codigoExpiraEm, email);
 
-  res.json({ ok: true, email, codigoDemo: codigoRespostaDemo(codigo) });
+  try {
+    const envio = await enviarCodigoVerificacaoAluno(email, pendente.nome, codigo);
+    res.json(anexarMetadadosEnvioEmail({ ok: true, email: email }, envio, codigo));
+  } catch (erro) {
+    console.error("[SETAD] Erro ao reenviar código (aluno):", erro.message);
+    res.status(500).json({ ok: false, erro: "Não foi possível reenviar o código. Tente novamente." });
+  }
 });
 
 router.get("/aluno/verificacao-pendente", function (req, res) {
@@ -252,15 +289,25 @@ router.post("/staff/ativacao/senha", limitarAtivacaoStaff, function (req, res) {
     return res.status(400).json(resultado);
   }
 
-  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo).then(function () {
-    res.json({
-      ok: true,
-      email: resultado.email,
-      perfil: resultado.perfil,
-      etapa: "verificacao",
-      codigoDemo: codigoRespostaDemo(resultado.codigo)
+  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo)
+    .then(function (envio) {
+      res.json(
+        anexarMetadadosEnvioEmail(
+          {
+            ok: true,
+            email: resultado.email,
+            perfil: resultado.perfil,
+            etapa: "verificacao"
+          },
+          envio,
+          resultado.codigo
+        )
+      );
+    })
+    .catch(function (erro) {
+      console.error("[SETAD] Erro ao enviar código (staff senha):", erro.message);
+      res.status(500).json({ ok: false, erro: "Não foi possível enviar o código por e-mail. Tente novamente." });
     });
-  });
 });
 
 router.post("/staff/ativacao/verificar", limitarAtivacaoStaff, function (req, res) {
@@ -283,19 +330,36 @@ router.post("/staff/ativacao/verificar", limitarAtivacaoStaff, function (req, re
   });
 });
 
-router.post("/staff/ativacao/reenviar-codigo", function (req, res) {
+router.post("/staff/ativacao/reenviar-codigo", limitarAtivacaoStaff, function (req, res) {
   const email = (req.body.email || "").trim();
   const resultado = reenviarCodigoAtivacao(email);
   if (!resultado.ok) {
     return res.status(400).json(resultado);
   }
 
-  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo).then(function () {
-    res.json({
-      ok: true,
-      email: resultado.email,
-      codigoDemo: codigoRespostaDemo(resultado.codigo)
+  enviarCodigoSePossivel(resultado.email, resultado.nome, resultado.codigo)
+    .then(function (envio) {
+      res.json(anexarMetadadosEnvioEmail({ ok: true, email: resultado.email }, envio, resultado.codigo));
+    })
+    .catch(function (erro) {
+      console.error("[SETAD] Erro ao reenviar código (staff):", erro.message);
+      res.status(500).json({ ok: false, erro: "Não foi possível reenviar o código. Tente novamente." });
     });
+});
+
+router.get("/email/status", authRequired, requirePerfis("diretor"), function (_req, res) {
+  const aviso = avisoAlinhamentoRemetente();
+  res.json({
+    ok: true,
+    smtpConfigurado: smtpConfigurado(),
+    remetente: remetentePadrao(),
+    totalAutorizadosInstitucionais: listarAutorizados().filter(function (item) {
+      return item.ativo;
+    }).length,
+    autorizados: listarAutorizados(),
+    dicaEntrega:
+      "Para o Gmail receber na caixa principal: caixa @setad.org.br na Hostinger, SETAD_EMAIL_FROM igual ao SMTP_USER, SPF/DKIM/DMARC no hPanel.",
+    avisoRemetente: aviso || undefined
   });
 });
 

@@ -31,7 +31,30 @@
       dados.perfil ? " · " + (LABEL_PERFIL[dados.perfil] || dados.perfil) : "";
   }
 
-  function mostrarPainelVerificacao(email, codigoDemo) {
+  function montarTextoEnvioCodigo(email, codigoDemo, meta) {
+    var info = meta || {};
+    var html =
+      "Enviamos um código de <strong>6 dígitos</strong> para <strong>" +
+      email +
+      "</strong>.";
+    if (info.emailEnviado) {
+      html +=
+        " Verifique a caixa de entrada e, no Gmail, a aba Promoções se demorar.";
+    }
+    if (info.avisoEmail) {
+      html +=
+        " <span class=\"login-card__demo-codigo\">" + info.avisoEmail + "</span>";
+    }
+    if (codigoDemo) {
+      html +=
+        " <span class=\"login-card__demo-codigo\">Demonstração (sem SMTP): <strong>" +
+        codigoDemo +
+        "</strong></span>";
+    }
+    return html;
+  }
+
+  function mostrarPainelVerificacao(email, codigoDemo, meta) {
     emailAtual = email;
     document.getElementById("painelEmail").hidden = true;
     document.getElementById("painelSenhaInstitucional").hidden = true;
@@ -42,11 +65,8 @@
     demo.classList.remove("visible");
     demo.textContent = "";
 
-    if (codigoDemo) {
-      demo.innerHTML =
-        "Código enviado ao e-mail. <span class=\"login-card__demo-codigo\">Demonstração (sem SMTP): <strong>" +
-        codigoDemo +
-        "</strong></span>";
+    if (codigoDemo || (meta && (meta.emailEnviado || meta.avisoEmail))) {
+      demo.innerHTML = montarTextoEnvioCodigo(email, codigoDemo, meta);
       demo.classList.add("visible");
     }
   }
@@ -85,7 +105,10 @@
       }
 
       if (resposta.etapa === "verificacao") {
-        mostrarPainelVerificacao(resposta.email);
+        mostrarPainelVerificacao(resposta.email, resposta.codigoDemo, {
+          emailEnviado: resposta.emailEnviado,
+          avisoEmail: resposta.avisoEmail
+        });
       } else {
         mostrarPainelSenha(resposta);
       }
@@ -115,7 +138,10 @@
         return;
       }
       if (resposta.redirect) redirectDestino = resposta.redirect;
-      mostrarPainelVerificacao(resposta.email, resposta.codigoDemo);
+      mostrarPainelVerificacao(resposta.email, resposta.codigoDemo, {
+        emailEnviado: resposta.emailEnviado,
+        avisoEmail: resposta.avisoEmail
+      });
     });
   });
 
@@ -144,7 +170,10 @@
   document.getElementById("btnReenviarCodigoInstitucional").addEventListener("click", function () {
     SETADApi.post("/auth/staff/ativacao/reenviar-codigo", { email: emailAtual }).then(function (resposta) {
       if (!resposta.ok) return;
-      mostrarPainelVerificacao(resposta.email || emailAtual, resposta.codigoDemo);
+      mostrarPainelVerificacao(resposta.email || emailAtual, resposta.codigoDemo, {
+        emailEnviado: resposta.emailEnviado,
+        avisoEmail: resposta.avisoEmail
+      });
     });
   });
 })();

@@ -27,18 +27,21 @@ Perfis aceitos: `diretor`, `contador`, `secretaria`. Detalhes: `docs/STAFF-PRIME
 
 Depois do primeiro diretor ativo, use a API `/api/auth/staff/autorizados` para manter a lista.
 
-## SMTP (opcional — código de verificação por e-mail)
+## SMTP (código de verificação — aluno e staff)
 
 | Nome | Exemplo |
 |------|---------|
-| `SETAD_SMTP_HOST` | `smtp.gmail.com` ou `smtp.hostinger.com` |
+| `SETAD_SMTP_HOST` | `smtp.hostinger.com` (recomendado) |
 | `SETAD_SMTP_PORT` | `465` |
 | `SETAD_SMTP_SECURE` | `true` |
-| `SETAD_SMTP_USER` | conta remetente |
-| `SETAD_SMTP_PASS` | senha de app / senha da caixa |
-| `SETAD_EMAIL_FROM` | `SETAD <mesmo e-mail do USER>` |
+| `SETAD_SMTP_USER` | `contato@setad.org.br` |
+| `SETAD_SMTP_PASS` | senha da caixa |
+| `SETAD_EMAIL_FROM` | `SETAD <contato@setad.org.br>` — **igual ao USER** |
+| `SETAD_EMAIL_REPLY_TO` | `contato@setad.org.br` (opcional) |
 
-Sem SMTP, o código aparece nos **logs** do Node (apenas para teste).
+Sem SMTP, o código **não** chega ao usuário em produção (só log no servidor).
+
+Entrega no Gmail (SPF/DKIM/DMARC): `docs/EMAIL-ENTREGA-GMAIL.md`.
 
 ## Não usar em produção
 

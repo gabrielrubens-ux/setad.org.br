@@ -11,12 +11,14 @@ const {
   headersSeguranca,
   validarSegredosProducao
 } = require("./middleware/security");
+const { logStatusSmtpInicializacao } = require("./services/email");
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
 
 validarSegredosProducao();
 seedIfNeeded();
+logStatusSmtpInicializacao();
 
 (function carregarStaffAutorizadosEnv() {
   const raw = (process.env.SETAD_STAFF_AUTORIZADOS_JSON || "").trim();
