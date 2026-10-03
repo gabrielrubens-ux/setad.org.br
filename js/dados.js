@@ -764,6 +764,13 @@ function salvarAlunoQuadroSeminario(dados, sessao, opcoes) {
     estado: mesclarCampoQuadro(dados.estado, existente && existente.estado),
     modulo: mesclarCampoQuadro(dados.modulo, existente && existente.modulo) || "medio",
     igreja: mesclarCampoQuadro(dados.igreja, existente && existente.igreja),
+    poloId: mesclarCampoQuadro(dados.poloId, existente && existente.poloId),
+    poloNome: mesclarCampoQuadro(dados.poloNome, existente && existente.poloNome),
+    salaTurmaId: mesclarCampoQuadro(dados.salaTurmaId, existente && existente.salaTurmaId),
+    salaTurmaNome: mesclarCampoQuadro(
+      dados.salaTurmaNome,
+      existente && existente.salaTurmaNome
+    ),
     observacoes: mesclarCampoQuadro(dados.observacoes, existente && existente.observacoes),
     origem: "quadro",
     quadroSeminario: true,

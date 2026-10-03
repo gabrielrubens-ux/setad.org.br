@@ -59,6 +59,29 @@
         }
         return urls.slice(0, 6);
       }
+    },
+    fbnovas: {
+      siteUrl: "https://fbnovas.edu.br/site/",
+      imagensLocal: [
+        "assets/images/parceiros/fbnovas-bg/img-1.jpg",
+        "assets/images/parceiros/fbnovas-bg/img-2.jpeg",
+        "assets/images/parceiros/fbnovas-bg/img-3.jpg",
+        "assets/images/parceiros/fbnovas-bg/img-4.jpg",
+        "assets/images/parceiros/fbnovas-bg/img-5.png"
+      ],
+      extrairImagens: function (html) {
+        var urls = [];
+        var padrao =
+          /https?:\/\/fbnovas\.edu\.br\/site\/wp-content\/uploads\/[^"'\s)]+\.(?:jpg|jpeg|png|webp)/gi;
+        var match;
+        while ((match = padrao.exec(html)) !== null) {
+          var url = match[0].replace(/^http:/, "https:");
+          if (urls.indexOf(url) === -1 && !/logo|icon|qrcode|cropped-20-ANOS/i.test(url)) {
+            urls.push(url);
+          }
+        }
+        return urls.slice(0, 6);
+      }
     }
   };
 
@@ -316,7 +339,7 @@
   }
 
   function inicializar() {
-    var section = document.getElementById("missoes");
+    var section = document.getElementById("parceiros");
     var container = document.getElementById("missoesBgPanes");
     if (!section || !container) return;
 

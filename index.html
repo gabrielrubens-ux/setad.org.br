@@ -87,7 +87,7 @@
           <li><a href="#programa" class="nav__link">Programa</a></li>
           <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
           <li><a href="#informacoes" class="nav__link">Informações</a></li>
-          <li><a href="#missoes" class="nav__link">Missões</a></li>
+          <li><a href="#parceiros" class="nav__link">Parceiros</a></li>
         </ul>
       </nav>
 
@@ -501,8 +501,8 @@
       </div>
     </section>
 
-    <!-- MISSÕES — parceiro: card + data-missao-parceiro (ver PARCEIROS em js/missoes-bg.js) -->
-    <section class="section missoes fade-in" id="missoes" aria-label="Missões">
+    <!-- PARCEIROS — card + data-missao-parceiro (ver PARCEIROS em js/missoes-bg.js) -->
+    <section class="section missoes fade-in" id="parceiros" aria-label="Parceiros">
       <div class="missoes__bg" aria-hidden="true">
         <div class="missoes__bg-base"></div>
         <div class="missoes__bg-panes" id="missoesBgPanes"></div>
@@ -522,15 +522,17 @@
               aria-label="Boas Novas Belém — TV e Rádio"
             >
               <span class="missoes__card-orbit" aria-hidden="true"></span>
-              <img
-                src="assets/images/parceiros/boas-novas.png"
-                alt="Boas Novas"
-                class="missoes__logo"
-                width="220"
-                height="96"
-                loading="lazy"
-                decoding="async"
-              >
+              <span class="missoes__logo-pad missoes__logo-pad--boas-novas">
+                <img
+                  src="assets/images/parceiros/boas-novas.png"
+                  alt="Boas Novas"
+                  class="missoes__logo missoes__logo--boas-novas"
+                  width="220"
+                  height="96"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </span>
             </a>
 
             <a
@@ -542,15 +544,39 @@
               aria-label="Programa de Educação Cristã Continuada — PECC"
             >
               <span class="missoes__card-orbit" aria-hidden="true"></span>
-              <img
-                src="assets/images/parceiros/pecc.png"
-                alt="PECC — Programa de Educação Cristã Continuada"
-                class="missoes__logo missoes__logo--pecc"
-                width="280"
-                height="80"
-                loading="lazy"
-                decoding="async"
-              >
+              <span class="missoes__logo-pad missoes__logo-pad--pecc">
+                <img
+                  src="assets/images/parceiros/pecc.png"
+                  alt="PECC — Programa de Educação Cristã Continuada"
+                  class="missoes__logo missoes__logo--pecc"
+                  width="300"
+                  height="90"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </span>
+            </a>
+
+            <a
+              href="https://fbnovas.edu.br/site/"
+              class="missoes__card missoes__card--fbnovas"
+              data-missao-parceiro="fbnovas"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Faculdade Boas Novas"
+            >
+              <span class="missoes__card-orbit" aria-hidden="true"></span>
+              <span class="missoes__logo-pad missoes__logo-pad--fbnovas">
+                <img
+                  src="assets/images/parceiros/fbnovas.png"
+                  alt="Faculdade Boas Novas"
+                  class="missoes__logo missoes__logo--fbnovas"
+                  width="200"
+                  height="120"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </span>
             </a>
           </div>
         </div>

@@ -188,6 +188,29 @@
               </select>
             </div>
 
+            <fieldset class="presencial-bloco presencial-bloco--direcionamento form-group--full">
+              <legend>Polo e sala (equipe interna)</legend>
+              <p class="presencial-bloco__hint">
+                Direcionamento presencial — não aparece na matrícula online do aluno.
+                <a href="polos/index.html#equipe-polos" class="link-institucional">Cadastrar professores nos polos</a>
+              </p>
+              <div class="matricula-form__grid">
+                <div class="form-group">
+                  <label for="secPolo">Polo do SETAD *</label>
+                  <select id="secPolo" required>
+                    <option value="">Selecione o polo...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="secSalaTurma">Sala / turma</label>
+                  <select id="secSalaTurma" disabled>
+                    <option value="">Selecione o módulo primeiro...</option>
+                  </select>
+                  <p id="secSalaTurmaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>
+                </div>
+              </div>
+            </fieldset>
+
             <div class="form-group">
               <label for="secCidade">Cidade *</label>
               <input type="text" id="secCidade" required>
@@ -301,6 +324,8 @@
   <script src="js/auth.js"></script>
   <script src="js/wpp-secretaria.js"></script>
   <script src="js/exclusao-alunos.js"></script>
+  <script src="js/polos.js"></script>
+  <script src="js/turmas-salas-setad.js"></script>
   <script src="js/matricula.js"></script>
   <script src="js/secretaria-cadastro-presencial.js"></script>
   <script src="js/areas-institucionais.js"></script>

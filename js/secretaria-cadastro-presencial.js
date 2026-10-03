@@ -40,6 +40,7 @@ var CAMPOS_OBRIGATORIOS_PRESENCIAL = [
   "secCpf",
   "secNascimento",
   "secModulo",
+  "secPolo",
   "secCidade",
   "secEstado"
 ];
@@ -144,6 +145,18 @@ function preencherFormularioComMatricula(matricula) {
   document.getElementById("secEstado").value = matricula.estado || "";
   document.getElementById("secIgreja").value = matricula.igreja || "";
 
+  var poloEl = document.getElementById("secPolo");
+  if (poloEl) {
+    if (!poloEl.options.length || poloEl.options.length <= 1) {
+      popularSelectPolosSetad(poloEl, matricula.poloId || "");
+    } else {
+      poloEl.value = matricula.poloId || "";
+    }
+  }
+  if (typeof atualizarSelectSalaTurmaPresencial === "function") {
+    atualizarSelectSalaTurmaPresencial(matricula.modulo || "", matricula.salaTurmaId || "");
+  }
+
   var valorEl = document.getElementById("secValorPagamento");
   if (valorEl) {
     valorEl.dataset.editadoManual = "";
@@ -214,6 +227,9 @@ function configurarCadastroPresencial(sessao, opcoes) {
   aplicarMascaraTelefone(document.getElementById("secTelefone"));
   if (!opcoes.omitirPagamento) {
     configurarUiPagamentoPresencial();
+  }
+  if (typeof configurarDirecionamentoPresencialInterno === "function") {
+    configurarDirecionamentoPresencialInterno();
   }
 
   document.querySelectorAll('input[name="secTipoAluno"]').forEach(function (radio) {
@@ -295,12 +311,24 @@ function configurarCadastroPresencial(sessao, opcoes) {
       cadastradoPor: sessao.email,
       observacoes: document.getElementById("secObservacoes").value.trim()
     };
+    if (typeof anexarDirecionamentoInternoAosDados === "function") {
+      anexarDirecionamentoInternoAosDados(dados);
+    }
 
     if (form.dataset.omitirPagamento === "1") {
       var erroSemPag = validarMatricula(dados);
       if (erroSemPag) {
         mensagemEl.className = "form-mensagem form-mensagem--erro visible";
         mensagemEl.textContent = erroSemPag;
+        return;
+      }
+      var erroDir =
+        typeof validarDirecionamentoInternoMatricula === "function"
+          ? validarDirecionamentoInternoMatricula(dados)
+          : null;
+      if (erroDir) {
+        mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+        mensagemEl.textContent = erroDir;
         return;
       }
       form.dataset.enviando = "1";
@@ -361,6 +389,16 @@ function configurarCadastroPresencial(sessao, opcoes) {
     if (erro) {
       mensagemEl.className = "form-mensagem form-mensagem--erro visible";
       mensagemEl.textContent = erro;
+      return;
+    }
+
+    var erroDirecionamento =
+      typeof validarDirecionamentoInternoMatricula === "function"
+        ? validarDirecionamentoInternoMatricula(dados)
+        : null;
+    if (erroDirecionamento) {
+      mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+      mensagemEl.textContent = erroDirecionamento;
       return;
     }
 
@@ -480,6 +518,9 @@ function salvarCadastroDigitalQuadro(sessao) {
     igreja: document.getElementById("secIgreja").value.trim(),
     observacoes: document.getElementById("secObservacoes").value.trim()
   };
+  if (typeof anexarDirecionamentoInternoAosDados === "function") {
+    anexarDirecionamentoInternoAosDados(dados);
+  }
 
   if (typeof salvarAlunoQuadroSeminario !== "function") {
     msg.className = "form-mensagem form-mensagem--erro visible";
@@ -543,7 +584,12 @@ function finalizarCadastroPresencialComPagamento(
       cidade: dados.cidade,
       estado: dados.estado,
       igreja: dados.igreja,
-      observacoes: dados.observacoes
+      observacoes: dados.observacoes,
+      modulo: dados.modulo,
+      poloId: dados.poloId,
+      poloNome: dados.poloNome,
+      salaTurmaId: dados.salaTurmaId,
+      salaTurmaNome: dados.salaTurmaNome
     });
     matricula = obterMatriculas().find(function (m) {
       return m.id === matricula.id;
@@ -568,6 +614,9 @@ function finalizarCadastroPresencialComPagamento(
   document.getElementById("secMatriculaId").value = "";
   document.getElementById("secTipoAlunoNovo").checked = true;
   aplicarModoTipoAlunoPresencial();
+  if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
+    reinicializarDirecionamentoPresencialAposReset();
+  }
   var valorEl = document.getElementById("secValorPagamento");
   if (valorEl) valorEl.dataset.editadoManual = "";
   atualizarValorSugeridoPresencial();

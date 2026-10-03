@@ -894,7 +894,8 @@ body {
 }
 
 .missoes[data-missao-focus="boas-novas"] .missoes__pane--boas-novas,
-.missoes[data-missao-focus="pecc"] .missoes__pane--pecc {
+.missoes[data-missao-focus="pecc"] .missoes__pane--pecc,
+.missoes[data-missao-focus="fbnovas"] .missoes__pane--fbnovas {
   opacity: 1;
   filter: none;
   flex-grow: 1.3;
@@ -985,6 +986,14 @@ body {
     165deg,
     rgba(88, 24, 42, 0.5) 0%,
     rgba(50, 12, 28, 0.4) 100%
+  );
+}
+
+.missoes__pane--fbnovas .missoes__pane-tint {
+  background: linear-gradient(
+    165deg,
+    rgba(26, 42, 88, 0.48) 0%,
+    rgba(120, 24, 40, 0.38) 100%
   );
 }
 
@@ -1134,9 +1143,33 @@ body {
     0 0 36px rgba(136, 30, 58, 0.28);
 }
 
-.missoes__logo--pecc {
-  max-width: 260px;
-  max-height: 88px;
+.missoes__logo-pad {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.missoes__logo-pad--boas-novas {
+  padding: 0.6rem 1.05rem;
+}
+
+.missoes__logo-pad--pecc {
+  padding: 0.65rem 0.9rem;
+  background: #fff;
+  border: 1px solid rgba(136, 30, 58, 0.1);
+}
+
+.missoes__logo-pad--fbnovas {
+  padding: 0.55rem 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(26, 50, 100, 0.1);
 }
 
 .missoes__logo {
@@ -1147,14 +1180,105 @@ body {
   max-width: 210px;
   max-height: 76px;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
   transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.missoes__logo--boas-novas {
+  max-width: 198px;
+  max-height: 74px;
+  filter:
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.26))
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
+}
+
+.missoes__logo--pecc {
+  max-width: min(320px, 48vw);
+  max-height: 108px;
+  width: auto;
+  filter:
+    contrast(1.12)
+    drop-shadow(0 0 1px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 5px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 2px 4px rgba(60, 18, 32, 0.22));
+}
+
+.missoes__card--fbnovas .missoes__card-orbit {
+  background: conic-gradient(
+    from 0deg,
+    rgba(180, 140, 50, 0.9),
+    rgba(120, 24, 40, 0.8),
+    rgba(26, 50, 100, 0.75),
+    rgba(180, 140, 50, 0.9)
+  );
+}
+
+.missoes__card--fbnovas:hover,
+.missoes__card--fbnovas:focus-visible {
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.4),
+    0 0 36px rgba(180, 140, 50, 0.22);
+}
+
+.missoes__logo--fbnovas {
+  max-width: 150px;
+  max-height: 110px;
+  filter:
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+}
+
+.missoes__fita--grade .missoes__trilha {
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .missoes__fita--grade .missoes__trilha {
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+  }
+
+  .missoes__fita--grade .missoes__card {
+    min-width: 10rem;
+    padding: 1.25rem 1.35rem;
+  }
 }
 
 .missoes__card:hover .missoes__logo,
 .missoes__card:focus-visible .missoes__logo {
-  transform: scale(1.06);
-  filter: drop-shadow(0 10px 22px rgba(34, 211, 238, 0.35));
+  transform: scale(1.04);
+}
+
+.missoes__card:hover .missoes__logo-pad,
+.missoes__card:focus-visible .missoes__logo-pad {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 6px 22px rgba(0, 0, 0, 0.28);
+}
+
+.missoes__card:hover .missoes__logo--boas-novas,
+.missoes__card:focus-visible .missoes__logo--boas-novas {
+  filter:
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.42))
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+
+.missoes__card:hover .missoes__logo--pecc,
+.missoes__card:focus-visible .missoes__logo--pecc {
+  filter:
+    contrast(1.14)
+    drop-shadow(0 0 1px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 7px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 3px 6px rgba(60, 18, 32, 0.26));
+}
+
+.missoes__card:hover .missoes__logo--fbnovas,
+.missoes__card:focus-visible .missoes__logo--fbnovas {
+  filter:
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.38))
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.26))
+    drop-shadow(0 0 8px rgba(180, 140, 50, 0.22));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3288,6 +3412,170 @@ body.has-radio-player .contato-setad {
 
 .polos-split__lista .polo-card--ativo .polo-card__conteudo {
   border-top-color: var(--cor-acento);
+}
+
+.polos-equipe-interna {
+  padding: 2rem 0 1rem;
+  background: linear-gradient(180deg, rgba(35, 64, 107, 0.06) 0%, transparent 100%);
+}
+
+.polos-equipe-interna__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.polos-equipe-interna__titulo {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  color: var(--cor-primaria);
+  margin: 0.35rem 0;
+}
+
+.polos-equipe-interna__texto {
+  max-width: 42rem;
+  color: var(--cor-texto-suave);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.polos-equipe-interna__sessao {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cor-acento);
+}
+
+.polos-equipe-interna__painel {
+  border-radius: 16px;
+  border: 1px solid rgba(35, 64, 107, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 36px rgba(35, 64, 107, 0.08);
+  padding: 1.35rem 1.5rem;
+}
+
+.polos-equipe-interna__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+}
+
+@media (min-width: 960px) {
+  .polos-equipe-interna__layout {
+    grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.1fr);
+    align-items: start;
+  }
+}
+
+.polos-equipe-interna__subtitulo {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: var(--cor-primaria);
+}
+
+.polos-equipe-interna__form .form-group {
+  margin-bottom: 0.85rem;
+}
+
+.polos-equipe-interna__salas {
+  border: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.polos-equipe-interna__salas legend {
+  font-weight: 600;
+  color: var(--cor-primaria);
+  margin-bottom: 0.35rem;
+}
+
+.polos-equipe-interna__check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.polos-equipe-interna__lista-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.polos-equipe-interna__filtro select {
+  min-width: 12rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(35, 64, 107, 0.2);
+}
+
+.polos-equipe__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 28rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.polos-equipe__card {
+  border-radius: 12px;
+  border: 1px solid rgba(35, 64, 107, 0.1);
+  padding: 0.85rem 1rem;
+  background: #fff;
+}
+
+.polos-equipe__card-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.polos-equipe__card-topo h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--cor-primaria);
+}
+
+.polos-equipe__polo {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--cor-acento);
+  font-weight: 600;
+}
+
+.polos-equipe__salas,
+.polos-equipe__contato,
+.polos-equipe__obs {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave);
+  line-height: 1.45;
+}
+
+.polos-equipe__vazio {
+  color: var(--cor-texto-suave);
+  font-size: 0.95rem;
+}
+
+.presencial-bloco__hint--inline {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.link-institucional {
+  color: var(--cor-acento);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .polos-split__mapa-wrap {

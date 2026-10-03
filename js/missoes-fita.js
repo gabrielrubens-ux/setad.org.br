@@ -11,7 +11,7 @@
   var cards = trilha.querySelectorAll(".missoes__card");
   if (cards.length === 0) return;
 
-  if (cards.length < 3) {
+  if (cards.length < 4) {
     fita.classList.add("missoes__fita--grade");
     return;
   }

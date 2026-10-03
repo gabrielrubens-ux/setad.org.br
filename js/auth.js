@@ -175,13 +175,18 @@ function processarLoginInstitucionalApi(email, senha, areaPreferida, erroEl, men
             ? listarAreasInstitucionaisPermitidas(resposta.user)
             : [];
         if (areas.length) {
-          if (!sessaoTemPerfilInstitucional(resposta.user, areaPreferida)) {
-            falhaLogin(
-              "Este e-mail não tem acesso a esta área. Você será direcionado às áreas disponíveis."
-            );
+          if (
+            areaPreferida &&
+            !sessaoTemPerfilInstitucional(resposta.user, areaPreferida)
+          ) {
             return finalizarLoginInstitucionalApi(resposta, null);
           }
-          return finalizarLoginInstitucionalApi(resposta, areaPreferida);
+          return finalizarLoginInstitucionalApi(
+            resposta,
+            sessaoTemPerfilInstitucional(resposta.user, areaPreferida)
+              ? areaPreferida
+              : null
+          );
         }
       }
       if (typeof tentarDemo === "function" && tentarDemo()) return;

@@ -68,6 +68,95 @@
       </div>
     </section>
 
+    <section
+      id="equipe-polos"
+      class="polos-equipe-interna fade-in"
+      hidden
+      aria-label="Cadastro de professores nos polos — equipe SETAD"
+    >
+      <div class="container container--wide">
+        <div class="polos-equipe-interna__cabecalho">
+          <div>
+            <p class="section__label">Uso interno</p>
+            <h2 class="polos-equipe-interna__titulo">Professores nos polos</h2>
+            <p class="polos-equipe-interna__texto">
+              Secretaria, direção e coordenação pedagógica podem vincular docentes a cada polo
+              e às salas do Médio e do Avançado para facilitar o direcionamento dos alunos.
+            </p>
+            <p class="polos-equipe-interna__sessao" id="polosEquipePerfil"></p>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary"
+            id="polosEquipeToggle"
+            aria-expanded="false"
+            aria-controls="polosEquipePainel"
+          >
+            Abrir cadastro de professores nos polos
+          </button>
+        </div>
+
+        <div id="polosEquipePainel" class="polos-equipe-interna__painel" hidden>
+          <div class="polos-equipe-interna__layout">
+            <form id="formProfessorPolo" class="polos-equipe-interna__form matricula-form" novalidate>
+              <h3 class="polos-equipe-interna__subtitulo">Novo professor no polo</h3>
+              <div class="form-group">
+                <label for="polosProfPolo">Polo *</label>
+                <select id="polosProfPolo" required>
+                  <option value="">Selecione o polo...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="polosProfNome">Nome completo *</label>
+                <input type="text" id="polosProfNome" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="polosProfEmail">E-mail</label>
+                <input type="email" id="polosProfEmail" autocomplete="email">
+              </div>
+              <div class="form-group">
+                <label for="polosProfTelefone">Telefone / WhatsApp</label>
+                <input type="tel" id="polosProfTelefone" autocomplete="tel">
+              </div>
+              <fieldset class="polos-equipe-interna__salas">
+                <legend>Salas / turmas (opcional)</legend>
+                <p class="presencial-bloco__hint">Marque as salas em que o professor atua. Se nenhuma, vale para todo o polo.</p>
+                <label class="polos-equipe-interna__check">
+                  <input type="checkbox" name="polosProfSala" value="medio-sala-5">
+                  Médio — Sala 5
+                </label>
+                <label class="polos-equipe-interna__check">
+                  <input type="checkbox" name="polosProfSala" value="avancado-sala-1">
+                  Avançado — Sala 1
+                </label>
+                <label class="polos-equipe-interna__check">
+                  <input type="checkbox" name="polosProfSala" value="avancado-sala-4">
+                  Avançado — Sala 4
+                </label>
+              </fieldset>
+              <div class="form-group form-group--full">
+                <label for="polosProfObs">Observações</label>
+                <textarea id="polosProfObs" rows="2" placeholder="Disciplinas, turno, contato da igreja..."></textarea>
+              </div>
+              <button type="submit" class="btn btn--secondary">Salvar professor no polo</button>
+              <div id="polosProfMensagem" class="form-mensagem" role="status"></div>
+            </form>
+
+            <div class="polos-equipe-interna__lista-wrap">
+              <div class="polos-equipe-interna__lista-head">
+                <h3 class="polos-equipe-interna__subtitulo">Cadastrados</h3>
+                <label class="polos-equipe-interna__filtro">
+                  <span class="visually-hidden">Filtrar por polo</span>
+                  <select id="polosProfFiltroPolo" aria-label="Filtrar professores por polo"></select>
+                </label>
+              </div>
+              <div id="polosProfLista" class="polos-equipe-interna__lista" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="polos-split fade-in" id="mapa-polos">
       <div class="container container--wide polos-split__shell">
         <aside class="polos-split__painel" aria-label="Lista de polos do SETAD">
@@ -102,7 +191,10 @@
   <script src="/js/api-client.js"></script>
   <script src="/js/setad-sync.js"></script>
   <script src="../js/dados.js"></script>
+  <script src="../js/auth.js"></script>
   <script src="../js/polos.js"></script>
+  <script src="../js/turmas-salas-setad.js"></script>
+  <script src="../js/polos-equipe-interna.js"></script>
   <script src="../js/polos-coordenadas.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="../js/polos-mapa.js"></script>

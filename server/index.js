@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
 const { importarAutorizadosIniciais } = require("./staff-ativacao");
+const { garantirStaffAcessoTodasAreas } = require("./staff-bootstrap");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
 const {
@@ -30,6 +31,8 @@ logStatusSmtpInicializacao();
     console.error("[SETAD] SETAD_STAFF_AUTORIZADOS_JSON inválido:", erro.message);
   }
 })();
+
+garantirStaffAcessoTodasAreas();
 
 const app = express();
 

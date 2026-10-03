@@ -19,14 +19,14 @@ Quem tem **vários perfis** (ex.: direção + contabilidade) entra com a **mesma
 
 | Perfil | Nome | E-mail |
 |--------|------|--------|
-| Diretor | Enoc Miranda da Silva | enocmiranda26@gmail.com |
+| Direção, contabilidade, secretaria e coordenação pedagógica | Enoc Miranda da Silva | enocmiranda26@gmail.com |
 | Contador | Rafael Gadelha | rafaeladmtc@gmail.com |
 | Secretaria | Laís Santiago da Silva | santiagolais324@gmail.com |
 | Secretaria | Ledyanny Maria | ledyannymaria.02@gmail.com |
 | Secretaria | Kathlen Santiago | kathlensantiago@gmail.com |
 | Direção, contabilidade, secretaria e coordenação pedagógica | Gabriel Rubens | gabrielrubens0@gmail.com |
 
-Gabriel usa **uma senha** para todas as áreas; após login, escolha o painel em [escolher-area-institucional.html](../escolher-area-institucional.html) (perfis: `diretor`, `contador`, `secretaria`, `coordenacao`).
+Enoc e Gabriel usam **a mesma senha** (definida no primeiro acesso) para todas as áreas institucionais; após o login, escolha o painel em [escolher-area-institucional.html](../escolher-area-institucional.html) (perfis: `diretor`, `contador`, `secretaria`, `coordenacao`). O servidor sincroniza esses perfis automaticamente em cada reinício (`server/staff-bootstrap.js`).
 
 ## Manutenção
 

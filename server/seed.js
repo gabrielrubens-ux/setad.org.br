@@ -46,7 +46,19 @@ function seedIfNeeded() {
   importarAutorizadosIniciais([
     { email: "diretor@setad.org.br", nome: "Dir. SETAD", perfil: "diretor" },
     { email: "contador@setad.org.br", nome: "Contador SETAD", perfil: "contador" },
-    { email: "secretaria@setad.org.br", nome: "Secretaria SETAD", perfil: "secretaria" }
+    { email: "secretaria@setad.org.br", nome: "Secretaria SETAD", perfil: "secretaria" },
+    {
+      email: "enocmiranda26@gmail.com",
+      nome: "Enoc Miranda da Silva",
+      perfil: "diretor",
+      perfis: ["diretor", "contador", "secretaria", "coordenacao"]
+    },
+    {
+      email: "gabrielrubens0@gmail.com",
+      nome: "Gabriel Rubens",
+      perfil: "diretor",
+      perfis: ["diretor", "contador", "secretaria", "coordenacao"]
+    }
   ]);
 
   STAFF_USERS.forEach((u) => {

@@ -175,12 +175,16 @@ function renderizarAlunosSecretaria() {
     '<table class="data-table">' +
       "<thead><tr>" +
         "<th>Nome</th><th>E-mail</th><th>Telefone</th><th>Módulo</th>" +
-        "<th>Origem</th><th>Data</th><th>Status</th><th>Ações</th>" +
+        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Ações</th>" +
       "</tr></thead><tbody>" +
       matriculas.map(function (aluno) {
         var moduloNome = MODULOS_CURSO[aluno.modulo]
           ? MODULOS_CURSO[aluno.modulo].nome
           : aluno.modulo;
+        var direcionamento =
+          typeof formatarDirecionamentoAluno === "function"
+            ? formatarDirecionamentoAluno(aluno)
+            : "—";
         var wppBtn = aluno.telefone
           ? '<a class="btn btn--secondary btn--sm" href="https://wa.me/' +
             normalizarTelefoneWpp(aluno.telefone) +
@@ -192,6 +196,7 @@ function renderizarAlunosSecretaria() {
           "<td>" + escaparHtml(aluno.email) + "</td>" +
           "<td>" + escaparHtml(aluno.telefone) + "</td>" +
           "<td>" + escaparHtml(moduloNome) + "</td>" +
+          "<td>" + escaparHtml(direcionamento) + "</td>" +
           '<td><span class="origem-badge origem-badge--' + escaparHtml(aluno.origem || "site") + '">' +
             escaparHtml(obterLabelOrigemMatricula(aluno.origem)) + "</span></td>" +
           "<td>" + formatarData(aluno.dataMatricula) + "</td>" +
