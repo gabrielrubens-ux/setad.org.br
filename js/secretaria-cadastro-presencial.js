@@ -197,14 +197,24 @@ function configurarUiPagamentoPresencial() {
   atualizarValorSugeridoPresencial();
 }
 
-function configurarCadastroPresencial(sessao) {
+function configurarCadastroPresencial(sessao, opcoes) {
   var form = document.getElementById("formCadastroPresencial");
   if (!form || form.dataset.cadastroBound === "1") return;
 
+  opcoes = opcoes || {};
   form.dataset.cadastroBound = "1";
+  if (opcoes.omitirPagamento) {
+    form.dataset.omitirPagamento = "1";
+    var blocoPag = form.querySelector(".presencial-bloco--pagamento");
+    if (blocoPag) blocoPag.hidden = true;
+    var btnSubmit = form.querySelector('button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = "Salvar cadastro";
+  }
   aplicarMascaraCpf(document.getElementById("secCpf"));
   aplicarMascaraTelefone(document.getElementById("secTelefone"));
-  configurarUiPagamentoPresencial();
+  if (!opcoes.omitirPagamento) {
+    configurarUiPagamentoPresencial();
+  }
 
   document.querySelectorAll('input[name="secTipoAluno"]').forEach(function (radio) {
     radio.addEventListener("change", aplicarModoTipoAlunoPresencial);
@@ -285,6 +295,41 @@ function configurarCadastroPresencial(sessao) {
       cadastradoPor: sessao.email,
       observacoes: document.getElementById("secObservacoes").value.trim()
     };
+
+    if (form.dataset.omitirPagamento === "1") {
+      var erroSemPag = validarMatricula(dados);
+      if (erroSemPag) {
+        mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+        mensagemEl.textContent = erroSemPag;
+        return;
+      }
+      form.dataset.enviando = "1";
+      var cadastrarSimples =
+        typeof cadastrarMatriculaAsync === "function"
+          ? cadastrarMatriculaAsync
+          : function (d) {
+              return Promise.resolve(cadastrarMatricula(d));
+            };
+      cadastrarSimples(dados)
+        .then(function (resultado) {
+          form.dataset.enviando = "0";
+          if (!resultado.ok) {
+            mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+            mensagemEl.textContent = resultado.erro || "Não foi possível cadastrar.";
+            return;
+          }
+          sucessoEl.classList.add("matricula-sucesso--visivel");
+          sucessoEl.innerHTML =
+            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a secretaria (sem lançamento financeiro).";
+          form.reset();
+        })
+        .catch(function () {
+          form.dataset.enviando = "0";
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = "Erro ao salvar. Tente novamente.";
+        });
+      return;
+    }
 
     var tipoCobranca = document.getElementById("secTipoCobranca").value;
     var situacaoPagamento = document.getElementById("secSituacaoPagamento").value;

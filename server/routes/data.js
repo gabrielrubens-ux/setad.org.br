@@ -34,8 +34,9 @@ const COLLECTIONS = {
   lancamentosContabeis: "lancamentos_contabeis"
 };
 
-const STAFF_READ = ["diretor", "contador", "secretaria", "professor", "autorizado"];
-const STAFF_WRITE = ["diretor", "contador", "secretaria", "professor", "autorizado"];
+const STAFF_READ = ["diretor", "contador", "secretaria", "coordenacao", "professor", "autorizado"];
+const STAFF_WRITE = ["diretor", "contador", "secretaria", "coordenacao", "professor", "autorizado"];
+const STAFF_OPERACIONAL = ["diretor", "secretaria", "coordenacao", "professor", "contador", "autorizado"];
 
 router.get("/snapshot", authRequired, function (req, res) {
   const perfil = req.user.perfil;
@@ -60,14 +61,20 @@ router.get("/snapshot", authRequired, function (req, res) {
     lancamentosContabeis: []
   };
 
-  if (STAFF_READ.includes(perfil)) {
+  if (usuarioTemAlgumPerfil(req.user, STAFF_OPERACIONAL)) {
     snapshot.matriculas = listJson(COLLECTIONS.matriculas);
     snapshot.entregas = listJson(COLLECTIONS.entregas);
-    snapshot.pagamentos = listJson(COLLECTIONS.pagamentos);
     snapshot.exclusoesSolicitacoes = listJson(COLLECTIONS.exclusoesSolicitacoes);
-    snapshot.exclusoesAuditoria = listJson(COLLECTIONS.exclusoesAuditoria);
     snapshot.exclusoesEmails = listJson(COLLECTIONS.exclusoesEmails);
     snapshot.wppConversas = listJson(COLLECTIONS.wppConversas);
+
+    if (usuarioTemAlgumPerfil(req.user, ["diretor", "contador", "secretaria"])) {
+      snapshot.pagamentos = listJson(COLLECTIONS.pagamentos);
+    }
+
+    if (usuarioTemAlgumPerfil(req.user, ["diretor"])) {
+      snapshot.exclusoesAuditoria = listJson(COLLECTIONS.exclusoesAuditoria);
+    }
 
     if (usuarioTemAlgumPerfil(req.user, ["diretor", "contador"])) {
       snapshot.funcionarios = listJson(COLLECTIONS.funcionarios);
@@ -212,17 +219,17 @@ function makeCollectionRoutes(pathName, table, writePerfis) {
   });
 }
 
-makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "professor"]);
+makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "coordenacao", "professor"]);
 makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "professor", "autorizado"]);
 makeCollectionRoutes("entregas", COLLECTIONS.entregas, STAFF_WRITE.concat(["aluno"]));
 makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"]);
 makeCollectionRoutes("funcionarios", COLLECTIONS.funcionarios, ["diretor", "contador"]);
 makeCollectionRoutes("folha", COLLECTIONS.folha, ["diretor", "contador"]);
 makeCollectionRoutes("instituicoes", COLLECTIONS.instituicoes, ["diretor", "contador"]);
-makeCollectionRoutes("exclusoes/solicitacoes", COLLECTIONS.exclusoesSolicitacoes, ["diretor", "secretaria"]);
+makeCollectionRoutes("exclusoes/solicitacoes", COLLECTIONS.exclusoesSolicitacoes, ["diretor", "secretaria", "coordenacao"]);
 makeCollectionRoutes("exclusoes/auditoria", COLLECTIONS.exclusoesAuditoria, ["diretor"]);
-makeCollectionRoutes("exclusoes/emails", COLLECTIONS.exclusoesEmails, ["diretor", "secretaria"]);
-makeCollectionRoutes("wpp/conversas", COLLECTIONS.wppConversas, ["secretaria", "diretor"]);
+makeCollectionRoutes("exclusoes/emails", COLLECTIONS.exclusoesEmails, ["diretor", "secretaria", "coordenacao"]);
+makeCollectionRoutes("wpp/conversas", COLLECTIONS.wppConversas, ["secretaria", "coordenacao", "diretor"]);
 function makeContabilidadeRoutes(pathName, table) {
   router.get("/" + pathName, authRequired, requirePerfis("diretor", "contador"), function (_req, res) {
     res.json({ ok: true, items: listJson(table) });
@@ -282,7 +289,7 @@ router.put("/fotos/alunos/:email", authRequired, function (req, res) {
   res.json({ ok: true, foto: { dataUrl, atualizadoEm } });
 });
 
-router.put("/fotos/staff/:email", authRequired, requirePerfis("diretor", "contador", "secretaria", "professor", "autorizado"), function (req, res) {
+router.put("/fotos/staff/:email", authRequired, requirePerfis("diretor", "contador", "secretaria", "coordenacao", "professor", "autorizado"), function (req, res) {
   const email = req.params.email.trim().toLowerCase();
   const dataUrl = req.body.dataUrl;
   const validacaoFoto = validarDataUrlImagem(dataUrl);

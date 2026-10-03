@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Escolha sua área institucional — SETAD">
+  <meta name="theme-color" content="#23406b">
+  <title>Escolher área — SETAD</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body class="login-page portal-marca-dagua">
+  <div class="login-card login-card--direcao login-card--institucional hub-areas">
+    <h1 class="login-card__title">Qual área você vai acessar?</h1>
+    <p class="login-card__subtitle">
+      Olá, <strong id="hubUsuarioNome">equipe SETAD</strong>. Selecione o painel correspondente à sua função hoje.
+    </p>
+    <div id="hubAreasInstitucionais" class="hub-areas__grid" role="list"></div>
+    <p class="login-card__hint login-card__hint--seguro">
+      <button type="button" id="hubSair" class="btn btn--link">Sair e voltar ao login</button>
+    </p>
+  </div>
+  <script src="/js/app-config.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/areas-institucionais.js"></script>
+  <script>
+    SETAD.ready.then(function () {
+      configurarHubAreasInstitucionais();
+    });
+  </script>
+</body>
+</html>

@@ -15,20 +15,20 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/icon-16.png">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-  <title>Secretaria — SETAD</title>
+  <title>Coordenação pedagógica — SETAD</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/portal.css">
   <link rel="stylesheet" href="/css/pwa.css">
 </head>
 
-<body class="portal-marca-dagua painel-secretaria">
+<body class="portal-marca-dagua painel-coordenacao">
 
   <div class="painel">
 
-    <aside class="painel__sidebar painel__sidebar--portal painel__sidebar--secretaria">
+    <aside class="painel__sidebar painel__sidebar--portal painel__sidebar--coordenacao">
       <div class="painel__perfil">
-        <div class="painel__brand-role painel__brand-role--nome" id="usuarioNome">Secretaria</div>
-        <div class="painel__brand-role" id="usuarioPerfil">Secretaria</div>
+        <div class="painel__brand-role painel__brand-role--nome" id="usuarioNome">Coordenação</div>
+        <div class="painel__brand-role" id="usuarioPerfil">Coordenação pedagógica</div>
       </div>
 
       <nav class="painel__nav-area">
@@ -41,12 +41,6 @@
           </li>
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-cadastro">Cadastro presencial</button>
-          </li>
-          <li class="painel__nav-item">
-            <button class="painel__nav-link" data-tab="tab-colaboradores">Colaboradores</button>
-          </li>
-          <li class="painel__nav-item">
-            <button class="painel__nav-link" data-tab="tab-boletos">Boletos</button>
           </li>
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-whatsapp">
@@ -284,14 +278,6 @@
         </form>
       </section>
 
-      <section id="tab-colaboradores" class="painel__tab">
-        <div id="colaboradoresSecretariaContainer"></div>
-      </section>
-
-      <section id="tab-boletos" class="painel__tab">
-        <div id="boletosSecretariaContainer"></div>
-      </section>
-
       <section id="tab-whatsapp" class="painel__tab">
         <p class="section__text">
           Central de atendimento do WhatsApp do seminário
@@ -313,21 +299,15 @@
   <script src="/js/setad-sync.js"></script>
   <script src="js/dados.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/areas-institucionais.js"></script>
   <script src="js/wpp-secretaria.js"></script>
-  <script src="js/financeiro.js"></script>
-  <script src="js/boletos-setad.js"></script>
-  <script src="js/contabilidade-relatorios.js"></script>
   <script src="js/exclusao-alunos.js"></script>
   <script src="js/matricula.js"></script>
   <script src="js/secretaria-cadastro-presencial.js"></script>
-  <script src="js/secretaria.js"></script>
+  <script src="js/areas-institucionais.js"></script>
+  <script src="js/coordenacao.js"></script>
   <script>
     SETAD.ready.then(function () {
-      inicializarPainelSecretaria();
-      if (typeof configurarLinkTrocarAreaInstitucional === "function") {
-        configurarLinkTrocarAreaInstitucional();
-      }
+      inicializarPainelCoordenacao();
     });
   </script>
   <script src="js/contato-setad.js"></script>

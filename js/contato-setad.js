@@ -29,7 +29,8 @@
     if (
       body.classList.contains("painel-direcao") ||
       body.classList.contains("painel-contador") ||
-      body.classList.contains("painel-secretaria")
+      body.classList.contains("painel-secretaria") ||
+      body.classList.contains("painel-coordenacao")
     ) {
       return false;
     }
@@ -117,7 +118,8 @@
     document.body.classList.contains("login-page--direcao") ||
     document.body.classList.contains("painel-direcao") ||
     document.body.classList.contains("painel-contador") ||
-    document.body.classList.contains("painel-secretaria");
+    document.body.classList.contains("painel-secretaria") ||
+    document.body.classList.contains("painel-coordenacao");
 
   if (!ocultarWppFloat) {
     html +=
@@ -170,7 +172,8 @@
     if (
       body.classList.contains("painel-direcao") ||
       body.classList.contains("painel-contador") ||
-      body.classList.contains("painel-secretaria")
+      body.classList.contains("painel-secretaria") ||
+      body.classList.contains("painel-coordenacao")
     ) {
       return false;
     }

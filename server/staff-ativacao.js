@@ -13,9 +13,10 @@ const {
 } = require("./perfis-institucionais");
 
 const REDIRECT_POR_PERFIL = {
-  diretor: "painel-direcao.html",
+  diretor: "painel-diretor.html",
   contador: "painel-contador.html",
-  secretaria: "painel-secretaria.html"
+  secretaria: "painel-secretaria.html",
+  coordenacao: "painel-coordenacao.html"
 };
 
 function normalizarEmail(email) {
@@ -73,7 +74,10 @@ function upsertAutorizado(email, nome, perfil, perfisOpcional) {
   const perfilPrincipal = perfilPrincipalDaLista(listaPerfis);
 
   if (!emailNorm || !nome || !perfilInstitucionalValido(perfilPrincipal)) {
-    return { ok: false, erro: "Informe e-mail, nome e perfil válido (diretor, contador ou secretaria)." };
+    return {
+      ok: false,
+      erro: "Informe e-mail, nome e perfil válido (diretor, contador, secretaria ou coordenacao)."
+    };
   }
 
   const perfisJson = JSON.stringify(listaPerfis);

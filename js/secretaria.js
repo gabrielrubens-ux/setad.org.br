@@ -58,6 +58,9 @@ function inicializarPainelSecretaria() {
     renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
   }
   renderizarInboxWpp(sessao);
+  if (typeof configurarLinkTrocarAreaInstitucional === "function") {
+    configurarLinkTrocarAreaInstitucional();
+  }
 }
 
 function configurarAbasSecretaria(titulosMap, sessao) {

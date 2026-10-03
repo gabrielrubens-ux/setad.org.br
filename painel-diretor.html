@@ -76,6 +76,7 @@
       </div>
 
       <div class="painel__logout">
+        <a href="escolher-area-institucional.html" id="linkTrocarAreaInstitucional" class="btn btn--link painel__trocar-area">Trocar área</a>
         <button type="button" id="btnLogout" class="btn">Sair</button>
       </div>
     </aside>
@@ -159,6 +160,7 @@
   <script src="/js/setad-sync.js"></script>
   <script src="js/dados.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/areas-institucionais.js"></script>
   <script src="js/terminologia-setad.js"></script>
   <script src="js/financeiro.js"></script>
   <script src="js/contabilidade-relatorios.js"></script>
@@ -171,6 +173,9 @@
   <script>
     SETAD.ready.then(function () {
       inicializarPainelDiretor();
+      if (typeof configurarLinkTrocarAreaInstitucional === "function") {
+        configurarLinkTrocarAreaInstitucional();
+      }
     });
   </script>
   <script src="js/contato-setad.js"></script>

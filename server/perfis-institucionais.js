@@ -1,6 +1,9 @@
-const PERFIS_INSTITUCIONAIS = ["diretor", "contador", "secretaria"];
+const PERFIS_INSTITUCIONAIS = ["diretor", "contador", "secretaria", "coordenacao"];
 
-const ORDEM_PERFIL = { diretor: 3, contador: 2, secretaria: 1 };
+const ORDEM_PERFIL = { diretor: 4, contador: 3, secretaria: 2, coordenacao: 2 };
+
+/** Perfis com painel operacional (sem contabilidade/bancário). */
+const PERFIS_OPERACIONAIS_SEM_FINANCEIRO = ["secretaria", "coordenacao"];
 
 function perfilInstitucionalValido(perfil) {
   return PERFIS_INSTITUCIONAIS.includes(perfil);
@@ -65,6 +68,7 @@ function perfisDoUsuario(usuario) {
 
 module.exports = {
   PERFIS_INSTITUCIONAIS,
+  PERFIS_OPERACIONAIS_SEM_FINANCEIRO,
   perfilInstitucionalValido,
   normalizarListaPerfis,
   perfilPrincipalDaLista,

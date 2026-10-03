@@ -48,25 +48,21 @@
 
     <p class="login-card__subtitle">
 
-      Acesso restrito à <strong>direção</strong> (inclui contabilidade), <strong>secretaria</strong> e equipe do seminário.
+      Escolha sua área: <strong>direção</strong>, <strong>contabilidade</strong>, <strong>secretaria</strong> ou <strong>coordenação pedagógica</strong>.
 
     </p>
 
 
 
-    <div class="login-card__tabs" role="tablist" aria-label="Tipo de acesso institucional">
+    <div class="login-card__tabs login-card__tabs--institucional" role="tablist" aria-label="Tipo de acesso institucional">
 
-      <button type="button" id="abaDirecao" class="login-card__tab login-card__tab--ativa" role="tab" aria-selected="true" aria-controls="painelLoginDirecao">
+      <button type="button" id="abaDirecao" class="login-card__tab login-card__tab--ativa" role="tab" aria-selected="true" aria-controls="painelLoginDirecao">Direção</button>
 
-        Direção / Contabilidade
+      <button type="button" id="abaContabilidade" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelLoginContabilidade">Contabilidade</button>
 
-      </button>
+      <button type="button" id="abaSecretaria" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelLoginSecretaria">Secretaria</button>
 
-      <button type="button" id="abaSecretaria" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelLoginSecretaria">
-
-        Secretaria
-
-      </button>
+      <button type="button" id="abaCoordenacao" class="login-card__tab" role="tab" aria-selected="false" aria-controls="painelLoginCoordenacao">Coordenação</button>
 
     </div>
 
@@ -76,7 +72,7 @@
 
       <p class="login-card__subtitle login-card__subtitle--aba">
 
-        Login único para <strong>diretor</strong> e <strong>contabilidade</strong> — gestão financeira, DRE e relatórios.
+        Acesso à <strong>direção</strong> — visão geral, matrículas, equipe e aprovações (sem misturar com a contabilidade).
 
       </p>
 
@@ -86,7 +82,7 @@
 
         <div class="form-group">
 
-          <label for="emailDirecao">E-mail (diretor ou contabilidade)</label>
+          <label for="emailDirecao">E-mail da direção</label>
 
           <input
 
@@ -130,40 +126,43 @@
 
 
 
-        <button type="submit" class="btn btn--primary login-card__btn">Entrar</button>
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar na direção</button>
 
         <div id="loginErroDirecao" class="login-card__error" role="alert"></div>
 
       </form>
 
-
-
       <div class="login-card__hint login-card__hint--seguro" data-setad-demo>
-
-        <strong>Login único — demonstração (somente localhost):</strong><br>
-
-        <strong>Diretor:</strong> diretor@setad.org.br / dir123<br>
-
-        <strong>Contabilidade:</strong> contador@setad.org.br / cont456
-
+        <strong>Direção (demo):</strong> diretor@setad.org.br / dir123
       </div>
 
       <div class="login-card__hint login-card__hint--seguro">
-
-        Use o e-mail e a senha fornecidos pela direção do seminário.
-
-      </div>
-
-      <div class="login-card__hint login-card__hint--seguro">
-
-        <strong>Primeiro acesso (direção ou contabilidade)?</strong>
+        <strong>Primeiro acesso?</strong>
         <a href="primeiro-acesso-institucional.html">Criar senha com e-mail autorizado</a>
-
       </div>
 
     </div>
 
-
+    <div id="painelLoginContabilidade" role="tabpanel" hidden>
+      <p class="login-card__subtitle login-card__subtitle--aba">
+        Acesso à <strong>contabilidade</strong> — financeiro, DRE, folha e instituições bancárias.
+      </p>
+      <form id="loginFormContabilidade" autocomplete="on">
+        <div class="form-group">
+          <label for="emailContabilidade">E-mail da contabilidade</label>
+          <input type="email" id="emailContabilidade" name="email" placeholder="contador@setad.org.br" required>
+        </div>
+        <div class="form-group">
+          <label for="senhaContabilidade">Senha</label>
+          <input type="password" id="senhaContabilidade" name="senha" placeholder="Digite sua senha" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar na contabilidade</button>
+        <div id="loginErroContabilidade" class="login-card__error" role="alert"></div>
+      </form>
+      <div class="login-card__hint login-card__hint--seguro" data-setad-demo>
+        <strong>Contabilidade (demo):</strong> contador@setad.org.br / cont456
+      </div>
+    </div>
 
     <div id="painelLoginSecretaria" role="tabpanel" hidden>
 
@@ -250,6 +249,27 @@
 
     </div>
 
+    <div id="painelLoginCoordenacao" role="tabpanel" hidden>
+      <p class="login-card__subtitle login-card__subtitle--aba">
+        <strong>Coordenação pedagógica</strong> — matrículas e atendimento, sem dados bancários ou valores financeiros.
+      </p>
+      <form id="loginFormCoordenacao" autocomplete="on">
+        <div class="form-group">
+          <label for="emailCoordenacao">E-mail</label>
+          <input type="email" id="emailCoordenacao" name="email" placeholder="coordenacao@setad.org.br" required>
+        </div>
+        <div class="form-group">
+          <label for="senhaCoordenacao">Senha</label>
+          <input type="password" id="senhaCoordenacao" name="senha" placeholder="Digite sua senha" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn--primary login-card__btn">Entrar na coordenação</button>
+        <div id="loginErroCoordenacao" class="login-card__error" role="alert"></div>
+      </form>
+      <div class="login-card__hint login-card__hint--seguro">
+        E-mails autorizados serão cadastrados pela direção. Use o mesmo fluxo de <a href="primeiro-acesso-institucional.html">primeiro acesso</a> quando liberado.
+      </div>
+    </div>
+
   </div>
 
 
@@ -257,6 +277,7 @@
   <script src="js/contato-setad.js"></script>
   <script src="js/api-client.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/areas-institucionais.js"></script>
   <script>
     (function () {
       function iniciarLoginDirecao() {

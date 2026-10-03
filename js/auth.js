@@ -75,6 +75,7 @@ const CONTAS_DIRECAO = [
 
 const STORAGE_SESSAO_DIRECAO = "setad_sessao_direcao";
 const STORAGE_SESSAO_SECRETARIA = "setad_sessao_secretaria";
+const STORAGE_SESSAO_COORDENACAO = "setad_sessao_coordenacao";
 
 function ambientePermiteDemonstracao() {
   if (typeof window === "undefined" || !window.location) return false;
@@ -115,6 +116,9 @@ function aplicarSessaoApi(user) {
   if (sessaoTemPerfilInstitucional(user, "secretaria")) {
     salvarSessaoSecretaria(user);
   }
+  if (sessaoTemPerfilInstitucional(user, "coordenacao")) {
+    salvarSessaoCoordenacao(user);
+  }
 }
 
 function finalizarLoginApi(resposta, redirect) {
@@ -128,6 +132,64 @@ function finalizarLoginApi(resposta, redirect) {
     }
     window.location.href = redirect;
   });
+}
+
+function finalizarLoginInstitucionalApi(resposta, areaPreferida) {
+  if (resposta && resposta.token) {
+    SETADApi.salvarToken(resposta.token);
+  }
+  aplicarSessaoApi(resposta.user);
+  return SETADApi.snapshot().then(function (snap) {
+    if (snap.ok && window.SETAD.hydrate) {
+      window.SETAD.hydrate(snap.snapshot);
+    }
+    if (typeof redirecionarAposLoginInstitucional === "function") {
+      redirecionarAposLoginInstitucional(resposta.user, areaPreferida);
+    }
+  });
+}
+
+function processarLoginInstitucionalApi(email, senha, areaPreferida, erroEl, mensagemFalha, tentarDemo) {
+  function falhaLogin(msg) {
+    if (!erroEl) return;
+    erroEl.classList.add("visible");
+    erroEl.textContent = msg || mensagemFalha;
+  }
+
+  if (authApiAtivo() && typeof SETADApi !== "undefined") {
+    return SETADApi.login(email, senha).then(function (resposta) {
+      if (resposta && resposta.precisaAtivacao) {
+        falhaLogin(
+          resposta.erro || "Conta pendente. Use Primeiro acesso institucional para criar sua senha."
+        );
+        return;
+      }
+      if (resposta && resposta.ok && resposta.user) {
+        const areas =
+          typeof listarAreasInstitucionaisPermitidas === "function"
+            ? listarAreasInstitucionaisPermitidas(resposta.user)
+            : [];
+        if (areas.length) {
+          if (!sessaoTemPerfilInstitucional(resposta.user, areaPreferida)) {
+            falhaLogin(
+              "Este e-mail não tem acesso a esta área. Você será direcionado às áreas disponíveis."
+            );
+            return finalizarLoginInstitucionalApi(resposta, null);
+          }
+          return finalizarLoginInstitucionalApi(resposta, areaPreferida);
+        }
+      }
+      if (typeof tentarDemo === "function" && tentarDemo()) return;
+      falhaLogin();
+    }).catch(function () {
+      if (typeof tentarDemo === "function" && tentarDemo()) return;
+      falhaLogin();
+    });
+  }
+
+  if (typeof tentarDemo === "function" && tentarDemo()) return Promise.resolve();
+  falhaLogin();
+  return Promise.resolve();
 }
 
 function salvarSessao(conta) {
@@ -214,6 +276,9 @@ function obterSessaoDirecao() {
 }
 
 function encerrarSessaoDirecao() {
+  if (typeof limparAreaInstitucionalAtiva === "function") {
+    limparAreaInstitucionalAtiva();
+  }
   if (authApiAtivo()) {
     SETADApi.logout().finally(function () {
       if (window.SETAD) window.SETAD.clearSession();
@@ -237,9 +302,18 @@ function protegerPainelDirecao(perfilRequerido) {
     return null;
   }
   if (perfilRequerido && !sessaoTemPerfilInstitucional(sessao, perfilRequerido)) {
-    window.location.href = sessaoTemPerfilInstitucional(sessao, "contador")
-      ? "painel-contador.html"
-      : "painel-diretor.html";
+    if (typeof redirecionarAposLoginInstitucional === "function") {
+      redirecionarAposLoginInstitucional(sessao, null);
+    } else {
+      window.location.href = "escolher-area-institucional.html";
+    }
+    return null;
+  }
+  if (
+    perfilRequerido &&
+    typeof exigirAreaInstitucionalAtiva === "function" &&
+    !exigirAreaInstitucionalAtiva(perfilRequerido)
+  ) {
     return null;
   }
   return sessao;
@@ -270,6 +344,9 @@ function obterSessaoSecretaria() {
 }
 
 function encerrarSessaoSecretaria() {
+  if (typeof limparAreaInstitucionalAtiva === "function") {
+    limparAreaInstitucionalAtiva();
+  }
   if (authApiAtivo()) {
     SETADApi.logout().finally(function () {
       if (window.SETAD) window.SETAD.clearSession();
@@ -284,6 +361,56 @@ function protegerPainelSecretaria() {
     window.location.href = "login-direcao.html#secretaria";
     return null;
   }
+  if (typeof exigirAreaInstitucionalAtiva === "function" && !exigirAreaInstitucionalAtiva("secretaria")) {
+    return null;
+  }
+  return sessao;
+}
+
+function salvarSessaoCoordenacao(conta) {
+  localStorage.setItem(STORAGE_SESSAO_COORDENACAO, JSON.stringify({
+    tipo: "coordenacao",
+    perfil: conta.perfil,
+    perfisInstitucionais: conta.perfisInstitucionais || perfisInstitucionaisDaSessao(conta),
+    nome: conta.nome,
+    email: conta.email,
+    loginEm: new Date().toISOString()
+  }));
+}
+
+function obterSessaoCoordenacao() {
+  if (authApiAtivo() && window.SETAD.session && sessaoTemPerfilInstitucional(window.SETAD.session, "coordenacao")) {
+    return window.SETAD.session;
+  }
+  const dados = localStorage.getItem(STORAGE_SESSAO_COORDENACAO);
+  const sessaoLocal = dados ? JSON.parse(dados) : null;
+  if (sessaoLocal && sessaoTemPerfilInstitucional(sessaoLocal, "coordenacao")) {
+    return sessaoLocal;
+  }
+  return null;
+}
+
+function encerrarSessaoCoordenacao() {
+  if (typeof limparAreaInstitucionalAtiva === "function") {
+    limparAreaInstitucionalAtiva();
+  }
+  if (authApiAtivo()) {
+    SETADApi.logout().finally(function () {
+      if (window.SETAD) window.SETAD.clearSession();
+    });
+  }
+  localStorage.removeItem(STORAGE_SESSAO_COORDENACAO);
+}
+
+function protegerPainelCoordenacao() {
+  const sessao = obterSessaoCoordenacao();
+  if (!sessao || !sessaoTemPerfilInstitucional(sessao, "coordenacao")) {
+    window.location.href = "login-direcao.html#coordenacao";
+    return null;
+  }
+  if (typeof exigirAreaInstitucionalAtiva === "function" && !exigirAreaInstitucionalAtiva("coordenacao")) {
+    return null;
+  }
   return sessao;
 }
 
@@ -293,148 +420,130 @@ function buscarContaDirecao(email, senha) {
   });
 }
 
-function finalizarLoginDirecaoLocal(conta) {
+function finalizarLoginDirecaoLocal(conta, areaPreferida) {
   salvarSessaoDirecao(conta);
+  if (typeof redirecionarAposLoginInstitucional === "function") {
+    redirecionarAposLoginInstitucional(conta, areaPreferida || conta.perfil);
+    return;
+  }
   window.location.href = conta.redirect;
 }
 
 function configurarLoginDirecao() {
-  const formDirecao = document.getElementById("loginFormDirecao");
-  const formSecretaria = document.getElementById("loginFormSecretaria");
-  const erroDirecao = document.getElementById("loginErroDirecao");
-  const erroSecretaria = document.getElementById("loginErroSecretaria");
-  const abaDirecao = document.getElementById("abaDirecao");
-  const abaSecretaria = document.getElementById("abaSecretaria");
-  const painelDirecao = document.getElementById("painelLoginDirecao");
-  const painelSecretaria = document.getElementById("painelLoginSecretaria");
+  const abas = [
+    { id: "abaDirecao", painel: "painelLoginDirecao", modo: "direcao" },
+    { id: "abaContabilidade", painel: "painelLoginContabilidade", modo: "contabilidade" },
+    { id: "abaSecretaria", painel: "painelLoginSecretaria", modo: "secretaria" },
+    { id: "abaCoordenacao", painel: "painelLoginCoordenacao", modo: "coordenacao" }
+  ];
 
-  if (formDirecao && formDirecao.dataset.loginBound === "1") {
+  if (document.getElementById("loginFormDirecao") && document.getElementById("loginFormDirecao").dataset.loginBound === "1") {
     return;
   }
 
   function alternarAba(modo) {
-    if (painelDirecao) painelDirecao.hidden = modo !== "direcao";
-    if (painelSecretaria) painelSecretaria.hidden = modo !== "secretaria";
-
-    if (abaDirecao) {
-      abaDirecao.classList.toggle("login-card__tab--ativa", modo === "direcao");
-      abaDirecao.setAttribute("aria-selected", modo === "direcao" ? "true" : "false");
-    }
-    if (abaSecretaria) {
-      abaSecretaria.classList.toggle("login-card__tab--ativa", modo === "secretaria");
-      abaSecretaria.setAttribute("aria-selected", modo === "secretaria" ? "true" : "false");
-    }
-  }
-
-  if (abaDirecao) {
-    abaDirecao.addEventListener("click", function () { alternarAba("direcao"); });
-  }
-  if (abaSecretaria) {
-    abaSecretaria.addEventListener("click", function () { alternarAba("secretaria"); });
-  }
-
-  if (window.location.hash === "#secretaria") {
-    alternarAba("secretaria");
-  } else {
-    alternarAba("direcao");
-  }
-
-  if (formDirecao) {
-    formDirecao.dataset.loginBound = "1";
-    formDirecao.addEventListener("submit", function (evento) {
-      evento.preventDefault();
-
-      const email = document.getElementById("emailDirecao").value.trim().toLowerCase();
-      const senha = document.getElementById("senhaDirecao").value;
-
-      function falhaLogin() {
-        if (!erroDirecao) return;
-        erroDirecao.classList.add("visible");
-        erroDirecao.textContent = "Acesso negado. E-mail ou senha incorretos para direção/contabilidade.";
+    abas.forEach(function (aba) {
+      const painel = document.getElementById(aba.painel);
+      const btn = document.getElementById(aba.id);
+      if (painel) painel.hidden = aba.modo !== modo;
+      if (btn) {
+        btn.classList.toggle("login-card__tab--ativa", aba.modo === modo);
+        btn.setAttribute("aria-selected", aba.modo === modo ? "true" : "false");
       }
+    });
+  }
 
-      function tentarLoginLocal() {
-        if (!ambientePermiteDemonstracao()) return false;
-        const conta = buscarContaDirecao(email, senha);
-        if (conta) {
-          finalizarLoginDirecaoLocal(conta);
+  abas.forEach(function (aba) {
+    const btn = document.getElementById(aba.id);
+    if (btn) {
+      btn.addEventListener("click", function () {
+        alternarAba(aba.modo);
+      });
+    }
+  });
+
+  const hash = (window.location.hash || "").replace(/^#/, "");
+  const hashMap = {
+    secretaria: "secretaria",
+    contabilidade: "contabilidade",
+    coordenacao: "coordenacao",
+    direcao: "direcao"
+  };
+  alternarAba(hashMap[hash] || "direcao");
+
+  function bindFormInstitucional(formId, emailId, senhaId, erroId, areaPreferida, mensagemFalha, demoConta) {
+    const form = document.getElementById(formId);
+    if (!form || form.dataset.loginBound === "1") return;
+    form.dataset.loginBound = "1";
+    const erroEl = document.getElementById(erroId);
+
+    form.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+      if (erroEl) erroEl.classList.remove("visible");
+
+      const email = document.getElementById(emailId).value.trim().toLowerCase();
+      const senha = document.getElementById(senhaId).value;
+
+      function tentarDemo() {
+        if (!ambientePermiteDemonstracao() || !demoConta) return false;
+        if (email === demoConta.email && senha === demoConta.senha) {
+          if (areaPreferida === "secretaria") {
+            salvarSessaoSecretaria(demoConta);
+          } else if (areaPreferida === "coordenacao") {
+            salvarSessaoCoordenacao(demoConta);
+          } else {
+            salvarSessaoDirecao(demoConta);
+          }
+          if (typeof redirecionarAposLoginInstitucional === "function") {
+            redirecionarAposLoginInstitucional(demoConta, areaPreferida);
+          } else {
+            window.location.href = demoConta.redirect;
+          }
           return true;
         }
         return false;
       }
 
-      if (authApiAtivo() && typeof SETADApi !== "undefined") {
-        SETADApi.login(email, senha).then(function (resposta) {
-          if (resposta && resposta.ok && resposta.user) {
-            if (sessaoTemPerfilInstitucional(resposta.user, "diretor")) {
-              finalizarLoginApi(resposta, CREDENCIAIS.diretor.redirect);
-              return;
-            }
-            if (sessaoTemPerfilInstitucional(resposta.user, "contador")) {
-              finalizarLoginApi(resposta, CREDENCIAIS.contador.redirect);
-              return;
-            }
-          }
-          if (resposta && resposta.precisaAtivacao && erroDirecao) {
-            erroDirecao.classList.add("visible");
-            erroDirecao.textContent =
-              resposta.erro ||
-              "Conta pendente. Use Primeiro acesso institucional para criar sua senha.";
-            return;
-          }
-          if (tentarLoginLocal()) return;
-          falhaLogin();
-        }).catch(function () {
-          if (tentarLoginLocal()) return;
-          falhaLogin();
-        });
-        return;
-      }
-
-      if (tentarLoginLocal()) return;
-      falhaLogin();
+      processarLoginInstitucionalApi(email, senha, areaPreferida, erroEl, mensagemFalha, tentarDemo);
     });
   }
 
-  if (formSecretaria && formSecretaria.dataset.loginBound !== "1") {
-    formSecretaria.dataset.loginBound = "1";
-    formSecretaria.addEventListener("submit", function (evento) {
-      evento.preventDefault();
-
-      const email = document.getElementById("emailSecretaria").value.trim().toLowerCase();
-      const senha = document.getElementById("senhaSecretaria").value;
-      const conta = CREDENCIAIS.secretaria;
-
-      function falhaLogin() {
-        erroSecretaria.classList.add("visible");
-        erroSecretaria.textContent = "Acesso negado. E-mail ou senha incorretos para a secretaria.";
-      }
-
-      if (authApiAtivo()) {
-        SETADApi.login(email, senha).then(function (resposta) {
-          if (
-            resposta.ok &&
-            resposta.user &&
-            sessaoTemPerfilInstitucional(resposta.user, "secretaria")
-          ) {
-            finalizarLoginApi(resposta, conta.redirect);
-            return;
-          }
-          falhaLogin();
-        }).catch(falhaLogin);
-        return;
-      }
-
-      if (ambientePermiteDemonstracao() && email === conta.email && senha === conta.senha) {
-        salvarSessaoSecretaria(conta);
-        window.location.href = conta.redirect;
-        return;
-      }
-
-      falhaLogin();
-    });
-  }
-
+  bindFormInstitucional(
+    "loginFormDirecao",
+    "emailDirecao",
+    "senhaDirecao",
+    "loginErroDirecao",
+    "diretor",
+    "Acesso negado. E-mail ou senha incorretos para a direção.",
+    CREDENCIAIS.diretor
+  );
+  bindFormInstitucional(
+    "loginFormContabilidade",
+    "emailContabilidade",
+    "senhaContabilidade",
+    "loginErroContabilidade",
+    "contador",
+    "Acesso negado. E-mail ou senha incorretos para a contabilidade.",
+    CREDENCIAIS.contador
+  );
+  bindFormInstitucional(
+    "loginFormSecretaria",
+    "emailSecretaria",
+    "senhaSecretaria",
+    "loginErroSecretaria",
+    "secretaria",
+    "Acesso negado. E-mail ou senha incorretos para a secretaria.",
+    CREDENCIAIS.secretaria
+  );
+  bindFormInstitucional(
+    "loginFormCoordenacao",
+    "emailCoordenacao",
+    "senhaCoordenacao",
+    "loginErroCoordenacao",
+    "coordenacao",
+    "Acesso negado. E-mail ou senha incorretos para a coordenação pedagógica.",
+    null
+  );
 }
 
 function encerrarSessao(tipo) {
@@ -886,6 +995,7 @@ function obterLabelPerfil(perfil) {
     diretor: "Diretor",
     contador: "Contabilidade",
     secretaria: "Secretaria",
+    coordenacao: "Coordenação pedagógica",
     autorizado: "Biblioteca (Autorizado)",
     aluno: "Aluno"
   };
@@ -903,6 +1013,10 @@ function configurarLogoutPainelInstitucional(redirectUrl) {
   if (body.classList.contains("painel-secretaria")) {
     encerrar = encerrarSessaoSecretaria;
     destino = redirectUrl || "login-direcao.html#secretaria";
+  }
+  if (body.classList.contains("painel-coordenacao")) {
+    encerrar = encerrarSessaoCoordenacao;
+    destino = redirectUrl || "login-direcao.html#coordenacao";
   }
 
   btnLogout.type = "button";
@@ -922,10 +1036,24 @@ function inicializarLogoutPainelInstitucional() {
   if (
     body.classList.contains("painel-direcao") ||
     body.classList.contains("painel-secretaria") ||
-    body.classList.contains("painel-contador")
+    body.classList.contains("painel-contador") ||
+    body.classList.contains("painel-coordenacao")
   ) {
     configurarLogoutPainelInstitucional();
   }
+}
+
+function configurarLinkTrocarAreaInstitucional() {
+  const link = document.getElementById("linkTrocarAreaInstitucional");
+  if (!link || link.dataset.bound === "1") return;
+  link.dataset.bound = "1";
+  link.addEventListener("click", function (evento) {
+    evento.preventDefault();
+    if (typeof limparAreaInstitucionalAtiva === "function") {
+      limparAreaInstitucionalAtiva();
+    }
+    window.location.href = "escolher-area-institucional.html";
+  });
 }
 
 if (document.readyState === "loading") {

@@ -70,20 +70,18 @@
   }
 
   function finalizarLoginApi(resultado) {
-    if (resultado.token && window.SETADNative && typeof SETADNative.setToken === "function") {
-      SETADNative.setToken(resultado.token);
+    if (resultado.token && typeof SETADApi !== "undefined" && SETADApi.salvarToken) {
+      SETADApi.salvarToken(resultado.token);
     }
-    if (window.SETAD) {
+    if (typeof aplicarSessaoApi === "function") {
+      aplicarSessaoApi(resultado.user);
+    } else if (window.SETAD) {
       window.SETAD.session = resultado.user;
     }
-    var chave =
-      resultado.user && resultado.user.perfil === "secretaria"
-        ? "setad_sessao_secretaria"
-        : "setad_sessao_direcao";
-    try {
-      localStorage.setItem(chave, JSON.stringify(resultado.user));
-    } catch (_e) {}
-
+    if (typeof redirecionarAposLoginInstitucional === "function" && resultado.user) {
+      redirecionarAposLoginInstitucional(resultado.user, null);
+      return;
+    }
     window.location.href = resultado.redirect || redirectDestino;
   }
 

@@ -91,6 +91,7 @@ function toSessionUser(user) {
   if (perfil === "aluno") tipo = "aluno";
   if (usuarioTemAlgumPerfil(user, ["diretor", "contador"])) tipo = "direcao";
   else if (usuarioTemAlgumPerfil(user, ["secretaria"])) tipo = "secretaria";
+  else if (usuarioTemAlgumPerfil(user, ["coordenacao"])) tipo = "coordenacao";
 
   return {
     tipo,

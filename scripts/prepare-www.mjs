@@ -19,11 +19,13 @@ const COPY_FILES = [
   "login-aluno.html",
   "login-professor.html",
   "login-direcao.html",
+  "escolher-area-institucional.html",
   "painel-aluno.html",
   "painel-professor.html",
   "painel-diretor.html",
   "painel-secretaria.html",
   "painel-contador.html",
+  "painel-coordenacao.html",
   "painel-contador-aluno-pagamentos.html"
 ];
 

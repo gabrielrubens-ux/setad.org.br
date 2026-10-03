@@ -2,8 +2,8 @@
  * Service Worker SETAD — cache offline para o app PWA.
  * Estratégia: precache do núcleo + stale-while-revalidate para estáticos + network-first para HTML.
  */
-const CACHE_VERSION = "setad-pwa-v8";
-const PRECACHE = "setad-precache-v8";
+const CACHE_VERSION = "setad-pwa-v9";
+const PRECACHE = "setad-precache-v9";
 const RUNTIME = "setad-runtime-v1";
 
 const PRECACHE_URLS = [
@@ -18,6 +18,7 @@ const PRECACHE_URLS = [
   "/js/script.js",
   "/js/dados.js",
   "/js/auth.js",
+  "/js/areas-institucionais.js",
   "/js/api-client.js",
   "/js/app-config.js",
   "/js/native-bridge.js",
@@ -37,11 +38,13 @@ const PRECACHE_URLS = [
   "/login-aluno.html",
   "/login-professor.html",
   "/login-direcao.html",
+  "/escolher-area-institucional.html",
   "/painel-aluno.html",
   "/painel-professor.html",
   "/painel-secretaria.html",
   "/painel-diretor.html",
   "/painel-contador.html",
+  "/painel-coordenacao.html",
   "/painel-contador-aluno-pagamentos.html",
   "/culto-ao-vivo.html",
   "/matricula/index.html",

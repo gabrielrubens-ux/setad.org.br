@@ -2,7 +2,18 @@
 
 Cada pessoa usa **o próprio e-mail** em [primeiro-acesso-institucional.html](../primeiro-acesso-institucional.html) (ou link no [login institucional](../login-direcao.html)).
 
-Fluxo: e-mail autorizado → criar senha → código de 6 dígitos (e-mail com SMTP ou log do servidor em teste) → painel conforme o perfil.
+Fluxo: e-mail autorizado → criar senha → código de 6 dígitos → **escolha da área** (quando há mais de um perfil) → painel.
+
+## Áreas institucionais
+
+| Perfil (`perfil` / `perfis`) | Painel | Observação |
+|------------------------------|--------|------------|
+| `diretor` | `painel-diretor.html` | Direção (separada da contabilidade) |
+| `contador` | `painel-contador.html` | Financeiro, DRE, bancos |
+| `secretaria` | `painel-secretaria.html` | Matrículas, boletos, WhatsApp |
+| `coordenacao` | `painel-coordenacao.html` | Como secretaria pedagógica, **sem** valores/boletos/bancos |
+
+Quem tem **vários perfis** (ex.: direção + contabilidade) entra com a **mesma senha** e escolhe a área em [escolher-area-institucional.html](../escolher-area-institucional.html) ou na aba correta do login.
 
 ## Equipe autorizada (produção)
 
@@ -15,17 +26,9 @@ Fluxo: e-mail autorizado → criar senha → código de 6 dígitos (e-mail com S
 | Secretaria | Kathlen Santiago | kathlensantiago@gmail.com |
 | Direção, contabilidade e secretaria | Gabriel Rubens | gabrielrubens0@gmail.com |
 
-Gabriel está autorizado com **três perfis** (`diretor`, `contador`, `secretaria`): um login no [primeiro acesso institucional](primeiro-acesso-institucional.html) permite abrir `painel-diretor.html`, `painel-contador.html` e `painel-secretaria.html`.
-
-## Destino após ativação
-
-| Perfil | Painel |
-|--------|--------|
-| `diretor` | `painel-direcao.html` |
-| `contador` | `painel-contador.html` |
-| `secretaria` | `painel-secretaria.html` |
+Coordenação pedagógica: cadastrar depois com `perfil: "coordenacao"` (ou em `perfis`) via API / `SETAD_STAFF_AUTORIZADOS_JSON`.
 
 ## Manutenção
 
-- Novos e-mails: diretor logado → API `POST /api/auth/staff/autorizados` ou variável `SETAD_STAFF_AUTORIZADOS_JSON` no hPanel (reinicia o app).
-- Detalhes técnicos: [STAFF-PRIMEIRO-ACESSO.md](STAFF-PRIMEIRO-ACESSO.md).
+- Novos e-mails: diretor logado → `POST /api/auth/staff/autorizados` ou `SETAD_STAFF_AUTORIZADOS_JSON` no hPanel (reinicia o app).
+- Detalhes: [STAFF-PRIMEIRO-ACESSO.md](STAFF-PRIMEIRO-ACESSO.md).

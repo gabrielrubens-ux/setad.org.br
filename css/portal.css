@@ -2837,3 +2837,62 @@
     justify-self: start;
   }
 }
+
+.login-card__tabs--institucional {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.login-card__tabs--institucional .login-card__tab {
+  flex: 1 1 auto;
+  min-width: 7rem;
+  font-size: 0.82rem;
+}
+
+.hub-areas__grid {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.hub-area-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(35, 64, 107, 0.2);
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hub-area-card:hover {
+  border-color: #23406b;
+  box-shadow: 0 4px 14px rgba(35, 64, 107, 0.12);
+}
+
+.hub-area-card__titulo {
+  font-size: 1.05rem;
+  color: #23406b;
+}
+
+.hub-area-card__desc {
+  font-size: 0.88rem;
+  color: #4a5568;
+  line-height: 1.45;
+}
+
+.painel__trocar-area {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.painel__sidebar--coordenacao .painel__brand-role--nome {
+  color: #2d6a4f;
+}
