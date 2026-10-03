@@ -485,24 +485,23 @@
     </section>
 
     <!-- SITES PARCEIROS — logos com link (adicione novos .parceiros__card na trilha) -->
-    <section class="section parceiros fade-in" id="parceiros" aria-labelledby="parceiros-titulo">
-      <div class="parceiros__ribbon" aria-hidden="true">
-        <span class="parceiros__ribbon-linha"></span>
+    <section class="section parceiros fade-in" id="parceiros" aria-label="Parceiros">
+      <div class="midias__bg" aria-hidden="true">
+        <div class="midias__bg-base parceiros__bg-base"></div>
+        <div class="midias__bg-gallery" id="parceirosBgGallery"></div>
+        <div class="midias__bg-veil parceiros__bg-veil"></div>
+        <div class="midias__bg-glow parceiros__bg-glow"></div>
       </div>
-      <div class="container parceiros__inner">
-        <p class="section__label">Parcerias</p>
-        <h2 class="section__title" id="parceiros-titulo">Sites parceiros</h2>
-        <p class="section__text parceiros__texto">
-          Conheça canais e projetos que caminham conosco na missão.
-        </p>
 
+      <div class="container parceiros__inner parceiros__content">
         <div class="parceiros__fita" data-parceiros-fita>
           <div class="parceiros__trilha">
             <a
-              href="https://boasnovas.tv/aovivo/"
+              href="https://boasnovas.net/"
               class="parceiros__card"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Boas Novas Belém — TV e Rádio"
             >
               <span class="parceiros__card-shine" aria-hidden="true"></span>
               <img
@@ -514,7 +513,6 @@
                 loading="lazy"
                 decoding="async"
               >
-              <span class="parceiros__nome">Boas Novas — ao vivo</span>
             </a>
           </div>
         </div>
@@ -541,6 +539,7 @@
   <script src="js/script.js" defer></script>
   <script src="js/midias-bg.js" defer></script>
   <script src="js/parceiros-fita.js" defer></script>
+  <script src="js/parceiros-bg.js" defer></script>
   <script src="js/contato-setad.js"></script>
   <script src="js/wpp-float.js" defer></script>
   <script src="/js/pwa.js" defer></script>

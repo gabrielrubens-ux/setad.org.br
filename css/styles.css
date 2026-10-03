@@ -677,6 +677,36 @@ body {
   pointer-events: none;
 }
 
+.midias__bg-item--parceiro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(6, 182, 212, 0.16),
+    rgba(37, 99, 235, 0.12),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.midias__bg-item--tv::after {
+  background: linear-gradient(160deg, rgba(37, 99, 235, 0.18), transparent 60%);
+}
+
+.midias__bg-item--radio::after {
+  background: linear-gradient(160deg, rgba(14, 165, 233, 0.2), transparent 60%);
+}
+
+.midias__bg-item--redes::after {
+  background: linear-gradient(
+    135deg,
+    rgba(228, 64, 95, 0.12),
+    rgba(6, 182, 212, 0.14),
+    transparent 55%
+  );
+}
+
 .midias__bg-badge {
   position: absolute;
   left: 0.55rem;
@@ -823,58 +853,50 @@ body {
 }
 
 /* ============================================================
-   PARCEIROS — fita de logos com animação
+   PARCEIROS — fita de logos + fundo interativo (estilo mídias)
    ============================================================ */
 .parceiros {
   position: relative;
-  padding: 3rem 0 3.5rem;
-  background: linear-gradient(180deg, #f4f7fb 0%, #e8eef6 100%);
+  padding: 3.25rem 0 3.75rem;
+  min-height: 22rem;
   overflow: hidden;
+  text-align: center;
+  background-color: #0c3d6e;
+  --midias-glow-x: 50%;
+  --midias-glow-y: 42%;
 }
 
-.parceiros__ribbon {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  overflow: hidden;
+.parceiros__bg-base {
+  background:
+    linear-gradient(
+      165deg,
+      rgba(8, 47, 88, 0.94) 0%,
+      rgba(12, 61, 110, 0.9) 48%,
+      rgba(6, 28, 52, 0.92) 100%
+    ),
+    radial-gradient(ellipse 70% 55% at 12% 18%, rgba(6, 182, 212, 0.14), transparent 58%),
+    radial-gradient(ellipse 65% 50% at 90% 82%, rgba(59, 130, 246, 0.12), transparent 55%);
 }
 
-.parceiros__ribbon-linha {
-  display: block;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    #23406b,
-    #3b82f6,
-    #06b6d4,
-    #23406b,
-    #3b82f6
+.parceiros__bg-veil {
+  background: rgba(8, 47, 88, 0.52);
+}
+
+.parceiros__bg-glow {
+  background: radial-gradient(
+    circle 24rem at var(--midias-glow-x) var(--midias-glow-y),
+    rgba(6, 182, 212, 0.16),
+    transparent 70%
   );
-  background-size: 50% 100%;
-  animation: parceiros-ribbon-shift 6s linear infinite;
 }
 
-@keyframes parceiros-ribbon-shift {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+.parceiros__content {
+  position: relative;
+  z-index: 1;
 }
 
 .parceiros__inner {
   text-align: center;
-}
-
-.parceiros__texto {
-  max-width: 36rem;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 2rem;
 }
 
 .parceiros__fita {
@@ -930,17 +952,17 @@ body {
   padding: 1.35rem 1.75rem;
   border-radius: 16px;
   text-decoration: none;
-  color: #1e3a5f;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(35, 64, 107, 0.12);
-  box-shadow:
-    0 10px 28px rgba(35, 64, 107, 0.1),
-    0 0 0 0 rgba(59, 130, 246, 0);
+  color: var(--cor-branco);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   transition:
     transform 0.35s ease,
     box-shadow 0.35s ease,
-    border-color 0.35s ease;
+    border-color 0.35s ease,
+    background-color 0.35s ease;
   animation: parceiros-card-float 5s ease-in-out infinite;
 }
 
@@ -984,10 +1006,11 @@ body {
 .parceiros__card:hover,
 .parceiros__card:focus-visible {
   transform: translateY(-6px) scale(1.03);
-  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(6, 182, 212, 0.45);
   box-shadow:
-    0 16px 36px rgba(35, 64, 107, 0.16),
-    0 0 24px rgba(59, 130, 246, 0.2);
+    0 16px 36px rgba(0, 0, 0, 0.28),
+    0 0 28px rgba(6, 182, 212, 0.22);
 }
 
 .parceiros__card:hover .parceiros__card-shine,
@@ -1011,17 +1034,7 @@ body {
   filter: drop-shadow(0 8px 16px rgba(59, 130, 246, 0.25));
 }
 
-.parceiros__nome {
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #23406b;
-  opacity: 0.85;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .parceiros__ribbon-linha,
   .parceiros__trilha,
   .parceiros__card {
     animation: none !important;
