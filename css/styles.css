@@ -3859,43 +3859,11 @@ button.midias__link {
   border-radius: 14px;
   overflow: hidden;
   cursor: grab;
-  touch-action: none;
-}
-
-.culto-janela__fechar-flutuante {
-  display: none;
-  position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
-  z-index: 6;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(13, 20, 26, 0.72);
-  color: #fff;
-  font-size: 1.65rem;
-  line-height: 1;
-  cursor: pointer;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
-.culto-janela__fechar-flutuante span {
-  display: block;
-  margin-top: -0.12rem;
-}
-
-.culto-janela--touch .culto-janela__fechar-flutuante {
-  display: inline-flex;
-}
-
-.culto-janela--touch .culto-janela__btn--fechar {
-  display: none;
+.culto-janela--mini .culto-janela__video {
+  touch-action: none;
 }
 
 .culto-janela__rodape {

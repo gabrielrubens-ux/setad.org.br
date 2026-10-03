@@ -140,15 +140,9 @@
               '<button type="button" class="culto-janela__btn" id="cultoJanelaExpandir" aria-label="Expandir ou recolher janela">' +
                 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
               "</button>" +
-              '<button type="button" class="culto-janela__btn culto-janela__btn--fechar" id="cultoJanelaFechar" aria-label="Fechar janela ao vivo">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
-              "</button>" +
             "</div>" +
           "</header>" +
           '<div class="culto-janela__corpo">' +
-            '<button type="button" class="culto-janela__fechar-flutuante" id="cultoJanelaFecharOverlay" aria-label="Fechar janela ao vivo">' +
-              '<span aria-hidden="true">&times;</span>' +
-            "</button>" +
             '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay title="Transmissão ao vivo — Culto SETAD"></video>' +
             '<button type="button" class="culto-janela__btn-play" id="cultoJanelaPlayPause" aria-label="Pausar transmissão ao vivo">' +
               '<svg class="culto-janela__icone-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' +
