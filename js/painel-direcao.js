@@ -97,12 +97,19 @@ function inicializarPainelDiretor() {
     "tab-equipe": {
       titulo: "Equipe e Cadastros",
       subtitulo: "Professores, funcionários e perfis institucionais."
+    },
+    "tab-impressao": {
+      titulo: "Impressão",
+      subtitulo: "Documentos internos — impressoras de rede ou USB."
     }
   };
 
   configurarAbasPainel(titulos, undefined, function (tabId) {
     if (tabId === "tab-colaboradores") {
       renderizarCadastroColaboradores("colaboradoresDiretorContainer", sessao);
+    }
+    if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
+      renderizarCentralImpressaoSetad("impressaoDiretorContainer", sessao);
     }
   });
 
@@ -120,6 +127,9 @@ function inicializarPainelDiretor() {
     renderizarContabilidadeDiretor("documentosContabeisDiretorContainer", sessao);
   }
   renderizarEquipeDiretor("equipeDiretorContainer");
+  if (typeof renderizarCentralImpressaoSetad === "function") {
+    renderizarCentralImpressaoSetad("impressaoDiretorContainer", sessao);
+  }
   inicializarPerfilProfessor(sessao);
 }
 
@@ -156,6 +166,10 @@ function inicializarPainelContador() {
     "tab-relatorios": {
       titulo: "Relatórios e DRE",
       subtitulo: "Envio de documentos Office, DRE automático e liberação de acesso à diretoria."
+    },
+    "tab-impressao": {
+      titulo: "Impressão",
+      subtitulo: "Documentos internos — impressoras de rede ou USB."
     }
   };
 
@@ -178,6 +192,9 @@ function inicializarPainelContador() {
     if (tabId === "tab-relatorios") {
       renderizarRelatoriosContador("relatoriosContainer");
     }
+    if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
+      renderizarCentralImpressaoSetad("impressaoContadorContainer", sessao);
+    }
   });
 
   inicializarDadosFinanceiros();
@@ -188,6 +205,9 @@ function inicializarPainelContador() {
   renderizarFuncionariosContador("funcionariosContainer");
   renderizarInstituicoesContador("instituicoesContainer", sessao);
   renderizarRelatoriosContador("relatoriosContainer");
+  if (typeof renderizarCentralImpressaoSetad === "function") {
+    renderizarCentralImpressaoSetad("impressaoContadorContainer", sessao);
+  }
   inicializarPerfilProfessor(sessao);
   ativarAbaContadorPorHash();
 }

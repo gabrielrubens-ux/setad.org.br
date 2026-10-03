@@ -40,7 +40,13 @@
             <button class="painel__nav-link" data-tab="tab-alunos">Novos alunos</button>
           </li>
           <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-turmas">Turmas</button>
+          </li>
+          <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-cadastro">Cadastro presencial</button>
+          </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-impressao">Impressão</button>
           </li>
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-whatsapp">
@@ -91,6 +97,10 @@
           </select>
         </div>
         <div id="alunosSecretariaContainer"></div>
+      </section>
+
+      <section id="tab-turmas" class="painel__tab">
+        <div id="turmasCoordenacaoContainer"></div>
       </section>
 
       <section id="tab-cadastro" class="painel__tab">
@@ -195,18 +205,31 @@
                 <a href="polos/index.html#equipe-polos" class="link-institucional">Cadastrar professores nos polos</a>
               </p>
               <div class="matricula-form__grid">
-                <div class="form-group">
+                <div class="form-group form-group--full">
                   <label for="secPolo">Polo do SETAD *</label>
                   <select id="secPolo" required>
                     <option value="">Selecione o polo...</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label for="secSalaTurma">Sala / turma</label>
-                  <select id="secSalaTurma" disabled>
-                    <option value="">Selecione o módulo primeiro...</option>
-                  </select>
-                  <p id="secSalaTurmaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>
+              </div>
+              <div id="secBlocoSetadeNivelSala" class="presencial-bloco-setade" hidden>
+                <p class="presencial-bloco__titulo">Polo SETADE — nível e sala</p>
+                <div class="matricula-form__grid">
+                  <div class="form-group">
+                    <label for="secSetadeNivel">Nível *</label>
+                    <select id="secSetadeNivel">
+                      <option value="">Selecione o nível...</option>
+                      <option value="medio">Médio — Teologia e Ciências Bíblicas</option>
+                      <option value="avancado">Avançado — Teologia</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="secSalaTurma">Sala / turma *</label>
+                    <select id="secSalaTurma" disabled>
+                      <option value="">Selecione o nível primeiro...</option>
+                    </select>
+                    <p id="secSalaTurmaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>
+                  </div>
                 </div>
               </div>
             </fieldset>
@@ -301,6 +324,10 @@
         </form>
       </section>
 
+      <section id="tab-impressao" class="painel__tab">
+        <div id="impressaoCoordenacaoContainer"></div>
+      </section>
+
       <section id="tab-whatsapp" class="painel__tab">
         <p class="section__text">
           Central de atendimento do WhatsApp do seminário
@@ -326,6 +353,9 @@
   <script src="js/exclusao-alunos.js"></script>
   <script src="js/polos.js"></script>
   <script src="js/turmas-salas-setad.js"></script>
+  <script src="js/turmas-alunos.js"></script>
+  <script src="js/setad-impressao.js"></script>
+  <script src="js/setad-impressao-painel.js"></script>
   <script src="js/matricula.js"></script>
   <script src="js/secretaria-cadastro-presencial.js"></script>
   <script src="js/areas-institucionais.js"></script>

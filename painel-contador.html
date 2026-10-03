@@ -58,6 +58,9 @@
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-relatorios">Relatórios</button>
           </li>
+          <li class="painel__nav-item">
+            <button class="painel__nav-link" data-tab="tab-impressao">Impressão</button>
+          </li>
         </ul>
       </nav>
 
@@ -100,6 +103,10 @@
       <section id="tab-relatorios" class="painel__tab">
         <div id="relatoriosContainer"></div>
       </section>
+
+      <section id="tab-impressao" class="painel__tab">
+        <div id="impressaoContadorContainer"></div>
+      </section>
     </main>
   </div>
 
@@ -114,6 +121,8 @@
   <script src="js/financeiro.js"></script>
   <script src="js/contabilidade-relatorios.js"></script>
   <script src="js/perfil-aluno.js"></script>
+  <script src="js/setad-impressao.js"></script>
+  <script src="js/setad-impressao-painel.js"></script>
   <script src="js/painel-direcao.js"></script>
   <script>
     SETAD.ready.then(function () {

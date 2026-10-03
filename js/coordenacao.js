@@ -23,9 +23,17 @@ function inicializarPainelCoordenacao() {
       titulo: "Alunos",
       subtitulo: "Inscrições e acompanhamento pedagógico."
     },
+    "tab-turmas": {
+      titulo: "Turmas",
+      subtitulo: "Polos e salas do SETAD — acompanhamento dos vínculos dos alunos."
+    },
     "tab-cadastro": {
       titulo: "Cadastro presencial",
       subtitulo: "Registro de alunos que procuram o seminário presencialmente."
+    },
+    "tab-impressao": {
+      titulo: "Impressão",
+      subtitulo: "Documentos internos — impressoras de rede ou USB."
     },
     "tab-whatsapp": {
       titulo: "WhatsApp",
@@ -38,7 +46,18 @@ function inicializarPainelCoordenacao() {
   inicializarDadosPadrao();
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
+  if (typeof renderizarPainelTurmasInstitucional === "function") {
+    renderizarPainelTurmasInstitucional("turmasCoordenacaoContainer", {
+      intro:
+        "Polo SETADE em destaque (nível e sala). Demais polos em Belém. Clique para ver alunos vinculados.",
+      mostrarFiltro: true,
+      mostrarAlunosAoClicar: true
+    });
+  }
   configurarCadastroPresencial(sessao, { omitirPagamento: true });
+  if (typeof renderizarCentralImpressaoSetad === "function") {
+    renderizarCentralImpressaoSetad("impressaoCoordenacaoContainer", sessao);
+  }
   renderizarInboxWpp(sessao);
   if (typeof configurarLinkTrocarAreaInstitucional === "function") {
     configurarLinkTrocarAreaInstitucional();

@@ -27,6 +27,10 @@ function inicializarPainelSecretaria() {
       titulo: "Novos Alunos",
       subtitulo: "Inscrições pelo site, WhatsApp e cadastros presenciais."
     },
+    "tab-turmas": {
+      titulo: "Turmas",
+      subtitulo: "Polos em Belém e salas do Médio e do Avançado — vínculo dos alunos."
+    },
     "tab-cadastro": {
       titulo: "Cadastro Presencial",
       subtitulo: "Registre alunos que chegam diretamente ao seminário."
@@ -38,6 +42,10 @@ function inicializarPainelSecretaria() {
     "tab-boletos": {
       titulo: "Boletos bancários",
       subtitulo: "Emissão e impressão de boletos para alunos do seminário."
+    },
+    "tab-impressao": {
+      titulo: "Impressão",
+      subtitulo: "Boletos, provas, trabalhos e documentos — rede ou USB."
     },
     "tab-whatsapp": {
       titulo: "WhatsApp do Seminário",
@@ -52,10 +60,21 @@ function inicializarPainelSecretaria() {
 
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
+  if (typeof renderizarPainelTurmasInstitucional === "function") {
+    renderizarPainelTurmasInstitucional("turmasSecretariaContainer", {
+      intro:
+        "O Polo SETADE (sede) concentra as turmas por nível e sala. Os demais polos em Belém aparecem como turmas territoriais.",
+      mostrarFiltro: true,
+      mostrarAlunosAoClicar: true
+    });
+  }
   configurarCadastroPresencial(sessao);
   renderizarCadastroColaboradores("colaboradoresSecretariaContainer", sessao);
   if (typeof renderizarEmissaoBoletoSecretaria === "function") {
     renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
+  }
+  if (typeof renderizarCentralImpressaoSetad === "function") {
+    renderizarCentralImpressaoSetad("impressaoSecretariaContainer", sessao);
   }
   renderizarInboxWpp(sessao);
   if (typeof configurarLinkTrocarAreaInstitucional === "function") {
@@ -91,11 +110,27 @@ function configurarAbasSecretaria(titulosMap, sessao) {
       }
 
       if (tabId === "tab-alunos") renderizarAlunosSecretaria();
+      if (tabId === "tab-turmas" && typeof renderizarPainelTurmasInstitucional === "function") {
+        var turmasEl =
+          document.getElementById("turmasSecretariaContainer") ||
+          document.getElementById("turmasCoordenacaoContainer");
+        if (turmasEl) {
+          renderizarPainelTurmasInstitucional(turmasEl.id, {
+            intro:
+              "O Polo SETADE (sede) concentra as turmas por nível e sala. Os demais polos em Belém aparecem como turmas territoriais.",
+            mostrarFiltro: true,
+            mostrarAlunosAoClicar: true
+          });
+        }
+      }
       if (tabId === "tab-colaboradores") {
         renderizarCadastroColaboradores("colaboradoresSecretariaContainer", sessao);
       }
       if (tabId === "tab-boletos" && typeof renderizarEmissaoBoletoSecretaria === "function") {
         renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
+      }
+      if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
+        renderizarCentralImpressaoSetad("impressaoSecretariaContainer", sessao);
       }
       if (tabId === "tab-whatsapp") renderizarInboxWpp(sessao);
       if (tabId === "tab-visao") renderizarVisaoSecretaria();

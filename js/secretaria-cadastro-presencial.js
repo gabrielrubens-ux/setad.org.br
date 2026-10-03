@@ -153,8 +153,23 @@ function preencherFormularioComMatricula(matricula) {
       poloEl.value = matricula.poloId || "";
     }
   }
+  var nivelEl = document.getElementById("secSetadeNivel");
+  if (nivelEl && matricula.setadeNivel) {
+    nivelEl.value = matricula.setadeNivel;
+  } else if (nivelEl && ehPoloSetade(matricula.poloId)) {
+    if (matricula.modulo === "medio" || matricula.modulo === "avancado") {
+      nivelEl.value = matricula.modulo;
+    }
+  }
+  if (typeof alternarUiPoloSetadePresencial === "function") {
+    alternarUiPoloSetadePresencial();
+  }
   if (typeof atualizarSelectSalaTurmaPresencial === "function") {
-    atualizarSelectSalaTurmaPresencial(matricula.modulo || "", matricula.salaTurmaId || "");
+    var nivel =
+      nivelEl && nivelEl.value
+        ? nivelEl.value
+        : matricula.modulo || "";
+    atualizarSelectSalaTurmaPresencial(nivel, matricula.salaTurmaId || "");
   }
 
   var valorEl = document.getElementById("secValorPagamento");

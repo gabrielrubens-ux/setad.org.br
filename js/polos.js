@@ -23,6 +23,20 @@
  */
 const POLOS_SETAD = [
   {
+    id: "setade-sede",
+    nome: "Polo SETADE — Sede do Seminário",
+    principal: true,
+    local: "SETAD — Seminário Teológico da Assembleia de Deus em Belém",
+    endereco: "Sede do SETAD",
+    bairro: "Marco",
+    cidade: "Belém",
+    estado: "PA",
+    lat: -1.4374973,
+    lng: -48.4656471,
+    mapsUrl:
+      "https://www.google.com/maps/place/SETAD+-+Semin%C3%A1rio+Teol%C3%B3gico+da+Assembleia+de+Deus+em+Bel%C3%A9m/@-1.4374973,-48.4656471,17z/data=!3m1!4b1!4m6!3m5!1s0x92a48c11c506c41f:0xe90ebc274a2cebe6!8m2!3d-1.4374973!4d-48.4656471!16s%2Fg%2F11b72mzw9w"
+  },
+  {
     id: "nazare-templo-central",
     nome: "Polo Nazaré — Templo Central",
     local: "Assembleia de Deus em Belém — Templo Central",

@@ -22,12 +22,35 @@ const SALAS_TURMA_SETAD = [
 ];
 
 const STORAGE_PROFESSORES_POLOS = "setad_professores_polos";
+const POLO_SETADE_ID = "setade-sede";
+
+const NIVEIS_SETADE_SALA = [
+  { id: "medio", nome: "Médio — Teologia e Ciências Bíblicas" },
+  { id: "avancado", nome: "Avançado — Teologia" }
+];
+
+function ehPoloSetade(poloId) {
+  return poloId === POLO_SETADE_ID;
+}
 
 function listarPolosSetadCatalogo() {
   if (typeof POLOS_SETAD !== "undefined" && Array.isArray(POLOS_SETAD)) {
-    return POLOS_SETAD.slice();
+    var lista = POLOS_SETAD.slice();
+    lista.sort(function (a, b) {
+      var pa = a.principal || a.id === POLO_SETADE_ID ? 0 : 1;
+      var pb = b.principal || b.id === POLO_SETADE_ID ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return (a.nome || "").localeCompare(b.nome || "", "pt-BR");
+    });
+    return lista;
   }
   return [];
+}
+
+function listarPolosExcetoSetade() {
+  return listarPolosSetadCatalogo().filter(function (p) {
+    return !ehPoloSetade(p.id);
+  });
 }
 
 function obterNomePoloSetad(poloId) {
@@ -60,13 +83,114 @@ function obterLabelSalaTurma(salaId) {
   return sala ? sala.nome : salaId;
 }
 
+function idTurmaPolo(poloId) {
+  return "turma-polo-" + poloId;
+}
+
+function idTurmaSala(salaTurmaId) {
+  return "turma-sala-" + salaTurmaId;
+}
+
+function idTurmaSetadeSala(salaTurmaId) {
+  return "turma-setade-" + salaTurmaId;
+}
+
+/**
+ * Catálogo oficial: Polo SETADE (nível + sala) em destaque; demais polos em Belém.
+ */
+function listarTurmasCatalogoSetad() {
+  var turmas = [];
+  SALAS_TURMA_SETAD.forEach(function (sala, indice) {
+    turmas.push({
+      id: idTurmaSetadeSala(sala.id),
+      tipo: "setade",
+      categoria: "Polo SETADE — Sede principal (nível e sala)",
+      nome: sala.nome,
+      poloId: POLO_SETADE_ID,
+      poloNome: obterNomePoloSetad(POLO_SETADE_ID),
+      salaTurmaId: sala.id,
+      modulo: sala.modulo,
+      ordem: indice
+    });
+  });
+  listarPolosExcetoSetade().forEach(function (polo, indice) {
+    turmas.push({
+      id: idTurmaPolo(polo.id),
+      tipo: "polo",
+      categoria: "Polos em Belém",
+      nome: polo.nome,
+      poloId: polo.id,
+      bairro: polo.bairro || "",
+      local: polo.local || "",
+      ordem: 100 + indice
+    });
+  });
+  return turmas;
+}
+
+function obterTurmaCatalogoPorId(turmaId) {
+  return listarTurmasCatalogoSetad().find(function (t) {
+    return t.id === turmaId;
+  });
+}
+
+function contarAlunosNaTurma(turma) {
+  if (!turma || typeof obterMatriculas !== "function") return 0;
+  var matriculas = obterMatriculas();
+  if (turma.tipo === "setade") {
+    return matriculas.filter(function (m) {
+      return ehPoloSetade(m.poloId) && m.salaTurmaId === turma.salaTurmaId;
+    }).length;
+  }
+  if (turma.tipo === "polo") {
+    return matriculas.filter(function (m) {
+      return m.poloId === turma.poloId && !ehPoloSetade(m.poloId);
+    }).length;
+  }
+  return 0;
+}
+
+function listarAlunosNaTurma(turma) {
+  if (!turma || typeof obterMatriculas !== "function") return [];
+  var matriculas = obterMatriculas();
+  if (turma.tipo === "setade") {
+    return matriculas.filter(function (m) {
+      return ehPoloSetade(m.poloId) && m.salaTurmaId === turma.salaTurmaId;
+    });
+  }
+  if (turma.tipo === "polo") {
+    return matriculas.filter(function (m) {
+      return m.poloId === turma.poloId && !ehPoloSetade(m.poloId);
+    });
+  }
+  return [];
+}
+
+function obterTurmasDoAlunoPorMatricula(matricula) {
+  if (!matricula) return [];
+  var catalogo = listarTurmasCatalogoSetad();
+  var vinculadas = [];
+  if (ehPoloSetade(matricula.poloId) && matricula.salaTurmaId) {
+    var turmaSetade = catalogo.find(function (t) {
+      return t.tipo === "setade" && t.salaTurmaId === matricula.salaTurmaId;
+    });
+    if (turmaSetade) vinculadas.push(turmaSetade);
+  } else if (matricula.poloId) {
+    var turmaPolo = catalogo.find(function (t) {
+      return t.tipo === "polo" && t.poloId === matricula.poloId;
+    });
+    if (turmaPolo) vinculadas.push(turmaPolo);
+  }
+  return vinculadas;
+}
+
 function formatarDirecionamentoAluno(matricula) {
   if (!matricula) return "—";
   var partes = [];
   if (matricula.poloNome || matricula.poloId) {
     partes.push(matricula.poloNome || obterNomePoloSetad(matricula.poloId));
   }
-  if (matricula.salaTurmaNome || matricula.salaTurmaId) {
+  if (ehPoloSetade(matricula.poloId) && (matricula.salaTurmaNome || matricula.salaTurmaId)) {
     partes.push(matricula.salaTurmaNome || obterLabelSalaTurma(matricula.salaTurmaId));
   }
   return partes.length ? partes.join(" · ") : "—";
@@ -74,10 +198,25 @@ function formatarDirecionamentoAluno(matricula) {
 
 function popularSelectPolosSetad(selectEl, valorSelecionado) {
   if (!selectEl) return;
-  var polos = listarPolosSetadCatalogo();
-  var html =
-    '<option value="">Selecione o polo...</option>' +
-    polos
+  var setade = listarPolosSetadCatalogo().find(function (p) {
+    return ehPoloSetade(p.id);
+  });
+  var outros = listarPolosExcetoSetade();
+  var html = '<option value="">Selecione o polo...</option>';
+  if (setade) {
+    var selSetade = valorSelecionado === setade.id ? " selected" : "";
+    html +=
+      '<option value="' +
+      escaparHtml(setade.id) +
+      '"' +
+      selSetade +
+      ">" +
+      escaparHtml(setade.nome) +
+      " (principal)</option>";
+  }
+  if (outros.length) {
+    html += '<optgroup label="Polos em Belém">';
+    html += outros
       .map(function (polo) {
         var sel = valorSelecionado === polo.id ? " selected" : "";
         return (
@@ -91,7 +230,56 @@ function popularSelectPolosSetad(selectEl, valorSelecionado) {
         );
       })
       .join("");
+    html += "</optgroup>";
+  }
   selectEl.innerHTML = html;
+}
+
+function popularSelectNivelSetade(selectEl, valorSelecionado) {
+  if (!selectEl) return;
+  selectEl.innerHTML =
+    '<option value="">Selecione o nível...</option>' +
+    NIVEIS_SETADE_SALA.map(function (n) {
+      var sel = valorSelecionado === n.id ? " selected" : "";
+      return (
+        '<option value="' +
+        escaparHtml(n.id) +
+        '"' +
+        sel +
+        ">" +
+        escaparHtml(n.nome) +
+        "</option>"
+      );
+    }).join("");
+}
+
+function alternarUiPoloSetadePresencial() {
+  var poloEl = document.getElementById("secPolo");
+  var bloco = document.getElementById("secBlocoSetadeNivelSala");
+  var salaEl = document.getElementById("secSalaTurma");
+  var nivelEl = document.getElementById("secSetadeNivel");
+  if (!poloEl || !bloco) return;
+
+  var setade = ehPoloSetade(poloEl.value);
+  bloco.hidden = !setade;
+
+  if (!setade) {
+    if (nivelEl) nivelEl.value = "";
+    if (salaEl) {
+      salaEl.disabled = true;
+      salaEl.required = false;
+      salaEl.innerHTML = '<option value="">Selecione o polo SETADE para nível e sala</option>';
+    }
+    return;
+  }
+
+  var moduloEl = document.getElementById("secModulo");
+  if (nivelEl && moduloEl && moduloEl.value && !nivelEl.value) {
+    if (moduloEl.value === "medio" || moduloEl.value === "avancado") {
+      nivelEl.value = moduloEl.value;
+    }
+  }
+  atualizarSelectSalaTurmaPresencial(nivelEl ? nivelEl.value : "", salaEl ? salaEl.value : "");
 }
 
 function atualizarSelectSalaTurmaPresencial(modulo, valorSelecionado) {
@@ -141,10 +329,18 @@ function atualizarSelectSalaTurmaPresencial(modulo, valorSelecionado) {
 function anexarDirecionamentoInternoAosDados(dados) {
   var poloEl = document.getElementById("secPolo");
   var salaEl = document.getElementById("secSalaTurma");
+  var nivelEl = document.getElementById("secSetadeNivel");
   dados.poloId = poloEl ? poloEl.value : "";
   dados.poloNome = dados.poloId ? obterNomePoloSetad(dados.poloId) : "";
-  dados.salaTurmaId = salaEl && !salaEl.disabled ? salaEl.value : "";
-  dados.salaTurmaNome = dados.salaTurmaId ? obterLabelSalaTurma(dados.salaTurmaId) : "";
+  dados.setadeNivel = nivelEl && ehPoloSetade(dados.poloId) ? nivelEl.value : "";
+  if (ehPoloSetade(dados.poloId)) {
+    dados.salaTurmaId = salaEl && !salaEl.disabled ? salaEl.value : "";
+    dados.salaTurmaNome = dados.salaTurmaId ? obterLabelSalaTurma(dados.salaTurmaId) : "";
+  } else {
+    dados.salaTurmaId = "";
+    dados.salaTurmaNome = "";
+    dados.setadeNivel = "";
+  }
   return dados;
 }
 
@@ -152,16 +348,27 @@ function validarDirecionamentoInternoMatricula(dados) {
   if (!dados.poloId) {
     return "Selecione o polo do SETAD para direcionar o aluno.";
   }
-  if (moduloExigeSalaTurma(dados.modulo) && !dados.salaTurmaId) {
-    return "Selecione a sala / turma (Médio ou Avançado).";
-  }
-  if (dados.salaTurmaId) {
-    var sala = SALAS_TURMA_SETAD.find(function (s) {
+  if (ehPoloSetade(dados.poloId)) {
+    var nivel = dados.setadeNivel || dados.modulo;
+    if (nivel !== "medio" && nivel !== "avancado") {
+      if (dados.modulo === "teologia") {
+        return null;
+      }
+      return "No Polo SETADE, selecione o nível (Médio ou Avançado) e a sala.";
+    }
+    if (!dados.salaTurmaId) {
+      return "No Polo SETADE, selecione a sala da turma.";
+    }
+    var salaSetade = SALAS_TURMA_SETAD.find(function (s) {
       return s.id === dados.salaTurmaId;
     });
-    if (!sala || sala.modulo !== dados.modulo) {
-      return "A sala escolhida não corresponde ao módulo do curso.";
+    if (!salaSetade || salaSetade.modulo !== nivel) {
+      return "A sala não corresponde ao nível escolhido no SETADE.";
     }
+    if (dados.modulo && dados.modulo !== nivel && dados.modulo !== "teologia") {
+      return "O módulo do curso deve ser o mesmo nível selecionado no SETADE.";
+    }
+    return null;
   }
   return null;
 }
@@ -173,24 +380,44 @@ function configurarDirecionamentoPresencialInterno() {
   poloEl.dataset.direcionamentoBound = "1";
 
   popularSelectPolosSetad(poloEl, poloEl.value || "");
-  atualizarSelectSalaTurmaPresencial(
-    moduloEl ? moduloEl.value : "",
-    document.getElementById("secSalaTurma")
-      ? document.getElementById("secSalaTurma").value
-      : ""
-  );
+  var nivelEl = document.getElementById("secSetadeNivel");
+  if (nivelEl) {
+    popularSelectNivelSetade(nivelEl, nivelEl.value || "");
+  }
+  alternarUiPoloSetadePresencial();
+
+  poloEl.addEventListener("change", alternarUiPoloSetadePresencial);
+
+  if (nivelEl) {
+    nivelEl.addEventListener("change", function () {
+      atualizarSelectSalaTurmaPresencial(nivelEl.value, "");
+      if (moduloEl && (nivelEl.value === "medio" || nivelEl.value === "avancado")) {
+        moduloEl.value = nivelEl.value;
+      }
+    });
+  }
 
   if (moduloEl) {
     moduloEl.addEventListener("change", function () {
-      atualizarSelectSalaTurmaPresencial(moduloEl.value, "");
+      if (ehPoloSetade(poloEl.value) && nivelEl) {
+        if (moduloEl.value === "medio" || moduloEl.value === "avancado") {
+          nivelEl.value = moduloEl.value;
+          atualizarSelectSalaTurmaPresencial(moduloEl.value, "");
+        } else {
+          nivelEl.value = "";
+          atualizarSelectSalaTurmaPresencial("", "");
+        }
+      }
     });
   }
 }
 
 function reinicializarDirecionamentoPresencialAposReset() {
   var poloEl = document.getElementById("secPolo");
+  var nivelEl = document.getElementById("secSetadeNivel");
   if (poloEl) poloEl.value = "";
-  atualizarSelectSalaTurmaPresencial("", "");
+  if (nivelEl) nivelEl.value = "";
+  alternarUiPoloSetadePresencial();
 }
 
 function obterProfessoresPolos() {

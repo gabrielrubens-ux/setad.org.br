@@ -1,0 +1,12 @@
+{
+  "name": "setad-print-bridge",
+  "private": true,
+  "description": "Ponte local SETAD — impressoras de rede e USB (Windows)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "optionalDependencies": {
+    "pdf-to-printer": "^5.6.0"
+  }
+}

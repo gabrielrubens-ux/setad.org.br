@@ -62,6 +62,14 @@ function inicializarPainel(tipo) {
 
       atualizarTituloPainel(tabId, tipo);
 
+      if (
+        tipo === "professor" &&
+        tabId === "tab-impressao" &&
+        typeof renderizarCentralImpressaoSetad === "function"
+      ) {
+        renderizarCentralImpressaoSetad("impressaoProfessorContainer", sessao);
+      }
+
     });
 
   });
@@ -96,6 +104,10 @@ function inicializarPainel(tipo) {
 
     inicializarPerfilAluno(sessao);
 
+    if (typeof renderizarTurmasPainelAluno === "function") {
+      renderizarTurmasPainelAluno(sessao);
+    }
+
   } else {
 
     renderizarTrabalhosProfessor();
@@ -107,6 +119,10 @@ function inicializarPainel(tipo) {
     renderizarMatriculasProfessor();
 
     inicializarPerfilProfessor(sessao);
+
+    if (typeof renderizarCentralImpressaoSetad === "function") {
+      renderizarCentralImpressaoSetad("impressaoProfessorContainer", sessao);
+    }
 
   }
 
@@ -148,6 +164,14 @@ function atualizarTituloPainel(tabId, tipo) {
 
       subtitulo: "Extrato do curso, mensalidades e formas de pagamento seguras."
 
+    },
+
+    "tab-turmas": {
+
+      titulo: "Turmas",
+
+      subtitulo: "Seu polo e sua sala no SETAD, e o catálogo de turmas do seminário."
+
     }
 
   };
@@ -185,6 +209,14 @@ function atualizarTituloPainel(tabId, tipo) {
       titulo: "Matrículas",
 
       subtitulo: "Alunos cadastrados pelo site, organizados por módulo."
+
+    },
+
+    "tab-impressao": {
+
+      titulo: "Impressão",
+
+      subtitulo: "Provas, trabalhos e documentos — impressoras de rede ou USB."
 
     }
 

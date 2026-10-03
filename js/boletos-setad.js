@@ -43,6 +43,13 @@ function montarHtmlBoletoImpressao(dados) {
 
 function imprimirBoletoSetad(dadosEmissao) {
   const html = montarHtmlBoletoImpressao(dadosEmissao);
+  if (typeof SETADImpressao !== "undefined") {
+    SETADImpressao.imprimirHtml(html, {
+      titulo: "Boleto SETAD",
+      enviarPontePdf: false
+    });
+    return true;
+  }
   const janela = window.open("", "_blank", "width=800,height=720");
   if (!janela) {
     alert("Permita pop-ups para imprimir o boleto.");

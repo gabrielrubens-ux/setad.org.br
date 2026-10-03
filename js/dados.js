@@ -766,6 +766,7 @@ function salvarAlunoQuadroSeminario(dados, sessao, opcoes) {
     igreja: mesclarCampoQuadro(dados.igreja, existente && existente.igreja),
     poloId: mesclarCampoQuadro(dados.poloId, existente && existente.poloId),
     poloNome: mesclarCampoQuadro(dados.poloNome, existente && existente.poloNome),
+    setadeNivel: mesclarCampoQuadro(dados.setadeNivel, existente && existente.setadeNivel),
     salaTurmaId: mesclarCampoQuadro(dados.salaTurmaId, existente && existente.salaTurmaId),
     salaTurmaNome: mesclarCampoQuadro(
       dados.salaTurmaNome,
