@@ -12,6 +12,7 @@ try {
 }
 
 let transportePool = null;
+let aquecimentoSmtpEmAndamento = false;
 
 function smtpConfigurado() {
   return Boolean(
@@ -73,19 +74,56 @@ function obterTransporte() {
       port: port,
       secure: secure,
       pool: true,
-      maxConnections: 3,
-      maxMessages: 50,
+      maxConnections: 2,
+      maxMessages: 100,
+      connectionTimeout: 15000,
+      greetingTimeout: 12000,
+      socketTimeout: 30000,
       auth: {
         user: process.env.SETAD_SMTP_USER,
         pass: process.env.SETAD_SMTP_PASS
       },
       tls: {
-        minVersion: "TLSv1.2"
+        minVersion: "TLSv1.2",
+        servername: process.env.SETAD_SMTP_HOST
       }
     });
   }
 
   return transportePool;
+}
+
+function reiniciarTransporteSmtp() {
+  if (transportePool && typeof transportePool.close === "function") {
+    try {
+      transportePool.close();
+    } catch (_erro) {
+      /* ignore */
+    }
+  }
+  transportePool = null;
+}
+
+function aquecerConexaoSmtp() {
+  if (!smtpConfigurado() || aquecimentoSmtpEmAndamento) return;
+
+  const transporte = obterTransporte();
+  if (!transporte || typeof transporte.verify !== "function") return;
+
+  aquecimentoSmtpEmAndamento = true;
+  const inicio = Date.now();
+  transporte
+    .verify()
+    .then(function () {
+      console.log("[SETAD e-mail] Conexão SMTP verificada em " + (Date.now() - inicio) + " ms.");
+    })
+    .catch(function (erro) {
+      console.warn("[SETAD e-mail] Falha ao aquecer SMTP:", erro.message);
+      reiniciarTransporteSmtp();
+    })
+    .finally(function () {
+      aquecimentoSmtpEmAndamento = false;
+    });
 }
 
 function urlPublicaSite(caminho) {
@@ -115,7 +153,10 @@ function montarMensagemCodigoVerificacao(nome, codigo, tipo) {
       ? "criação da senha da área do aluno"
       : "ativação do acesso institucional (direção, contabilidade ou secretaria)";
 
-  const assunto = "SETAD — código " + codigo + " para " + (tipo === "aluno" ? "área do aluno" : "acesso institucional");
+  const assunto =
+    tipo === "aluno"
+      ? "SETAD — código de verificação (área do aluno)"
+      : "SETAD — código de verificação (acesso institucional)";
 
   const texto =
     "Olá, " +
@@ -187,24 +228,55 @@ async function enviarEmail(destinatario, assunto, texto, html, opcoes) {
     crypto.randomBytes(16).toString("hex") +
     "@setad.org.br>";
 
+  const from = remetentePadrao();
+  const mailOptions = {
+    from: from,
+    to: destinatario,
+    replyTo: replyToPadrao(),
+    subject: assunto,
+    text: texto,
+    html: html || undefined,
+    messageId: messageId,
+    priority: "high",
+    envelope: {
+      from: extrairEmailDoFrom(from) || process.env.SETAD_SMTP_USER,
+      to: destinatario
+    }
+  };
+
+  const inicio = Date.now();
+
   try {
-    await transporte.sendMail({
-      from: remetentePadrao(),
-      to: destinatario,
-      replyTo: replyToPadrao(),
-      subject: assunto,
-      text: texto,
-      html: html || undefined,
-      messageId: messageId,
-      headers: {
-        "Auto-Submitted": "auto-generated",
-        "X-Auto-Response-Suppress": "OOF, AutoReply",
-        "X-Entity-Ref-ID": extras.refId || "setad-verificacao"
-      }
-    });
-    return { enviado: true, modo: "smtp" };
+    await transporte.sendMail(mailOptions);
+    console.log(
+      "[SETAD e-mail] Aceito pelo SMTP para",
+      destinatario,
+      "em",
+      Date.now() - inicio,
+      "ms"
+    );
+    return { enviado: true, modo: "smtp", duracaoMs: Date.now() - inicio };
   } catch (erro) {
     console.error("[SETAD e-mail] Falha ao enviar para", destinatario, ":", erro.message);
+    reiniciarTransporteSmtp();
+    try {
+      const transporte2 = obterTransporte();
+      if (transporte2) {
+        await transporte2.sendMail(mailOptions);
+        console.log(
+          "[SETAD e-mail] Reenvio OK para",
+          destinatario,
+          "em",
+          Date.now() - inicio,
+          "ms"
+        );
+        return { enviado: true, modo: "smtp-retry", duracaoMs: Date.now() - inicio };
+      }
+    } catch (erro2) {
+      console.error("[SETAD e-mail] Reenvio falhou:", erro2.message);
+      reiniciarTransporteSmtp();
+      return { enviado: false, modo: "erro", erro: erro2.message };
+    }
     return { enviado: false, modo: "erro", erro: erro.message };
   }
 }
@@ -241,6 +313,7 @@ function logStatusSmtpInicializacao() {
   if (aviso) {
     console.warn("[SETAD e-mail]", aviso);
   }
+  aquecerConexaoSmtp();
 }
 
 module.exports = {
@@ -253,5 +326,7 @@ module.exports = {
   remetentePadrao,
   replyToPadrao,
   avisoAlinhamentoRemetente,
-  logStatusSmtpInicializacao
+  logStatusSmtpInicializacao,
+  aquecerConexaoSmtp,
+  reiniciarTransporteSmtp
 };

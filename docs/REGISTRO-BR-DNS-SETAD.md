@@ -33,6 +33,8 @@ IPs conferidos em `setad.org.br.cdn.hstgr.net` (CDN Hostinger do site). Podem mu
 
 6. Salve e aguarde propagação.
 
+7. **E-mail (código de verificação):** sem SPF/DKIM/MX no Registro.br o Gmail **atrasa** a mensagem. Copie os registros da tabela em **`docs/DNS-EMAIL-REGISTRO-BR.md`**.
+
 ---
 
 ## Caminho B — Delegar DNS inteiro para a Hostinger

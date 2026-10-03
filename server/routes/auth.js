@@ -399,18 +399,35 @@ router.post("/staff/ativacao/reenviar-codigo", limitarAtivacaoStaff, function (r
 
 router.get("/email/status", authRequired, requirePerfis("diretor"), function (_req, res) {
   const aviso = avisoAlinhamentoRemetente();
-  res.json({
-    ok: true,
-    smtpConfigurado: smtpConfigurado(),
-    remetente: remetentePadrao(),
-    totalAutorizadosInstitucionais: listarAutorizados().filter(function (item) {
-      return item.ativo;
-    }).length,
-    autorizados: listarAutorizados(),
-    dicaEntrega:
-      "Para o Gmail receber na caixa principal: caixa @setad.org.br na Hostinger, SETAD_EMAIL_FROM igual ao SMTP_USER, SPF/DKIM/DMARC no hPanel.",
-    avisoRemetente: aviso || undefined
-  });
+  const { verificarDnsEmailDominio } = require("../services/email-dns-check");
+
+  verificarDnsEmailDominio("setad.org.br")
+    .then(function (dnsEmail) {
+      res.json({
+        ok: true,
+        smtpConfigurado: smtpConfigurado(),
+        remetente: remetentePadrao(),
+        dnsEmail: dnsEmail,
+        totalAutorizadosInstitucionais: listarAutorizados().filter(function (item) {
+          return item.ativo;
+        }).length,
+        autorizados: listarAutorizados(),
+        dicaEntrega: dnsEmail.okEntrega
+          ? "DNS de e-mail OK. Se o Gmail ainda demorar, marque o remetente como confiável."
+          : "DNS de e-mail incompleto no Registro.br — veja docs/DNS-EMAIL-REGISTRO-BR.md (principal causa de demora no Gmail).",
+        avisoRemetente: aviso || undefined
+      });
+    })
+    .catch(function (erro) {
+      res.json({
+        ok: true,
+        smtpConfigurado: smtpConfigurado(),
+        remetente: remetentePadrao(),
+        dnsEmail: { okEntrega: false, erro: erro.message },
+        autorizados: listarAutorizados(),
+        dicaEntrega: "Não foi possível verificar DNS de e-mail agora."
+      });
+    });
 });
 
 router.get("/staff/autorizados", authRequired, requirePerfis("diretor"), function (_req, res) {

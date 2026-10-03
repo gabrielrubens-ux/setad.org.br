@@ -39,7 +39,7 @@
       "</strong>.";
     if (info.emailEnviado) {
       html +=
-        " Verifique a caixa de entrada e, no Gmail, a aba Promoções se demorar.";
+        " O envio foi aceito pelo servidor. No Gmail pode levar <strong>1 a 3 minutos</strong>; confira também <strong>Promoções</strong> e pesquise <strong>from:noreply@setad.org.br</strong>.";
     }
     if (info.avisoEmail) {
       html +=

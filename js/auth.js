@@ -596,7 +596,7 @@ function simularEnvioCodigoEmail(email, codigo, meta) {
 
   if (info.emailEnviado) {
     html +=
-      " Confira a <strong>caixa de entrada</strong> e, no Gmail, também a aba <strong>Promoções</strong> se não aparecer de imediato.";
+      " Envio aceito pelo servidor. No Gmail pode levar <strong>1 a 3 minutos</strong>; veja <strong>Promoções</strong> ou busque <strong>from:noreply@setad.org.br</strong>.";
   }
 
   if (info.avisoEmail) {
