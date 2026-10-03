@@ -320,7 +320,7 @@ function configurarCadastroPresencial(sessao, opcoes) {
           }
           sucessoEl.classList.add("matricula-sucesso--visivel");
           sucessoEl.innerHTML =
-            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a secretaria (sem lançamento financeiro).";
+            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a equipe do seminário.";
           form.reset();
         })
         .catch(function () {

@@ -1,4 +1,4 @@
-/* Painel da coordenação pedagógica (sem financeiro/bancário). */
+/* Painel da coordenação pedagógica. */
 
 function inicializarPainelCoordenacao() {
   var sessao = protegerPainelCoordenacao();
@@ -17,7 +17,7 @@ function inicializarPainelCoordenacao() {
   var titulos = {
     "tab-visao": {
       titulo: "Visão Geral",
-      subtitulo: "Matrículas e atendimentos — sem dados financeiros."
+      subtitulo: "Matrículas e atendimentos do seminário."
     },
     "tab-alunos": {
       titulo: "Alunos",
@@ -25,7 +25,7 @@ function inicializarPainelCoordenacao() {
     },
     "tab-cadastro": {
       titulo: "Cadastro presencial",
-      subtitulo: "Registro de alunos sem lançamento de valores ou boletos."
+      subtitulo: "Registro de alunos que procuram o seminário presencialmente."
     },
     "tab-whatsapp": {
       titulo: "WhatsApp",

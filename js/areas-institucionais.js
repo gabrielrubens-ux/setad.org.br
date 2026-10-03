@@ -24,7 +24,7 @@ const AREAS_INSTITUCIONAIS = {
   coordenacao: {
     perfil: "coordenacao",
     titulo: "Coordenação pedagógica",
-    descricao: "Matrículas e atendimento pedagógico — sem dados bancários ou valores financeiros.",
+    descricao: "Matrículas e atendimento pedagógico.",
     redirect: "painel-coordenacao.html"
   }
 };

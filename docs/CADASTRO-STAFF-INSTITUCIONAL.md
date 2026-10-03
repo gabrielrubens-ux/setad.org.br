@@ -11,7 +11,7 @@ Fluxo: e-mail autorizado → criar senha → código de 6 dígitos → **escolha
 | `diretor` | `painel-diretor.html` | Direção (separada da contabilidade) |
 | `contador` | `painel-contador.html` | Financeiro, DRE, bancos |
 | `secretaria` | `painel-secretaria.html` | Matrículas, boletos, WhatsApp |
-| `coordenacao` | `painel-coordenacao.html` | Como secretaria pedagógica, **sem** valores/boletos/bancos |
+| `coordenacao` | `painel-coordenacao.html` | Matrículas e atendimento pedagógico |
 
 Quem tem **vários perfis** (ex.: direção + contabilidade) entra com a **mesma senha** e escolhe a área em [escolher-area-institucional.html](../escolher-area-institucional.html) ou na aba correta do login.
 
