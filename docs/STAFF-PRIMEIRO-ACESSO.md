@@ -5,6 +5,8 @@ Fluxo unificado: **e-mail autorizado** → **criar senha** → **código de 6 d�
 Página: `primeiro-acesso-institucional.html`  
 API: `/api/auth/staff/ativacao/*`
 
+Envio do código por e-mail (SMTP): após `POST .../senha`, ao retomar com `POST .../iniciar` (etapa verificação) e em `POST .../reenviar-codigo`. Diagnóstico (diretor): `GET /api/auth/email/status`.
+
 ---
 
 ## Como o sistema reconhece cada pessoa (opções)

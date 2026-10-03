@@ -65,10 +65,8 @@
     demo.classList.remove("visible");
     demo.textContent = "";
 
-    if (codigoDemo || (meta && (meta.emailEnviado || meta.avisoEmail))) {
-      demo.innerHTML = montarTextoEnvioCodigo(email, codigoDemo, meta);
-      demo.classList.add("visible");
-    }
+    demo.innerHTML = montarTextoEnvioCodigo(email, codigoDemo, meta || {});
+    demo.classList.add("visible");
   }
 
   function finalizarLoginApi(resultado) {
@@ -111,6 +109,11 @@
         });
       } else {
         mostrarPainelSenha(resposta);
+        if (resposta.avisoEtapa) {
+          var avisoSenha = document.getElementById("erroSenhaInstitucional");
+          avisoSenha.textContent = resposta.avisoEtapa;
+          avisoSenha.classList.add("visible", "login-card__success");
+        }
       }
     }).catch(function () {
       erroEl.textContent = "Servidor indisponível. Tente novamente.";
@@ -142,6 +145,9 @@
         emailEnviado: resposta.emailEnviado,
         avisoEmail: resposta.avisoEmail
       });
+    }).catch(function () {
+      erroEl.textContent = "Servidor indisponível. Tente novamente.";
+      erroEl.classList.add("visible");
     });
   });
 
@@ -168,12 +174,30 @@
   });
 
   document.getElementById("btnReenviarCodigoInstitucional").addEventListener("click", function () {
+    var erroEl = document.getElementById("erroVerificacaoInstitucional");
+    var sucessoEl = document.getElementById("sucessoVerificacaoInstitucional");
+    erroEl.classList.remove("visible");
+    sucessoEl.classList.remove("visible");
+    erroEl.textContent = "";
+    sucessoEl.textContent = "";
+
     SETADApi.post("/auth/staff/ativacao/reenviar-codigo", { email: emailAtual }).then(function (resposta) {
-      if (!resposta.ok) return;
+      if (!resposta.ok) {
+        erroEl.textContent = resposta.erro || "Não foi possível reenviar o código.";
+        erroEl.classList.add("visible");
+        return;
+      }
       mostrarPainelVerificacao(resposta.email || emailAtual, resposta.codigoDemo, {
         emailEnviado: resposta.emailEnviado,
         avisoEmail: resposta.avisoEmail
       });
+      sucessoEl.textContent = resposta.emailEnviado
+        ? "Novo código enviado ao seu e-mail."
+        : (resposta.avisoEmail || "Tente novamente em instantes.");
+      sucessoEl.classList.add("visible");
+    }).catch(function () {
+      erroEl.textContent = "Servidor indisponível. Tente novamente.";
+      erroEl.classList.add("visible");
     });
   });
 })();

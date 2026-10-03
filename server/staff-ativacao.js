@@ -107,7 +107,20 @@ function iniciarAtivacao(email) {
   }
 
   const pendente = buscarAtivacaoPendente(emailNorm);
-  const etapa = pendente && pendente.password_hash ? "verificacao" : "senha";
+  let etapa = "senha";
+  let codigoExpirado = false;
+
+  if (pendente && pendente.password_hash && pendente.codigo && pendente.codigo_expira_em) {
+    if (new Date() > new Date(pendente.codigo_expira_em)) {
+      codigoExpirado = true;
+      etapa = "senha";
+    } else {
+      etapa = "verificacao";
+    }
+  } else if (pendente && pendente.password_hash) {
+    etapa = "senha";
+    codigoExpirado = true;
+  }
 
   return {
     ok: true,
@@ -115,7 +128,12 @@ function iniciarAtivacao(email) {
     nome: autorizado.nome,
     perfil: autorizado.perfil,
     redirect: redirectPorPerfil(autorizado.perfil),
-    etapa: etapa
+    etapa: etapa,
+    codigoExpirado: codigoExpirado || undefined,
+    avisoEtapa:
+      codigoExpirado
+        ? "O código anterior expirou. Crie a senha novamente para receber um novo código por e-mail."
+        : undefined
   };
 }
 
@@ -248,6 +266,54 @@ async function enviarCodigoSePossivel(email, nome, codigo) {
   return enviarCodigoVerificacaoInstitucional(email, nome, codigo);
 }
 
+function obterCodigoPendenteParaEnvio(email) {
+  const emailNorm = normalizarEmail(email);
+  const pendente = buscarAtivacaoPendente(emailNorm);
+  const autorizado = buscarAutorizado(emailNorm);
+
+  if (!autorizado || !pendente || !pendente.password_hash) {
+    return {
+      ok: false,
+      erro: "Não há verificação pendente. Informe o e-mail e crie a senha novamente."
+    };
+  }
+
+  if (!pendente.codigo || !pendente.codigo_expira_em) {
+    return { ok: false, codigoExpirado: true, erro: "Defina a senha novamente para receber um código." };
+  }
+
+  if (new Date() > new Date(pendente.codigo_expira_em)) {
+    return {
+      ok: false,
+      codigoExpirado: true,
+      erro: "O código expirou. Crie a senha novamente para receber um novo código por e-mail."
+    };
+  }
+
+  return {
+    ok: true,
+    email: emailNorm,
+    nome: autorizado.nome,
+    codigo: pendente.codigo
+  };
+}
+
+async function enviarCodigoPendenteInstitucional(email) {
+  const dados = obterCodigoPendenteParaEnvio(email);
+  if (!dados.ok) {
+    return { ok: false, erro: dados.erro, codigoExpirado: dados.codigoExpirado };
+  }
+
+  const envio = await enviarCodigoSePossivel(dados.email, dados.nome, dados.codigo);
+  return {
+    ok: true,
+    email: dados.email,
+    nome: dados.nome,
+    codigo: dados.codigo,
+    envio: envio
+  };
+}
+
 function importarAutorizadosIniciais(lista) {
   if (!Array.isArray(lista)) return;
   lista.forEach(function (item) {
@@ -264,6 +330,8 @@ module.exports = {
   verificarCodigoAtivacao,
   reenviarCodigoAtivacao,
   enviarCodigoSePossivel,
+  enviarCodigoPendenteInstitucional,
+  obterCodigoPendenteParaEnvio,
   listarAutorizados,
   upsertAutorizado,
   desativarAutorizado,

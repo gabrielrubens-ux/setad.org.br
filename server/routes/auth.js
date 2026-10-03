@@ -51,6 +51,7 @@ const {
   verificarCodigoAtivacao,
   reenviarCodigoAtivacao,
   enviarCodigoSePossivel,
+  enviarCodigoPendenteInstitucional,
   listarAutorizados,
   upsertAutorizado,
   desativarAutorizado,
@@ -272,7 +273,48 @@ router.post("/staff/ativacao/iniciar", limitarAtivacaoStaff, function (req, res)
     const status = resultado.jaAtivo ? 409 : 403;
     return res.status(status).json(resultado);
   }
-  res.json(resultado);
+
+  if (resultado.etapa !== "verificacao") {
+    return res.json(resultado);
+  }
+
+  enviarCodigoPendenteInstitucional(email)
+    .then(function (envioPendente) {
+      if (!envioPendente.ok) {
+        if (envioPendente.codigoExpirado) {
+          return res.json({
+            ok: true,
+            email: resultado.email,
+            nome: resultado.nome,
+            perfil: resultado.perfil,
+            redirect: resultado.redirect,
+            etapa: "senha",
+            codigoExpirado: true,
+            avisoEtapa: envioPendente.erro
+          });
+        }
+        return res.status(400).json(envioPendente);
+      }
+
+      res.json(
+        anexarMetadadosEnvioEmail(
+          {
+            ok: true,
+            email: resultado.email,
+            nome: resultado.nome,
+            perfil: resultado.perfil,
+            redirect: resultado.redirect,
+            etapa: "verificacao"
+          },
+          envioPendente.envio,
+          envioPendente.codigo
+        )
+      );
+    })
+    .catch(function (erro) {
+      console.error("[SETAD] Erro ao enviar código (staff iniciar):", erro.message);
+      res.status(500).json({ ok: false, erro: "Não foi possível enviar o código por e-mail. Tente novamente." });
+    });
 });
 
 router.post("/staff/ativacao/senha", limitarAtivacaoStaff, function (req, res) {
