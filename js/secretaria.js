@@ -47,6 +47,10 @@ function inicializarPainelSecretaria() {
       titulo: "Impressão",
       subtitulo: "Boletos, provas, trabalhos e documentos — rede ou USB."
     },
+    "tab-contab-polos": {
+      titulo: "Contabilidade dos polos",
+      subtitulo: "Lançamentos financeiros dos 17 polos — integrado à contabilidade."
+    },
     "tab-whatsapp": {
       titulo: "WhatsApp do Seminário",
       subtitulo: "Conversas integradas — responda e converta contatos em matrículas."
@@ -54,6 +58,9 @@ function inicializarPainelSecretaria() {
   };
 
   configurarAbasSecretaria(titulos, sessao);
+  if (typeof configurarNavContabilidadePolos === "function") {
+    configurarNavContabilidadePolos(sessao);
+  }
 
   inicializarDadosPadrao();
   inicializarDadosFinanceiros();
@@ -131,6 +138,9 @@ function configurarAbasSecretaria(titulosMap, sessao) {
       }
       if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
         renderizarCentralImpressaoSetad("impressaoSecretariaContainer", sessao);
+      }
+      if (tabId === "tab-contab-polos" && typeof renderizarContabilidadePolos === "function") {
+        renderizarContabilidadePolos("contabPolosSecretariaContainer", sessao);
       }
       if (tabId === "tab-whatsapp") renderizarInboxWpp(sessao);
       if (tabId === "tab-visao") renderizarVisaoSecretaria();

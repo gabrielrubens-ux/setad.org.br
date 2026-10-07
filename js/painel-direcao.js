@@ -101,6 +101,10 @@ function inicializarPainelDiretor() {
     "tab-impressao": {
       titulo: "Impressão",
       subtitulo: "Documentos internos — impressoras de rede ou USB."
+    },
+    "tab-contab-polos": {
+      titulo: "Contabilidade dos polos",
+      subtitulo: "Lançamentos financeiros dos 17 polos — integrado à contabilidade."
     }
   };
 
@@ -111,10 +115,16 @@ function inicializarPainelDiretor() {
     if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
       renderizarCentralImpressaoSetad("impressaoDiretorContainer", sessao);
     }
+    if (tabId === "tab-contab-polos" && typeof renderizarContabilidadePolos === "function") {
+      renderizarContabilidadePolos("contabPolosDiretorContainer", sessao);
+    }
   });
 
   inicializarDadosPadrao();
   inicializarDadosFinanceiros();
+  if (typeof configurarNavContabilidadePolos === "function") {
+    configurarNavContabilidadePolos(sessao);
+  }
 
   renderizarVisaoDiretor("visaoDiretorContainer");
   renderizarCadastroColaboradores("colaboradoresDiretorContainer", sessao);
@@ -170,6 +180,10 @@ function inicializarPainelContador() {
     "tab-impressao": {
       titulo: "Impressão",
       subtitulo: "Documentos internos — impressoras de rede ou USB."
+    },
+    "tab-contab-polos": {
+      titulo: "Contabilidade dos polos",
+      subtitulo: "Lançamentos financeiros dos 17 polos — integrado à contabilidade."
     }
   };
 
@@ -195,9 +209,15 @@ function inicializarPainelContador() {
     if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
       renderizarCentralImpressaoSetad("impressaoContadorContainer", sessao);
     }
+    if (tabId === "tab-contab-polos" && typeof renderizarContabilidadePolos === "function") {
+      renderizarContabilidadePolos("contabPolosContadorContainer", sessao);
+    }
   });
 
   inicializarDadosFinanceiros();
+  if (typeof configurarNavContabilidadePolos === "function") {
+    configurarNavContabilidadePolos(sessao);
+  }
 
   renderizarDashboardContador("dashboardContadorContainer");
   renderizarPagamentosAlunosContador("pagamentosAlunosContainer");
