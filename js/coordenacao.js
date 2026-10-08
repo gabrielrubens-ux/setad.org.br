@@ -31,6 +31,10 @@ function inicializarPainelCoordenacao() {
       titulo: "Cadastro presencial",
       subtitulo: "Registro de alunos que procuram o seminário presencialmente."
     },
+    "tab-biblioteca": {
+      titulo: "Biblioteca Teológica",
+      subtitulo: "Cadastrar e editar livros e Bíblias do acervo (coordenação e direção)."
+    },
     "tab-impressao": {
       titulo: "Impressão",
       subtitulo: "Documentos internos — impressoras de rede ou USB."
@@ -55,6 +59,12 @@ function inicializarPainelCoordenacao() {
     });
   }
   configurarCadastroPresencial(sessao, { omitirPagamento: true });
+  if (typeof renderizarBiblioteca === "function") {
+    renderizarBiblioteca("bibliotecaGrid", sessao, "coordenacao");
+  }
+  if (typeof renderizarFormularioLivro === "function") {
+    renderizarFormularioLivro(sessao);
+  }
   if (typeof renderizarCentralImpressaoSetad === "function") {
     renderizarCentralImpressaoSetad("impressaoCoordenacaoContainer", sessao);
   }

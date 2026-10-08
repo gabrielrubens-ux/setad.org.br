@@ -149,6 +149,7 @@ const LIVROS_INICIAIS = [
 ];
 
 const CATEGORIAS_LIVRO = [
+  "Bíblia — Tradução evangélica",
   "Bíblia de Estudo",
   "Teologia Sistemática",
   "Hermenêutica",
@@ -227,6 +228,11 @@ function migrarBiblioteca() {
   });
 
   if (alterou) salvarLivros(livros);
+
+  if (typeof mesclarCatalogoBibliasNoAcervo === "function") {
+    var merge = mesclarCatalogoBibliasNoAcervo(livros);
+    if (merge.alterou) salvarLivros(merge.livros);
+  }
 }
 
 function obterTrabalhosAtribuidos() {
@@ -259,7 +265,15 @@ function obterEntregaDoAluno(trabalhoId, alunoEmail) {
 function obterLivros() {
   inicializarDadosPadrao();
   if (setadApiAtivo()) {
-    return (setadGetCache("livros") || []).slice();
+    var livrosApi = (setadGetCache("livros") || []).slice();
+    if (typeof mesclarCatalogoBibliasNoAcervo === "function") {
+      var mergeApi = mesclarCatalogoBibliasNoAcervo(livrosApi);
+      if (mergeApi.alterou) {
+        setadSetCache("livros", mergeApi.livros, "livros");
+        return mergeApi.livros.slice();
+      }
+    }
+    return livrosApi;
   }
   const dados = localStorage.getItem(STORAGE_KEYS.biblioteca);
   return dados ? JSON.parse(dados) : [];

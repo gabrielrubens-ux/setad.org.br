@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#23406b">
+  <title>Aluno — rede local</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+
+<body class="login-page login-page--aluno portal-marca-dagua" data-login-aluno-rede="1">
+
+  <div class="login-card login-card--rede-local">
+    <span class="login-card__badge">Programador / rede local</span>
+    <h1 class="login-card__title">Área do aluno (IP)</h1>
+    <p class="login-card__subtitle">
+      Esta URL não aparece no site público. Use apenas em <strong>localhost</strong> ou IP da rede
+      (ex.: <code>192.168.x.x:3456/login-aluno-ip.html</code>).
+    </p>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required>
+      </div>
+      <button type="submit" class="btn btn--primary login-card__btn">Entrar no painel</button>
+      <div id="loginErro" class="login-card__error" role="alert"></div>
+    </form>
+
+    <p class="login-card__hint login-card__hint--seguro">
+      Demonstração local (sem API): <strong>aluno@setad.org.br</strong> / <strong>aluno123</strong><br>
+      Com API ativa, use o e-mail e a senha reais do aluno cadastrado.
+    </p>
+  </div>
+
+  <script src="/js/app-config.js"></script>
+  <script src="/js/native-bridge.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/setad-sync.js"></script>
+  <script src="js/dados.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    SETAD.ready.then(function () {
+      if (!protegerPaginaLoginAlunoIp()) return;
+      configurarLogin("aluno");
+    });
+  </script>
+</body>
+</html>

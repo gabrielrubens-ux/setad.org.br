@@ -1,7 +1,7 @@
 /* ============================================================
    biblioteca.js — Acervo teológico com permissões
    Alunos: consulta para estudo (sem download).
-   Autorizados: cadastrar, editar e excluir livros.
+   Diretor e coordenação: cadastrar, editar e excluir. Professor: só consulta.
    ============================================================ */
 
 let sessaoBibliotecaAtual = null;
@@ -35,6 +35,9 @@ function renderizarBiblioteca(containerId, sessao, modoPainel) {
 
     const acoesStaff = podeGerenciar ? `
       <div class="livro-card__acoes">
+        <button type="button" class="btn btn--secondary btn--small btn-estudo" data-livro-id="${livro.id}">
+          Consultar para estudo
+        </button>
         <button type="button" class="btn btn--secondary btn--small btn-editar" data-livro-id="${livro.id}">
           Editar
         </button>
@@ -45,7 +48,7 @@ function renderizarBiblioteca(containerId, sessao, modoPainel) {
     ` : "";
 
     return `
-      <article class="livro-card" data-livro-id="${livro.id}">
+      <article class="livro-card livro-card--consulta" data-livro-id="${livro.id}" tabindex="0" role="button" aria-label="Consultar ${escaparHtml(livro.titulo)} para estudo">
         <div
           class="livro-card__cover"
           style="background-image: url('${escaparHtml(livro.capaUrl)}')"
@@ -56,7 +59,7 @@ function renderizarBiblioteca(containerId, sessao, modoPainel) {
           <p class="livro-card__author">${escaparHtml(livro.autor)}</p>
           ${renderizarBadgeFormatoLivro(livro)}
           <p class="livro-card__meta">Cadastrado por ${escaparHtml(livro.cadastradoPor)}</p>
-          ${modoPainel === "aluno" ? acoesAluno : acoesStaff}
+          ${!podeGerenciar ? acoesAluno : acoesStaff}
         </div>
       </article>
     `;
@@ -70,8 +73,21 @@ function renderizarBiblioteca(containerId, sessao, modoPainel) {
  */
 function configurarEventosBiblioteca(container, sessao, modoPainel) {
   container.querySelectorAll(".btn-estudo").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (event) {
+      event.stopPropagation();
       abrirConsultaEstudo(btn.getAttribute("data-livro-id"));
+    });
+  });
+
+  container.querySelectorAll(".livro-card--consulta").forEach(function (card) {
+    card.addEventListener("click", function (event) {
+      if (event.target.closest(".btn-editar, .btn-excluir, .btn-estudo")) return;
+      abrirConsultaEstudo(card.getAttribute("data-livro-id"));
+    });
+    card.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      abrirConsultaEstudo(card.getAttribute("data-livro-id"));
     });
   });
 
@@ -215,9 +231,11 @@ function renderizarVisualizadorLivro(livro) {
     const formato = (arquivo.formato || "").toLowerCase();
 
     if (formato === "pdf" || arquivo.tipo === "application/pdf") {
+      var srcPdf = fonte + (fonte.indexOf("#") === -1 ? "#toolbar=1&navpanes=0" : "");
       return (
         '<div class="livro-visualizador livro-visualizador--pdf" oncontextmenu="return false">' +
-          '<iframe src="' + escaparHtml(fonte) + '" title="Leitura: ' + escaparHtml(livro.titulo) + '" ' +
+          '<p class="livro-visualizador__dica">Use a busca da barra do leitor PDF (ícone de lupa) para pesquisar no texto.</p>' +
+          '<iframe src="' + escaparHtml(srcPdf) + '" title="Leitura: ' + escaparHtml(livro.titulo) + '" ' +
             'class="livro-visualizador__frame"></iframe>' +
         "</div>"
       );
@@ -294,6 +312,10 @@ function abrirConsultaEstudo(livroId) {
   if (!livro) return;
 
   const modal = obterOuCriarModal();
+  const leitorBiblia =
+    typeof livroParticipaLeitorBiblico === "function" && livroParticipaLeitorBiblico(livro)
+      ? renderizarLeitorBibliaTraducao(livro)
+      : "";
 
   modal.innerHTML =
     '<div class="modal-biblioteca__overlay" data-fechar="true"></div>' +
@@ -307,7 +329,8 @@ function abrirConsultaEstudo(livroId) {
         "Consulta exclusiva para estudo. É proibido baixar, copiar ou distribuir este material." +
       "</div>" +
       (livro.descricao ? '<p class="modal-biblioteca__descricao">' + escaparHtml(livro.descricao) + "</p>" : "") +
-      renderizarVisualizadorLivro(livro) +
+      leitorBiblia +
+      (leitorBiblia ? "" : renderizarVisualizadorLivro(livro)) +
       (livro.conteudoEstudo && livroPossuiArquivoDigital(livro)
         ? '<div class="modal-biblioteca__leitura modal-biblioteca__leitura--complemento" oncontextmenu="return false">' +
             "<h3>Resumo / notas de estudo</h3>" +
@@ -318,7 +341,11 @@ function abrirConsultaEstudo(livroId) {
 
   modal.classList.add("modal-biblioteca--aberto");
   configurarFecharModal(modal);
-  carregarTextoLivroNoVisualizador(modal);
+  if (leitorBiblia && typeof inicializarLeitorBibliaNoModal === "function") {
+    inicializarLeitorBibliaNoModal(modal, livro);
+  } else {
+    carregarTextoLivroNoVisualizador(modal);
+  }
 }
 
 /**
@@ -489,11 +516,7 @@ function renderizarFormularioLivro(sessao) {
   if (!container) return;
 
   if (!podeGerenciarLivros(sessao)) {
-    container.innerHTML = `
-      <p class="biblioteca-aviso">
-        O cadastro de livros é restrito a professores, diretores e pessoas autorizadas.
-      </p>
-    `;
+    container.innerHTML = "";
     return;
   }
 

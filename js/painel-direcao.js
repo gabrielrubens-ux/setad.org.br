@@ -84,7 +84,7 @@ function inicializarPainelDiretor() {
     },
     "tab-biblioteca": {
       titulo: "Biblioteca Teológica",
-      subtitulo: "Acervo digital e cadastro de livros."
+      subtitulo: "Acervo digital — cadastrar e editar livros e Bíblias (direção e coordenação)."
     },
     "tab-financeiro": {
       titulo: "Financeiro",

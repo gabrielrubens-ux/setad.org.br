@@ -1,14 +1,14 @@
 /* ============================================================
    auth.js — Autenticação de demonstração (sem backend)
    Perfis com permissão para cadastrar livros:
-   professor, diretor e autorizado (biblioteca).
+   diretor e coordenação (cadastro na biblioteca); professor só consulta.
    ============================================================ */
 
 /*
-  PERFIS_AUTORIZADOS_LIVROS — quem pode cadastrar na biblioteca.
-  Alunos NÃO estão nesta lista.
+  Gestão do acervo (livros e Bíblias): diretor e coordenação pedagógica.
+  Professores e alunos: somente leitura/consulta.
 */
-const PERFIS_AUTORIZADOS_LIVROS = ["professor", "diretor", "autorizado"];
+const PERFIS_GERENCIAM_BIBLIOTECA = ["diretor", "coordenacao"];
 
 const CREDENCIAIS = {
   aluno: {
@@ -87,6 +87,17 @@ function ambientePermiteDemonstracao() {
     /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
     /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)
   );
+}
+
+/** Login oculto do aluno — mesma regra de rede local; indisponível em setad.org.br. */
+function ambienteAcessoAlunoPorIp() {
+  return ambientePermiteDemonstracao();
+}
+
+function protegerPaginaLoginAlunoIp() {
+  if (ambienteAcessoAlunoPorIp()) return true;
+  window.location.replace("index.html");
+  return false;
 }
 
 function aplicarPoliticaDemonstracaoUi() {
@@ -586,7 +597,14 @@ function protegerPainel(tipo) {
  * Verifica se o usuário pode cadastrar, editar ou excluir livros.
  */
 function podeGerenciarLivros(sessao) {
-  return sessao && PERFIS_AUTORIZADOS_LIVROS.includes(sessao.perfil);
+  if (!sessao) return false;
+  if (typeof sessaoTemPerfilInstitucional === "function") {
+    return (
+      sessaoTemPerfilInstitucional(sessao, "diretor") ||
+      sessaoTemPerfilInstitucional(sessao, "coordenacao")
+    );
+  }
+  return PERFIS_GERENCIAM_BIBLIOTECA.indexOf(sessao.perfil) >= 0;
 }
 
 function podeCadastrarLivros(sessao) {

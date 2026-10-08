@@ -125,11 +125,23 @@ function validarDataUrlImagem(dataUrl) {
   return { ok: true };
 }
 
+/** Login oculto do aluno — só hostname de rede local (não setad.org.br). */
+function hostPermiteLoginAlunoRedeLocal(req) {
+  const host = (req.headers.host || "").split(":")[0].toLowerCase();
+  if (host === "localhost" || host === "127.0.0.1") return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (host.endsWith(".local")) return true;
+  if (process.env.NODE_ENV !== "production") return true;
+  return false;
+}
+
 module.exports = {
   corsPermitido,
   headersSeguranca,
   validarSegredosProducao,
   criarLimiteLogin,
   criarLimitePorIp,
-  validarDataUrlImagem
+  validarDataUrlImagem,
+  hostPermiteLoginAlunoRedeLocal
 };

@@ -220,7 +220,7 @@ function makeCollectionRoutes(pathName, table, writePerfis) {
 }
 
 makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "coordenacao", "professor"]);
-makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "professor", "autorizado"]);
+makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "coordenacao"]);
 makeCollectionRoutes("entregas", COLLECTIONS.entregas, STAFF_WRITE.concat(["aluno"]));
 makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"]);
 makeCollectionRoutes("funcionarios", COLLECTIONS.funcionarios, ["diretor", "contador"]);

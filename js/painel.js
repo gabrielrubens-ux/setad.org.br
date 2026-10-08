@@ -114,7 +114,9 @@ function inicializarPainel(tipo) {
 
     renderizarBiblioteca("bibliotecaGrid", sessao, "professor");
 
-    renderizarFormularioLivro(sessao);
+    if (typeof renderizarFormularioLivro === "function") {
+      renderizarFormularioLivro(sessao);
+    }
 
     renderizarMatriculasProfessor();
 
@@ -200,7 +202,7 @@ function atualizarTituloPainel(tabId, tipo) {
 
       titulo: "Biblioteca Teológica",
 
-      subtitulo: "Gerencie o acervo: cadastrar, editar e excluir livros (acesso autorizado)."
+      subtitulo: "Consulte livros e Bíblias para estudo — cadastro é da direção e da coordenação."
 
     },
 

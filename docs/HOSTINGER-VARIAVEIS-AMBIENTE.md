@@ -27,6 +27,15 @@ Perfis aceitos: `diretor`, `contador`, `secretaria`. Detalhes: `docs/STAFF-PRIME
 
 Depois do primeiro diretor ativo, use a API `/api/auth/staff/autorizados` para manter a lista.
 
+## Biblioteca — leitor de traduções (opcional)
+
+| Nome | Valor |
+|------|--------|
+| `SETAD_BIBLIAAPI_TOKEN` | Token Bearer da [BIBLIAAPI](https://bibliaapi.com.br/integrar) (conta gratuita) |
+| `SETAD_BIBLIAAPI_BASE` | Opcional; padrão `https://bibliaapi.com.br/api/v2` |
+
+Sem o token, o catálogo de Bíblias aparece na biblioteca, mas o leitor de capítulos informa que a API não está configurada.
+
 ## SMTP (código de verificação — aluno e staff)
 
 | Nome | Exemplo |

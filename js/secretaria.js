@@ -136,6 +136,12 @@ function configurarAbasSecretaria(titulosMap, sessao) {
       if (tabId === "tab-boletos" && typeof renderizarEmissaoBoletoSecretaria === "function") {
         renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);
       }
+      if (tabId === "tab-biblioteca" && typeof renderizarBiblioteca === "function") {
+        renderizarBiblioteca("bibliotecaGrid", sessao, "coordenacao");
+        if (typeof renderizarFormularioLivro === "function") {
+          renderizarFormularioLivro(sessao);
+        }
+      }
       if (tabId === "tab-impressao" && typeof renderizarCentralImpressaoSetad === "function") {
         renderizarCentralImpressaoSetad("impressaoSecretariaContainer", sessao);
       }

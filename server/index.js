@@ -8,12 +8,15 @@ const {
   garantirStaffAcessoTodasAreas,
   garantirStaffContabilidade
 } = require("./staff-bootstrap");
+const { garantirCatalogoBibliasEvangelicasPt } = require("./biblias-bootstrap");
+const bibliaRoutes = require("./routes/biblia");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
 const {
   corsPermitido,
   headersSeguranca,
-  validarSegredosProducao
+  validarSegredosProducao,
+  hostPermiteLoginAlunoRedeLocal
 } = require("./middleware/security");
 const { logStatusSmtpInicializacao, smtpConfigurado } = require("./services/email");
 
@@ -37,6 +40,7 @@ logStatusSmtpInicializacao();
 
 garantirStaffAcessoTodasAreas();
 garantirStaffContabilidade();
+garantirCatalogoBibliasEvangelicasPt();
 
 const app = express();
 
@@ -67,7 +71,15 @@ app.get("/api/health", function (_req, res) {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/biblia", bibliaRoutes);
 app.use("/api", dataRoutes);
+
+app.get("/login-aluno-ip.html", function (req, res) {
+  if (!hostPermiteLoginAlunoRedeLocal(req)) {
+    return res.redirect(302, "/");
+  }
+  res.sendFile(path.join(ROOT, "login-aluno-ip.html"));
+});
 
 app.use(express.static(ROOT, {
   index: "index.html",

@@ -21,9 +21,18 @@
     url("../assets/images/portal-marca-dagua.jpg") center/cover no-repeat;
 }
 
-.portal-marca-dagua > *:not(.modal-exclusao-aluno):not(.modal-biblioteca) {
+.portal-marca-dagua > *:not(.modal-exclusao-aluno):not(.modal-biblioteca):not(.wpp-float) {
   position: relative;
   z-index: 1;
+}
+
+/* Balão WhatsApp no portal (aluno/professor) — canto inferior, acima do conteúdo */
+body.portal-marca-dagua .wpp-float {
+  top: auto;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  transform: none;
+  z-index: 10040;
 }
 
 /* --- Página de login --- */
@@ -350,7 +359,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 10100;
 }
 
 .modal-biblioteca--aberto {
@@ -574,6 +583,10 @@
   color: var(--cor-texto-suave);
   line-height: 1.6;
   text-align: center;
+}
+
+.login-card--rede-local {
+  border: 1px dashed rgba(35, 64, 107, 0.35);
 }
 
 .login-card__demo.visible {
@@ -1019,6 +1032,15 @@
   border-color: var(--cor-acento);
 }
 
+.livro-card--consulta {
+  cursor: pointer;
+}
+
+.livro-card--consulta:focus-visible {
+  outline: 2px solid var(--cor-secundaria);
+  outline-offset: 2px;
+}
+
 .livro-card__cover {
   height: 160px;
   background-size: cover;
@@ -1146,6 +1168,13 @@
 
 .livro-visualizador {
   margin-top: 1rem;
+}
+
+.livro-visualizador__dica {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
 }
 
 .livro-visualizador__frame {
@@ -3244,6 +3273,93 @@
   padding-left: 1.25rem;
   color: #4a5568;
   line-height: 1.55;
+}
+
+/* Leitor bíblico — biblioteca */
+.biblia-leitor {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(35, 64, 107, 0.14);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.biblia-leitor__aviso {
+  font-size: 0.85rem;
+  color: #5a6578;
+  margin: 0 0 0.75rem;
+}
+
+.biblia-leitor__busca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.biblia-leitor__busca-label {
+  flex: 1;
+  min-width: 12rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.biblia-leitor__busca-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.biblia-leitor__busca-resultados {
+  margin-top: 1rem;
+  max-height: 40vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--cor-borda);
+  padding-top: 0.75rem;
+}
+
+.biblia-leitor__versiculo--busca {
+  font-size: 0.9rem;
+}
+
+.biblia-leitor__controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.biblia-leitor__select,
+.biblia-leitor__cap {
+  min-width: 8rem;
+}
+
+.biblia-leitor__status {
+  font-size: 0.9rem;
+  color: #23406b;
+  margin-bottom: 0.5rem;
+}
+
+.biblia-leitor__cab {
+  margin: 0 0 0.65rem;
+  color: #23406b;
+}
+
+.biblia-leitor__texto {
+  max-height: 50vh;
+  overflow-y: auto;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.biblia-leitor__versiculo {
+  margin: 0 0 0.45rem;
 }
 
 .polo-contab__dev {
