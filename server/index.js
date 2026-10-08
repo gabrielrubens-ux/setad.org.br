@@ -4,7 +4,10 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
 const { importarAutorizadosIniciais } = require("./staff-ativacao");
-const { garantirStaffAcessoTodasAreas } = require("./staff-bootstrap");
+const {
+  garantirStaffAcessoTodasAreas,
+  garantirStaffContabilidade
+} = require("./staff-bootstrap");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
 const {
@@ -33,6 +36,7 @@ logStatusSmtpInicializacao();
 })();
 
 garantirStaffAcessoTodasAreas();
+garantirStaffContabilidade();
 
 const app = express();
 

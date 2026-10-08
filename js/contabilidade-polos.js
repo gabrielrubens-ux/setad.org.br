@@ -7,6 +7,12 @@ var CONTAB_POLOS_KEYS = {
 
 var CONTAB_POLOS_EMAILS_AUTORIZADOS = ["kathlensantiago@gmail.com"];
 
+/** Equipe de contabilidade — painel do contador e contabilidade dos polos. */
+var CONTAB_POLOS_EMAILS_CONTABILIDADE = [
+  "rafaeladmtc@gmail.com",
+  "rsgestaofinanceirapa@gmail.com"
+];
+
 /** Rede local / IP — visualização e edição para o programador (localhost, LAN). */
 var CONTAB_POLOS_EMAILS_PROGRAMADOR = [
   "gabrielrubens0@gmail.com",
@@ -76,6 +82,7 @@ function usuarioPodeAcessarContabilidadePolos(sessao) {
   }
 
   if (CONTAB_POLOS_EMAILS_AUTORIZADOS.indexOf(email) >= 0) return true;
+  if (CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0) return true;
   if (typeof sessaoTemPerfilInstitucional === "function") {
     if (sessaoTemPerfilInstitucional(sessao, "diretor")) return true;
     if (sessaoTemPerfilInstitucional(sessao, "contador")) return true;
@@ -475,7 +482,7 @@ function renderizarTelaSenhaContabPolos(container, sessao) {
     '<div class="polo-contab polo-contab--gate">' +
     '<h2 class="polo-contab__titulo">Contabilidade dos Polos</h2>' +
     '<p class="section__text">Área restrita. Confirme com a <strong>mesma senha do login</strong> institucional.</p>' +
-    '<p class="presencial-bloco__hint">Acesso autorizado: Kathlen Santiago (secretaria), direção e contabilidade.</p>' +
+    '<p class="presencial-bloco__hint">Acesso autorizado: Kathlen (secretaria), direção e contabilidade (rafaeladmtc@gmail.com, rsgestaofinanceirapa@gmail.com).</p>' +
     '<form id="formSenhaContabPolos" class="polo-contab__gate-form">' +
     '<div class="form-group"><label for="contabPolosSenha">Senha</label>' +
     '<input type="password" id="contabPolosSenha" autocomplete="current-password" required></div>' +
@@ -512,7 +519,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
       '<ul class="polo-contab__lista-acesso">' +
       "<li>Kathlen Santiago — <code>kathlensantiago@gmail.com</code></li>" +
       "<li>Direção SETAD</li>" +
-      "<li>Contabilidade</li>" +
+      "<li>Contabilidade — <code>rafaeladmtc@gmail.com</code>, <code>rsgestaofinanceirapa@gmail.com</code></li>" +
       "</ul>" +
       '<p class="presencial-bloco__hint">Se você precisa de acesso, procure a direção ou a contabilidade.</p>' +
       "</div>";

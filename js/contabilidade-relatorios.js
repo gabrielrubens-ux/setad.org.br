@@ -29,8 +29,20 @@ const PUBLICOS_LIBERACAO_CONTAB = [
   { id: "diretoria", label: "Diretoria SETAD", perfis: ["diretor"] }
 ];
 
+var CONTABILIDADE_EMAILS_EQUIPE = [
+  "rafaeladmtc@gmail.com",
+  "rsgestaofinanceirapa@gmail.com"
+];
+
 function usuarioPodeAcessarContabilidade(sessao) {
-  return sessao && (sessao.perfil === "diretor" || sessao.perfil === "contador");
+  if (!sessao) return false;
+  if (sessao.perfil === "diretor" || sessao.perfil === "contador") return true;
+  if (typeof sessaoTemPerfilInstitucional === "function") {
+    if (sessaoTemPerfilInstitucional(sessao, "diretor")) return true;
+    if (sessaoTemPerfilInstitucional(sessao, "contador")) return true;
+  }
+  var email = (sessao.email || "").trim().toLowerCase();
+  return CONTABILIDADE_EMAILS_EQUIPE.indexOf(email) >= 0;
 }
 
 function contabApiAtivo() {

@@ -16,6 +16,28 @@ const STAFF_ACESSO_TODAS_AREAS = [
   { email: "gabrielrubens0@gmail.com", nome: "Gabriel Rubens" }
 ];
 
+/** Contabilidade SETAD — painel do contador e dados financeiros (primeiro acesso por e-mail). */
+const STAFF_CONTABILIDADE = [
+  { email: "rafaeladmtc@gmail.com", nome: "Rafael Gadelha" },
+  { email: "rsgestaofinanceirapa@gmail.com", nome: "RS Gestão Financeira PA" }
+];
+
+function garantirStaffContabilidade() {
+  STAFF_CONTABILIDADE.forEach(function (item) {
+    const resultado = upsertAutorizado(item.email, item.nome, "contador", ["contador"]);
+    if (resultado.ok) {
+      console.log(
+        "[SETAD] Contabilidade sincronizada:",
+        item.email,
+        "→",
+        resultado.perfis.join(", ")
+      );
+    } else {
+      console.warn("[SETAD] Falha ao sincronizar contabilidade de", item.email, resultado.erro);
+    }
+  });
+}
+
 function garantirStaffAcessoTodasAreas() {
   STAFF_ACESSO_TODAS_AREAS.forEach(function (item) {
     const resultado = upsertAutorizado(
@@ -40,5 +62,7 @@ function garantirStaffAcessoTodasAreas() {
 module.exports = {
   PERFIS_TODAS_AREAS_INSTITUCIONAIS,
   STAFF_ACESSO_TODAS_AREAS,
-  garantirStaffAcessoTodasAreas
+  STAFF_CONTABILIDADE,
+  garantirStaffAcessoTodasAreas,
+  garantirStaffContabilidade
 };
