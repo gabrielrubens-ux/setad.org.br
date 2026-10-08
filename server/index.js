@@ -8,7 +8,7 @@ const {
   garantirStaffAcessoTodasAreas,
   garantirStaffContabilidade
 } = require("./staff-bootstrap");
-const { garantirCatalogoBibliasEvangelicasPt } = require("./biblias-bootstrap");
+const { aplicarZeragemAcervoBiblioteca } = require("./biblioteca-acervo");
 const bibliaRoutes = require("./routes/biblia");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
@@ -40,7 +40,7 @@ logStatusSmtpInicializacao();
 
 garantirStaffAcessoTodasAreas();
 garantirStaffContabilidade();
-garantirCatalogoBibliasEvangelicasPt();
+aplicarZeragemAcervoBiblioteca();
 
 const app = express();
 

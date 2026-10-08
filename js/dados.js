@@ -100,53 +100,10 @@ const TRABALHOS_ATRIBUIDOS = [
   }
 ];
 
-/* Acervo inicial da biblioteca teológica */
-const LIVROS_INICIAIS = [
-  {
-    id: "liv-001",
-    titulo: "Bíblia de Estudo Andrews",
-    autor: "Editora Cultura Cristã",
-    categoria: "Bíblia de Estudo",
-    capaUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
-    cadastradoPor: "Sistema SETAD",
-    perfilCadastro: "diretor",
-    descricao: "Bíblia com notas de rodapé, referências cruzadas e comentários teológicos para estudo aprofundado.",
-    conteudoEstudo: "Gênesis 1:1 — No princípio, criou Deus os céus e a terra. Estudo introdutório sobre a criação e a soberania de Deus conforme o relato bíblico."
-  },
-  {
-    id: "liv-002",
-    titulo: "Teologia Sistemática — Berkhof",
-    autor: "Louis Berkhof",
-    categoria: "Teologia Sistemática",
-    capaUrl: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&q=80",
-    cadastradoPor: "Sistema SETAD",
-    perfilCadastro: "diretor",
-    descricao: "Obra clássica de teologia reformada organizada por doutrinas.",
-    conteudoEstudo: "Cap. 1 — A necessidade da teologia sistemática: a fé cristã busca compreensão ordenada das verdades reveladas por Deus nas Escrituras."
-  },
-  {
-    id: "liv-003",
-    titulo: "Como Interpretar a Bíblia",
-    autor: "Walter C. Kaiser Jr.",
-    categoria: "Hermenêutica",
-    capaUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&q=80",
-    cadastradoPor: "Sistema SETAD",
-    perfilCadastro: "diretor",
-    descricao: "Introdução aos princípios de interpretação bíblica.",
-    conteudoEstudo: "Princípio 1 — O contexto literário e histórico é essencial para interpretar corretamente qualquer passagem bíblica."
-  },
-  {
-    id: "liv-004",
-    titulo: "Bíblia Thompson — Referências Cruzadas",
-    autor: "Ed. Vida",
-    categoria: "Bíblia de Estudo",
-    capaUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&q=80",
-    cadastradoPor: "Sistema SETAD",
-    perfilCadastro: "diretor",
-    descricao: "Bíblia de estudo com cadeia de referências temáticas ao longo do texto.",
-    conteudoEstudo: "João 3:16 — Referências cruzadas: Romanos 5:8; 1 João 4:9. Tema central: o amor de Deus manifestado na redenção."
-  }
-];
+/* Acervo inicial vazio — livros só via cadastro institucional */
+const LIVROS_INICIAIS = [];
+
+const META_BIBLIOTECA_ZERADA_LOCAL = "setad_biblioteca_zerada_v1";
 
 const CATEGORIAS_LIVRO = [
   "Bíblia — Tradução evangélica",
@@ -212,26 +169,13 @@ function inicializarDadosPadrao() {
  * Atualiza livros antigos com campos de estudo (descricao, conteudoEstudo).
  */
 function migrarBiblioteca() {
-  const dados = localStorage.getItem(STORAGE_KEYS.biblioteca);
-  if (!dados) return;
+  if (setadApiAtivo()) {
+    return;
+  }
 
-  const livros = JSON.parse(dados);
-  let alterou = false;
-
-  LIVROS_INICIAIS.forEach(function (inicial) {
-    const livro = livros.find(function (l) { return l.id === inicial.id; });
-    if (livro && !livro.conteudoEstudo) {
-      livro.descricao = livro.descricao || inicial.descricao;
-      livro.conteudoEstudo = inicial.conteudoEstudo;
-      alterou = true;
-    }
-  });
-
-  if (alterou) salvarLivros(livros);
-
-  if (typeof mesclarCatalogoBibliasNoAcervo === "function") {
-    var merge = mesclarCatalogoBibliasNoAcervo(livros);
-    if (merge.alterou) salvarLivros(merge.livros);
+  if (!localStorage.getItem(META_BIBLIOTECA_ZERADA_LOCAL)) {
+    localStorage.setItem(STORAGE_KEYS.biblioteca, JSON.stringify([]));
+    localStorage.setItem(META_BIBLIOTECA_ZERADA_LOCAL, "1");
   }
 }
 
@@ -265,15 +209,7 @@ function obterEntregaDoAluno(trabalhoId, alunoEmail) {
 function obterLivros() {
   inicializarDadosPadrao();
   if (setadApiAtivo()) {
-    var livrosApi = (setadGetCache("livros") || []).slice();
-    if (typeof mesclarCatalogoBibliasNoAcervo === "function") {
-      var mergeApi = mesclarCatalogoBibliasNoAcervo(livrosApi);
-      if (mergeApi.alterou) {
-        setadSetCache("livros", mergeApi.livros, "livros");
-        return mergeApi.livros.slice();
-      }
-    }
-    return livrosApi;
+    return (setadGetCache("livros") || []).slice();
   }
   const dados = localStorage.getItem(STORAGE_KEYS.biblioteca);
   return dados ? JSON.parse(dados) : [];

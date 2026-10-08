@@ -83,28 +83,7 @@ function montarLivrosCatalogoBibliasPt() {
   return lista;
 }
 
+/** Desativado: acervo não recebe mais Bíblias automáticas do catálogo. */
 function mesclarCatalogoBibliasNoAcervo(livros) {
-  var catalogo = montarLivrosCatalogoBibliasPt();
-  var mapa = {};
-  livros.forEach(function (l) {
-    mapa[l.id] = l;
-  });
-  var alterou = false;
-  catalogo.forEach(function (item) {
-    if (!mapa[item.id]) {
-      livros.push(item);
-      alterou = true;
-    } else {
-      var existente = mapa[item.id];
-      ["tipoAcervo", "versaoApi", "categoria", "descricao", "conteudoEstudo", "titulo", "autor"].forEach(
-        function (campo) {
-          if (item[campo] != null && item[campo] !== "" && existente[campo] !== item[campo]) {
-            existente[campo] = item[campo];
-            alterou = true;
-          }
-        }
-      );
-    }
-  });
-  return { livros: livros, alterou: alterou };
+  return { livros: livros, alterou: false };
 }
