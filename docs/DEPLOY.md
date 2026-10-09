@@ -246,10 +246,12 @@ pm2 status
 
 ## App Android (Capacitor)
 
-Antes de gerar o APK, confira `js/app-config.js`:
+Antes de gerar o APK/AAB, confira `js/app-config.js`:
 
 - `API_BASE`: `https://SEU_DOMINIO/api`
 - `SITE_URL`: `https://SEU_DOMINIO`
+
+JDK 21+, SDK, `local.properties`, keystore e checklist da Play Store: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)**.
 
 ---
 

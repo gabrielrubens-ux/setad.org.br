@@ -6,8 +6,15 @@ data/
 *.db-journal
 uploads/
 www/
-android/
+# Capacitor Android — build local; versionar só o exemplo de SDK
+android/**
+!android/local.properties.example
 ios/
 .capacitor/
 resources/android/
 resources/ios/
+# Keystore e assinatura Android (só na máquina de build)
+*.jks
+*.keystore
+keystore.properties
+android/keystore.properties
