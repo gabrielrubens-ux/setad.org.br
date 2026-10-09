@@ -129,7 +129,7 @@ Artefato esperado:
 
 - [ ] Instalar build de teste no celular (debug ou internal testing).
 - [ ] Login aluno e professor, painéis principais, logout.
-- [ ] API em produção: `https://setad.org.br/api/health`
+- [x] API em produção: `https://setad.org.br/api/health` — `ok: true` (08/10/2026)
 
 ### 6. Google Play Console
 

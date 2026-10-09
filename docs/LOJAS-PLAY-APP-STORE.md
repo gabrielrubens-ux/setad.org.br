@@ -11,6 +11,8 @@ Detalhes de JDK, SDK, keystore e AAB: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-S
 
 **URL de privacidade (lojas):** `https://setad.org.br/privacidade.html`
 
+**Produção validada em 08/10/2026:** `privacidade.html` publicada; `GET /api/health` retorna `ok: true`.
+
 ---
 
 ## Progresso no repositório (atualizado)
@@ -21,6 +23,7 @@ Detalhes de JDK, SDK, keystore e AAB: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-S
 | Scripts `cap:android` / `cap:ios` / `cap:assets` | Feito |
 | Documentação Android + lojas | Feito |
 | Página `privacidade.html` + link no rodapé | Feito |
+| `privacidade.html` e `/api/health` em produção | Feito (revalidar após deploy) |
 | `local.properties.example` | Feito |
 | Gradle: `signing-release.gradle` + `keystore.properties.example` | Feito (falta criar keystore local) |
 | Conta Play / Apple + envio às lojas | Pendente |
@@ -56,8 +59,8 @@ npm run cap:sync
 ## Checklist comum (ambas as lojas)
 
 - [x] `js/app-config.js` com API e site de produção
-- [x] **Política de privacidade** em URL pública — `privacidade.html` (publicar no servidor após deploy)
-- [ ] `https://setad.org.br/api/health` responde `ok: true` (validar após cada deploy)
+- [x] **Política de privacidade** em URL pública — [privacidade.html](https://setad.org.br/privacidade.html) (ok em 08/10/2026)
+- [x] [`/api/health`](https://setad.org.br/api/health) responde `ok: true` (ok em 08/10/2026; revalidar após cada deploy)
 - [ ] Login aluno (e-mail + código) e fluxos principais testados no celular
 - [ ] Conta de suporte / e-mail institucional na ficha da loja
 - [ ] Contas **demo** para revisão (Apple costuma pedir login de teste)
@@ -89,7 +92,7 @@ npm run cap:sync
 - [ ] Faixa **teste interno** → depois produção
 - [ ] Data safety, classificação de conteúdo, descrições PT
 - [ ] Feature graphic 1024×500, screenshots de telefone
-- [ ] URL privacidade: `https://setad.org.br/privacidade.html`
+- [x] URL privacidade: `https://setad.org.br/privacidade.html` (ok em 08/10/2026)
 
 ---
 
@@ -119,7 +122,7 @@ npm run cap:sync
 - [ ] Novo app, bundle `org.setad.seminario`
 - [ ] Metadados, screenshots (tamanhos exigidos por modelo de iPhone)
 - [ ] **App Privacy** (nutrition labels): login, e-mail, dados acadêmicos, etc.
-- [ ] URL de política de privacidade (`https://setad.org.br/privacidade.html`)
+- [x] URL de política de privacidade (`https://setad.org.br/privacidade.html` — ok em 08/10/2026)
 - [ ] Credenciais de teste na nota para o revisor
 
 ---
