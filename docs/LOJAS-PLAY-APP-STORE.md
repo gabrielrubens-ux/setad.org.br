@@ -9,6 +9,24 @@ O app é **Capacitor** (WebView do portal) com `appId` **`org.setad.seminario`**
 
 Detalhes de JDK, SDK, keystore e AAB: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)**.
 
+**URL de privacidade (lojas):** `https://setad.org.br/privacidade.html`
+
+---
+
+## Progresso no repositório (atualizado)
+
+| Item | Status |
+|------|--------|
+| Capacitor + `app-config` produção | Feito |
+| Scripts `cap:android` / `cap:ios` / `cap:assets` | Feito |
+| Documentação Android + lojas | Feito |
+| Página `privacidade.html` + link no rodapé | Feito |
+| `local.properties.example` | Feito |
+| Gradle: `signing-release.gradle` + `keystore.properties.example` | Feito (falta criar keystore local) |
+| Conta Play / Apple + envio às lojas | Pendente |
+| Screenshots, feature graphic, contas demo | Pendente |
+| Build iOS no Mac | Pendente |
+
 ---
 
 ## Scripts npm (raiz do projeto)
@@ -37,9 +55,10 @@ npm run cap:sync
 
 ## Checklist comum (ambas as lojas)
 
-- [ ] `https://setad.org.br/api/health` responde `ok: true`
+- [x] `js/app-config.js` com API e site de produção
+- [x] **Política de privacidade** em URL pública — `privacidade.html` (publicar no servidor após deploy)
+- [ ] `https://setad.org.br/api/health` responde `ok: true` (validar após cada deploy)
 - [ ] Login aluno (e-mail + código) e fluxos principais testados no celular
-- [ ] **Política de privacidade** em URL pública (obrigatório)
 - [ ] Conta de suporte / e-mail institucional na ficha da loja
 - [ ] Contas **demo** para revisão (Apple costuma pedir login de teste)
 - [ ] Textos, screenshots e ícone 1024×1024
@@ -51,15 +70,18 @@ npm run cap:sync
 
 ### Conta e custo
 
-- [Google Play Console](https://play.google.com/console) — taxa única (~US$ 25)
-- Perfil da organização (SETAD — sem fins lucrativos)
+- [ ] [Google Play Console](https://play.google.com/console) — taxa única (~US$ 25)
+- [ ] Perfil da organização (SETAD — sem fins lucrativos)
 
 ### Build
 
-1. Android Studio com JDK do Studio (Java 21+) e SDK API 35 — ver [ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md).
-2. `copy android\local.properties.example android\local.properties` e ajuste `sdk.dir`.
-3. **Keystore de upload** — nunca commitar (ver checklist de assinatura no guia Android).
-4. **Generate Signed App Bundle** → enviar **AAB** (não APK simples para produção).
+- [x] Documentação JDK/SDK — [ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)
+- [x] `android/local.properties.example`
+- [x] Template Gradle `android/app/signing-release.gradle` + `keystore.properties.example`
+- [ ] Copiar `local.properties.example` → `local.properties` e ajustar `sdk.dir`
+- [ ] Gerar keystore de upload e `keystore.properties` (não commitar)
+- [ ] `gradlew bundleRelease` ou **Signed App Bundle** no Android Studio
+- [ ] Testar AAB em faixa **teste interno** antes de produção
 
 ### Play Console
 
@@ -67,6 +89,7 @@ npm run cap:sync
 - [ ] Faixa **teste interno** → depois produção
 - [ ] Data safety, classificação de conteúdo, descrições PT
 - [ ] Feature graphic 1024×500, screenshots de telefone
+- [ ] URL privacidade: `https://setad.org.br/privacidade.html`
 
 ---
 
@@ -74,8 +97,8 @@ npm run cap:sync
 
 ### Conta e custo
 
-- [Apple Developer Program](https://developer.apple.com/programs/) — ~US$ 99/ano
-- Entidade: pode exigir D-U-N-S e documentos da organização
+- [ ] [Apple Developer Program](https://developer.apple.com/programs/) — ~US$ 99/ano
+- [ ] Entidade: pode exigir D-U-N-S e documentos da organização
 
 ### Ambiente (só Mac)
 
@@ -96,7 +119,7 @@ npm run cap:sync
 - [ ] Novo app, bundle `org.setad.seminario`
 - [ ] Metadados, screenshots (tamanhos exigidos por modelo de iPhone)
 - [ ] **App Privacy** (nutrition labels): login, e-mail, dados acadêmicos, etc.
-- [ ] URL de política de privacidade
+- [ ] URL de política de privacidade (`https://setad.org.br/privacidade.html`)
 - [ ] Credenciais de teste na nota para o revisor
 
 ---
@@ -105,8 +128,8 @@ npm run cap:sync
 
 Conforme `.gitignore`:
 
-- `www/`, `android/**` (exceto `android/local.properties.example`), `ios/`
-- Keystores (`*.jks`, `*.keystore`), `keystore.properties`, `.env*`
+- `www/`, `android/**` (exceto exemplos e `signing-release.gradle`), `ios/`
+- Keystores (`*.jks`, `*.keystore`), `keystore.properties`, `local.properties`, `.env*`
 
 ---
 
@@ -115,5 +138,6 @@ Conforme `.gitignore`:
 - `capacitor.config.json` — `appId`, splash, status bar
 - `js/app-config.js` — `API_BASE` / `SITE_URL` para o app nativo
 - `js/native-bridge.js` + `js/api-client.js` — token Bearer no app
+- `privacidade.html` — política para lojas e LGPD
 - `scripts/prepare-www.mjs` — páginas copiadas para o bundle
 - [DEPLOY.md](./DEPLOY.md) — servidor e site em produção

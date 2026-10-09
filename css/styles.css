@@ -1508,6 +1508,21 @@ body.has-radio-player .contato-setad {
   color: rgba(255, 255, 255, 0.72);
 }
 
+.contato-setad__legal {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.contato-setad__legal a {
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+}
+
+.contato-setad__legal a:hover {
+  text-decoration: underline;
+  color: var(--cor-branco);
+}
+
 .contato-setad__topo {
   font-size: 0.85rem;
   font-weight: 600;

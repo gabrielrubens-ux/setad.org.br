@@ -93,19 +93,19 @@ keytool -genkey -v -keystore setad-upload.jks -keyalg RSA -keysize 2048 -validit
 
 ### 2. Configurar assinatura no projeto (recomendado)
 
-- [ ] Criar `android/keystore.properties` **local** (não commitar) com:
+- [x] Template no repositório: `android/app/signing-release.gradle` (aplicado se existir `keystore.properties`).
+- [x] Exemplo: `android/keystore.properties.example` — copie para `android/keystore.properties` (não commitar).
+- [ ] Criar keystore de upload (`keytool` ou Android Studio) e preencher `keystore.properties` com senhas reais.
+- [ ] Confirmar que `android/app/build.gradle` termina com o bloco abaixo (após `cap add android`, recole se o Capacitor regenerar o arquivo):
 
-  ```properties
-  storeFile=../caminho/para/setad-upload.jks
-  storePassword=SUA_SENHA
-  keyAlias=setad-upload
-  keyPassword=SUA_SENHA
+  ```gradle
+  def setadKeystoreProps = rootProject.file("keystore.properties")
+  if (setadKeystoreProps.exists()) {
+      apply from: "signing-release.gradle"
+  }
   ```
 
-- [ ] Em `android/app/build.gradle`, referenciar `signingConfigs` para `release` (somente na sua máquina ou via arquivo ignorado pelo Git).
-- [ ] Adicionar `keystore.properties` e `*.jks` ao `.gitignore` se ainda não estiverem.
-
-**Alternativa:** assinar só pelo assistente do Android Studio (sem editar Gradle), gerando o **AAB** assinado uma vez.
+**Alternativa:** assinar só pelo assistente do Android Studio (**Generate Signed App Bundle**), sem `keystore.properties`.
 
 ### 3. Versão do app
 

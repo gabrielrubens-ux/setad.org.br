@@ -1,0 +1,36 @@
+// Assinatura release SETAD — aplicado só se existir android/keystore.properties.
+// Ver android/keystore.properties.example e docs/ANDROID-PLAY-STORE.md.
+
+def keystorePropsFile = rootProject.file("keystore.properties")
+if (!keystorePropsFile.exists()) {
+    return
+}
+
+def keystoreProps = new Properties()
+keystoreProps.load(new FileInputStream(keystorePropsFile))
+
+def storeFileProp = keystoreProps["storeFile"]
+if (storeFileProp == null || storeFileProp.toString().trim().isEmpty()) {
+    throw new GradleException("keystore.properties: storeFile é obrigatório.")
+}
+
+def storeFileResolved = rootProject.file(storeFileProp.toString())
+if (!storeFileResolved.isFile()) {
+    throw new GradleException("Keystore não encontrado: " + storeFileResolved.absolutePath)
+}
+
+android {
+    signingConfigs {
+        release {
+            keyAlias keystoreProps["keyAlias"]
+            keyPassword keystoreProps["keyPassword"]
+            storeFile storeFileResolved
+            storePassword keystoreProps["storePassword"]
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}

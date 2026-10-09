@@ -552,6 +552,36 @@ body.portal-marca-dagua .wpp-float {
   max-width: 460px;
 }
 
+.privacidade-setad.login-card--institucional {
+  max-width: min(720px, calc(100% - 2rem));
+  margin-bottom: 2rem;
+}
+
+.privacidade-setad__corpo {
+  text-align: left;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  margin: 1.25rem 0;
+  color: var(--cor-texto);
+}
+
+.privacidade-setad__corpo h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--cor-destaque);
+}
+
+.privacidade-setad__corpo ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.privacidade-setad__corpo a {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
 .login-card__tabs--tres .login-card__tab {
   font-size: 0.78rem;
   padding: 0.6rem 0.5rem;

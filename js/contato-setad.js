@@ -101,6 +101,7 @@
                 '<li><a href="' + base + 'polos/">Nossos polos</a></li>' +
                 '<li><a href="' + home + '#localizacao">Onde estamos</a></li>' +
                 '<li><a href="' + home + '#informacoes">Informações do seminário</a></li>' +
+                '<li><a href="' + base + 'privacidade.html">Política de privacidade</a></li>' +
               "</ul>" +
               '<h3 class="contato-setad__titulo">Comunicação</h3>' +
               '<ul class="contato-setad__lista">' +
@@ -147,6 +148,7 @@
         "</div>" +
         '<div class="contato-setad__rodape">' +
           '<p class="contato-setad__copyright">&copy; 2026 SETAD — Seminário Teológico. Todos os direitos reservados.</p>' +
+          '<p class="contato-setad__legal"><a href="' + base + 'privacidade.html">Política de privacidade</a></p>' +
           '<a href="' + home + '#inicio" class="contato-setad__topo">Voltar ao topo &uarr;</a>' +
         "</div>" +
       "</div>" +

@@ -6,9 +6,13 @@ data/
 *.db-journal
 uploads/
 www/
-# Capacitor Android — build local; versionar só o exemplo de SDK
-android/**
+# Capacitor Android — build local; versionar só exemplos e signing-release.gradle
+android/*
 !android/local.properties.example
+!android/keystore.properties.example
+!android/app/
+android/app/*
+!android/app/signing-release.gradle
 ios/
 .capacitor/
 resources/android/

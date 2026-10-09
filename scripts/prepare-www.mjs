@@ -20,6 +20,7 @@ const COPY_FILES = [
   "login-professor.html",
   "login-direcao.html",
   "escolher-area-institucional.html",
+  "privacidade.html",
   "recuperar-senha-institucional.html",
   "painel-aluno.html",
   "painel-professor.html",

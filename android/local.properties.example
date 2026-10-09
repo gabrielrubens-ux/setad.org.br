@@ -1,9 +1,2 @@
-# Copie este arquivo para android/local.properties na sua máquina.
-# O arquivo local.properties NÃO deve ir para o Git (caminho do SDK é pessoal).
-#
-#   copy local.properties.example local.properties
-#
-# Ajuste sdk.dir para o Android SDK instalado no seu PC.
-# No Windows, use barras invertidas escapadas (como abaixo) ou barras normais.
-
+# Copie para android/local.properties (não commitar). Ajuste sdk.dir ao seu SDK.
 sdk.dir=C\:\\android\\sdk
