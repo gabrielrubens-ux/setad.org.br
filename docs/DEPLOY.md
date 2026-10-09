@@ -251,7 +251,8 @@ Antes de gerar o APK/AAB, confira `js/app-config.js`:
 - `API_BASE`: `https://SEU_DOMINIO/api`
 - `SITE_URL`: `https://SEU_DOMINIO`
 
-JDK 21+, SDK, `local.properties`, keystore e checklist da Play Store: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)**.
+Publicação nas lojas (Play + App Store) e scripts `cap:ios`: **[LOJAS-PLAY-APP-STORE.md](./LOJAS-PLAY-APP-STORE.md)**.  
+Android (JDK, SDK, keystore, AAB): **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)**.
 
 ---
 

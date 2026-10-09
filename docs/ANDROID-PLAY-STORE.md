@@ -2,6 +2,8 @@
 
 Guia para build local (Capacitor) e publicação na **Google Play**. Não commite senhas, keystores nem `local.properties`.
 
+Visão geral Play + App Store: **[LOJAS-PLAY-APP-STORE.md](./LOJAS-PLAY-APP-STORE.md)**.
+
 ---
 
 ## Pré-requisitos no PC
