@@ -14,8 +14,10 @@ A API da Hostinger **substitui a lista inteira** ao salvar — sempre envie o co
 | `NODE_ENV` | `production` |
 | `JWT_SECRET` | chave aleatória com **32+ caracteres** (ver `.env.hostinger.local` local) |
 | `SETAD_PUBLIC_URL` | `https://blue-swan-895519.hostingersite.com` ou `https://setad.org.br` |
-| `SETAD_DB_PATH` | `./data/setad.db` (recomendado) |
-| `SETAD_UPLOADS_DIR` | `./data/uploads` |
+| `SETAD_DB_PATH` | Caminho **absoluto** persistente — ex.: `/home/u378124100/.setad-data/setad.db` (ver [HOSTINGER-PERSISTENCIA-DADOS.md](./HOSTINGER-PERSISTENCIA-DADOS.md)) |
+| `SETAD_UPLOADS_DIR` | Mesma pasta persistente — ex.: `/home/u378124100/.setad-data/uploads` |
+
+**Não use** `./data/setad.db` em produção com deploy Git: o banco pode ser perdido a cada publicação.
 
 ## Quem pode criar senha (primeiro acesso institucional)
 

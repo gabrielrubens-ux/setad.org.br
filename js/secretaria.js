@@ -301,9 +301,69 @@ function executarRestauracaoMatriculas(items, origemLabel) {
     });
 }
 
+function baixarArquivoMatriculasJson(lista) {
+  var msgEl = document.getElementById("restaurarMatriculasMsg");
+  var itens = Array.isArray(lista) ? lista : [];
+  var payload = {
+    exportadoEm: new Date().toISOString(),
+    origem: "setad.org.br",
+    total: itens.length,
+    items: itens
+  };
+  var nomeArquivo =
+    "setad-matriculas-" + new Date().toISOString().slice(0, 10) + ".json";
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json;charset=utf-8"
+  });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  if (msgEl) {
+    msgEl.className = "form-mensagem form-mensagem--sucesso visible";
+    msgEl.textContent =
+      "Exportado " + itens.length + " matrícula(s) em " + nomeArquivo + ". Guarde o arquivo em local seguro.";
+  }
+}
+
+function exportarMatriculasSecretariaJson() {
+  if (typeof SETADApi !== "undefined" && window.SETAD && SETAD.apiAtivo && SETADApi.get) {
+    SETADApi.get("/matriculas")
+      .then(function (resposta) {
+        if (resposta.ok && Array.isArray(resposta.items)) {
+          baixarArquivoMatriculasJson(resposta.items);
+          return;
+        }
+        baixarArquivoMatriculasJson(obterMatriculas());
+      })
+      .catch(function () {
+        baixarArquivoMatriculasJson(obterMatriculas());
+      });
+    return;
+  }
+  baixarArquivoMatriculasJson(obterMatriculas());
+}
+
+function extrairListaMatriculasDoJson(parsed) {
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed && Array.isArray(parsed.items)) return parsed.items;
+  if (parsed && Array.isArray(parsed.matriculas)) return parsed.matriculas;
+  return null;
+}
+
 function configurarRestauracaoMatriculasSecretaria() {
+  var btnExport = document.getElementById("btnExportarMatriculasJson");
   var btnLocal = document.getElementById("btnRestaurarMatriculasLocal");
   var inputJson = document.getElementById("inputRestaurarMatriculasJson");
+  if (btnExport && !btnExport.dataset.bound) {
+    btnExport.dataset.bound = "1";
+    btnExport.addEventListener("click", exportarMatriculasSecretariaJson);
+  }
   if (btnLocal && !btnLocal.dataset.bound) {
     btnLocal.dataset.bound = "1";
     btnLocal.addEventListener("click", function () {
@@ -323,7 +383,7 @@ function configurarRestauracaoMatriculasSecretaria() {
       leitor.onload = function () {
         try {
           var parsed = JSON.parse(String(leitor.result || ""));
-          var lista = Array.isArray(parsed) ? parsed : parsed.items;
+          var lista = extrairListaMatriculasDoJson(parsed);
           if (!Array.isArray(lista)) {
             throw new Error("JSON inválido");
           }

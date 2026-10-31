@@ -3,6 +3,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
+const { getStorageInfo } = require("./db");
 const { importarAutorizadosIniciais } = require("./staff-ativacao");
 const {
   garantirStaffAcessoTodasAreas,
@@ -22,6 +23,7 @@ const { logStatusSmtpInicializacao, smtpConfigurado } = require("./services/emai
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
+const storage = getStorageInfo();
 
 validarSegredosProducao();
 seedIfNeeded();
@@ -58,7 +60,7 @@ app.use(cors({
 
 app.use(express.json({ limit: "12mb" }));
 app.use(cookieParser());
-app.use("/uploads", express.static(path.join(ROOT, "data", "uploads")));
+app.use("/uploads", express.static(storage.uploadsDir));
 
 app.get("/api/health", function (_req, res) {
   res.json({
@@ -96,4 +98,12 @@ app.listen(PORT, "0.0.0.0", function () {
   console.log("[SETAD] Servidor em http://localhost:" + PORT);
   console.log("[SETAD] Rede local: use o IP do PC com a porta " + PORT + " no app mobile");
   console.log("[SETAD] API: /api/health | Site + PWA + API unificados");
+  console.log("[SETAD] SQLite:", storage.dbPath);
+  console.log("[SETAD] Uploads:", storage.uploadsDir);
+  if (process.env.NODE_ENV === "production" && storage.dbRelativeToRepo) {
+    console.warn(
+      "[SETAD] SETAD_DB_PATH relativo ao app — em deploy Git na Hostinger o banco pode ser recriado vazio. " +
+        "Use caminho absoluto fora da pasta do deploy (docs/HOSTINGER-PERSISTENCIA-DADOS.md)."
+    );
+  }
 });

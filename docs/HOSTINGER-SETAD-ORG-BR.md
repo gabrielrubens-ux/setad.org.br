@@ -58,7 +58,7 @@ Vulnerabilidades npm: `docs/HOSTINGER-VULNERABILIDADES.md`
 | `SETAD_STAFF_AUTORIZADOS_JSON` | e-mails autorizados (diretor, contador, secretaria) — ver `docs/STAFF-PRIMEIRO-ACESSO.md` |
 | `SETAD_SMTP_*` | opcional — código de verificação no primeiro acesso |
 
-Crie pasta persistente `data/uploads` se o painel permitir volume — o banco SQLite ficará em `data/setad.db`.
+Crie pasta persistente fora do deploy — **`docs/HOSTINGER-PERSISTENCIA-DADOS.md`**. O banco SQLite ficará no caminho de `SETAD_DB_PATH` (não commite `data/*.db`).
 
 ---
 

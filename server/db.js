@@ -3,8 +3,11 @@ const path = require("path");
 const Database = require("better-sqlite3");
 
 const DB_PATH = process.env.SETAD_DB_PATH || path.join(__dirname, "..", "data", "setad.db");
+const UPLOADS_DIR =
+  process.env.SETAD_UPLOADS_DIR || path.join(__dirname, "..", "data", "uploads");
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
@@ -231,6 +234,8 @@ initSchema();
 module.exports = {
   db,
   DB_PATH,
+  UPLOADS_DIR,
+  getStorageInfo,
   getMeta,
   setMeta,
   listJson,
@@ -239,3 +244,11 @@ module.exports = {
   deleteJson,
   getJsonById
 };
+
+function getStorageInfo() {
+  return {
+    dbPath: path.resolve(DB_PATH),
+    uploadsDir: path.resolve(UPLOADS_DIR),
+    dbRelativeToRepo: !path.isAbsolute(DB_PATH)
+  };
+}
