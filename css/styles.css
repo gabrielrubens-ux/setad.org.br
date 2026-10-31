@@ -5203,3 +5203,575 @@ button.midias__link {
     text-align: center;
   }
 }
+
+/* ============================================================
+   NOSSA HISTÓRIA — galeria de álbuns na landing page
+   ============================================================ */
+
+.nossa-historia {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--cor-fundo);
+  --historia-spot-x: 50%;
+  --historia-spot-y: 42%;
+  border-top-color: var(--cor-borda-suave);
+  padding: 2.75rem 0;
+}
+
+.nossa-historia__cabecalho {
+  margin-bottom: 0.35rem;
+}
+
+.historia__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.historia__bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      165deg,
+      rgba(245, 248, 255, 0.98) 0%,
+      rgba(235, 228, 255, 0.92) 42%,
+      rgba(245, 248, 255, 0.96) 100%
+    ),
+    radial-gradient(ellipse 70% 55% at 8% 12%, rgba(35, 64, 107, 0.14), transparent 58%),
+    radial-gradient(ellipse 60% 48% at 92% 88%, rgba(143, 17, 168, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 78% 18%, rgba(103, 61, 230, 0.12), transparent 52%);
+}
+
+.historia__bg-aurora {
+  position: absolute;
+  inset: -8%;
+  will-change: transform;
+  transition: transform 0.45s ease-out;
+}
+
+.historia__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.5;
+}
+
+.historia__blob--a {
+  width: min(42vw, 22rem);
+  height: min(42vw, 22rem);
+  top: 8%;
+  left: -6%;
+  background: rgba(35, 64, 107, 0.22);
+  animation: historia-blob-drift-a 18s ease-in-out infinite;
+}
+
+.historia__blob--b {
+  width: min(38vw, 20rem);
+  height: min(38vw, 20rem);
+  bottom: 4%;
+  right: -4%;
+  background: rgba(103, 61, 230, 0.16);
+  animation: historia-blob-drift-b 22s ease-in-out infinite;
+}
+
+.historia__blob--c {
+  width: min(32vw, 16rem);
+  height: min(32vw, 16rem);
+  top: 42%;
+  left: 38%;
+  background: rgba(143, 17, 168, 0.12);
+  animation: historia-blob-drift-c 20s ease-in-out infinite;
+}
+
+.historia__bg-film {
+  position: absolute;
+  inset: -6%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  opacity: 0.4;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+}
+
+.historia__bg-col {
+  overflow: hidden;
+  height: 100%;
+  min-height: 120%;
+}
+
+.historia__bg-col--0 .historia__bg-trilha {
+  animation: historia-film-scroll 28s linear infinite;
+}
+
+.historia__bg-col--1 .historia__bg-trilha {
+  animation: historia-film-scroll 34s linear infinite reverse;
+}
+
+.historia__bg-col--2 .historia__bg-trilha {
+  animation: historia-film-scroll 24s linear infinite;
+  animation-delay: -6s;
+}
+
+.historia__bg-trilha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.35rem 0;
+  will-change: transform;
+}
+
+.historia__bg-frame {
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  box-shadow: 0 12px 32px rgba(13, 20, 26, 0.18);
+  transform: translateZ(0);
+}
+
+.historia__bg-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: historia-kenburns var(--historia-ken-dur, 20s) ease-in-out infinite alternate;
+  animation-delay: var(--historia-ken-delay, 0s);
+}
+
+.historia__bg-spot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle clamp(8rem, 22vw, 18rem) at var(--historia-spot-x) var(--historia-spot-y),
+    rgba(255, 255, 255, 0.35),
+    transparent 68%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.historia__bg-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(245, 248, 255, 0.72) 0%,
+    rgba(245, 248, 255, 0.55) 45%,
+    rgba(245, 248, 255, 0.82) 100%
+  );
+}
+
+.historia__content {
+  position: relative;
+  z-index: 1;
+}
+
+.nossa-historia .section__label {
+  color: var(--cor-acento);
+}
+
+@keyframes historia-film-scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes historia-kenburns {
+  0% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes historia-blob-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(14px, 10px, 0);
+  }
+}
+
+@keyframes historia-blob-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-12px, -8px, 0);
+  }
+}
+
+@keyframes historia-blob-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(8px, -12px, 0);
+  }
+}
+
+.historia-album-block {
+  padding: 0.75rem 0.9rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--cor-borda-suave);
+  box-shadow: 0 10px 28px rgba(35, 64, 107, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.historia-app {
+  margin-top: 0.85rem;
+}
+
+.historia-albuns-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.historia-album-block__cabecalho {
+  margin-bottom: 0.55rem;
+}
+
+.historia-album-block__titulo {
+  font-family: "Outfit", sans-serif;
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cor-primaria);
+  margin: 0 0 0.3rem;
+}
+
+.historia-album-block__desc {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--cor-texto);
+  margin: 0;
+  max-width: 52rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.historia-scroll {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.25rem;
+  padding: 0.25rem 0.25rem 0.85rem;
+  margin: 0 -0.25rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(35, 64, 107, 0.35) transparent;
+}
+
+.historia-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.historia-scroll::-webkit-scrollbar-thumb {
+  background: rgba(35, 64, 107, 0.35);
+  border-radius: 999px;
+}
+
+.historia-scroll:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.historia-galeria {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.historia-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 0 0 min(240px, 72vw);
+  scroll-snap-align: start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.historia-thumb__frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 10px;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  background: #e8e4dc;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.historia-thumb__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  transition: transform 0.35s ease;
+}
+
+.historia-thumb:hover .historia-thumb__frame img,
+.historia-thumb:focus-visible .historia-thumb__frame img {
+  transform: scale(1.04);
+}
+
+.historia-thumb__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(20, 30, 48, 0.45));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.historia-thumb:hover .historia-thumb__veil,
+.historia-thumb:focus-visible .historia-thumb__veil {
+  opacity: 1;
+}
+
+.historia-thumb__zoom {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.55rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--cor-primaria);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.75rem;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.historia-thumb:hover .historia-thumb__zoom,
+.historia-thumb:focus-visible .historia-thumb__zoom {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.historia-thumb__legenda {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(35, 64, 107, 0.78);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.historia-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.historia-lightbox[hidden] {
+  display: none !important;
+}
+
+body.historia-lightbox-aberta {
+  overflow: hidden;
+}
+
+.historia-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 12, 20, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.historia-lightbox__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(960px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0f1724;
+  color: #fff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.historia-lightbox__chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.historia-lightbox__album {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.historia-lightbox__fechar {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+}
+
+.historia-lightbox__fechar:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.historia-lightbox__figura {
+  position: relative;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(62vh, 520px);
+  background: #080c14;
+}
+
+.historia-lightbox__img {
+  max-width: 100%;
+  max-height: min(62vh, 520px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.historia-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.historia-lightbox__nav:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.historia-lightbox__nav--prev {
+  left: 0.65rem;
+}
+
+.historia-lightbox__nav--next {
+  right: 0.65rem;
+}
+
+.historia-lightbox__rodape {
+  padding: 0.85rem 1rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.historia-lightbox__legenda {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  flex: 1 1 12rem;
+}
+
+.historia-lightbox__contador {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 520px) {
+  .historia-thumb {
+    flex: 0 0 min(260px, 85vw);
+  }
+
+  .historia__bg-film {
+    grid-template-columns: repeat(2, 1fr);
+    opacity: 0.4;
+  }
+
+  .historia__bg-col--2 {
+    display: none;
+  }
+
+  .historia-lightbox__nav {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .historia__bg-trilha,
+  .historia__bg-frame img,
+  .historia__blob,
+  .historia__bg-aurora {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

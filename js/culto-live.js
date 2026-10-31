@@ -434,32 +434,54 @@
     if (offAirEl) offAirEl.hidden = true;
   }
 
+  function paginaCultoDedicada() {
+    return document.body && document.body.classList.contains("pagina-culto-ao-vivo");
+  }
+
   function iniciarPaginaCulto() {
     var container = document.getElementById("cultoPlayer");
     if (!container) return;
 
     var video = document.getElementById("cultoVideo");
+    var iframe = document.getElementById("cultoPlayerIframe");
     var estavaAoVivo = false;
 
-    mostrarPlayerCulto();
+    if (paginaCultoDedicada() && iframe) {
+      if (document.getElementById("cultoOffAir")) {
+        document.getElementById("cultoOffAir").hidden = true;
+      }
+      usarIframeBrascast(video, iframe);
+    } else {
+      mostrarPlayerCulto();
+    }
 
-    iniciarStreamNoVideo(video).then(function () {
+    function aposPlayerPronto() {
       if (window.SETADAudio) {
         window.SETADAudio.entrarPaginaCulto();
-      } else {
+      } else if (!paginaCultoDedicada()) {
         tentarAutoplayCulto();
       }
 
-      document.addEventListener("click", function retomarAposBloqueioAutoplay() {
-        if (window.SETADAudio) {
-          window.SETADAudio.solicitarLive(true);
-        } else {
-          tentarAutoplayCulto();
-        }
-      }, { once: true });
+      document.addEventListener(
+        "click",
+        function retomarAposBloqueioAutoplay() {
+          if (window.SETADAudio) {
+            window.SETADAudio.solicitarLive(true);
+          } else if (!paginaCultoDedicada()) {
+            tentarAutoplayCulto();
+          }
+        },
+        { once: true }
+      );
 
       return verificarTransmissaoAtiva();
-    }).then(function (aoVivo) {
+    }
+
+    var preparar = paginaCultoDedicada()
+      ? Promise.resolve()
+      : iniciarStreamNoVideo(video);
+
+    preparar.then(aposPlayerPronto).then(function (aoVivo) {
       atualizarStatusCulto(aoVivo, false);
       estavaAoVivo = aoVivo;
     });
@@ -468,6 +490,12 @@
       verificarTransmissaoAtiva().then(function (aoVivo) {
         var entrouAoVivo = aoVivo && !estavaAoVivo;
         atualizarStatusCulto(aoVivo, entrouAoVivo);
+        if (entrouAoVivo && paginaCultoDedicada()) {
+          var iframeEl = document.getElementById("cultoPlayerIframe");
+          if (iframeEl) {
+            iframeEl.src = BRASCAST_PLAYER;
+          }
+        }
         estavaAoVivo = aoVivo;
       });
     }, POLL_MS);
@@ -479,6 +507,12 @@
   window.SETADCultoLive = {
     verificar: verificarTransmissaoAtiva,
     isLive: function () { return estado.aoVivo; },
-    obterUrlPagina: function () { return obterBaseCulto() + "culto-ao-vivo.html"; }
+    obterUrlPagina: function () {
+      var rel = obterBaseCulto() + "culto-ao-vivo.html";
+      if (!obterBaseCulto() && window.location.protocol !== "file:") {
+        return "/culto-ao-vivo.html";
+      }
+      return rel;
+    }
   };
 })();

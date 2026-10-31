@@ -89,6 +89,7 @@
           <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
           <li><a href="#informacoes" class="nav__link">Informações</a></li>
           <li><a href="#parceiros" class="nav__link">Parceiros</a></li>
+          <li><a href="#historia" class="nav__link">História</a></li>
         </ul>
       </nav>
 
@@ -584,6 +585,29 @@
       </div>
     </section>
 
+    <!-- NOSSA HISTÓRIA — álbuns com rolagem horizontal (após Parceiros) -->
+    <section class="section nossa-historia fade-in" id="historia" aria-labelledby="historia-titulo">
+      <div class="historia__bg" aria-hidden="true">
+        <div class="historia__bg-base"></div>
+        <div class="historia__bg-aurora" data-historia-aurora>
+          <span class="historia__blob historia__blob--a"></span>
+          <span class="historia__blob historia__blob--b"></span>
+          <span class="historia__blob historia__blob--c"></span>
+        </div>
+        <div class="historia__bg-film" data-historia-bg-film></div>
+        <div class="historia__bg-spot"></div>
+        <div class="historia__bg-veil"></div>
+      </div>
+
+      <div class="container container--wide historia__content">
+        <h2 class="section__label nossa-historia__cabecalho" id="historia-titulo">Memória institucional</h2>
+
+        <div class="historia-app" data-historia-app>
+          <div class="historia-albuns-lista" data-historia-albuns-lista aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!--
@@ -606,9 +630,36 @@
   <script src="js/matricula-cta-bg.js" defer></script>
   <script src="js/missoes-fita.js" defer></script>
   <script src="js/missoes-bg.js" defer></script>
+  <script src="js/nossa-historia.js" defer></script>
   <script src="js/contato-setad.js"></script>
   <script src="js/wpp-float.js" defer></script>
   <script src="/js/pwa.js" defer></script>
+
+  <!-- Lightbox Nossa História (fora das seções com transform — evita bug de empilhamento) -->
+  <div class="historia-lightbox" id="historiaLightbox" hidden aria-hidden="true">
+    <div class="historia-lightbox__backdrop" id="historiaLightboxBackdrop" aria-hidden="true"></div>
+    <div class="historia-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="historiaLightboxTitulo">
+      <div class="historia-lightbox__chrome">
+        <p class="historia-lightbox__album" id="historiaLightboxTitulo"></p>
+        <button type="button" class="historia-lightbox__fechar" id="historiaLightboxFechar" aria-label="Fechar galeria">
+          &times;
+        </button>
+      </div>
+      <figure class="historia-lightbox__figura">
+        <button type="button" class="historia-lightbox__nav historia-lightbox__nav--prev" id="historiaLightboxPrev" aria-label="Foto anterior">
+          &#10094;
+        </button>
+        <img class="historia-lightbox__img" id="historiaLightboxImg" alt="">
+        <button type="button" class="historia-lightbox__nav historia-lightbox__nav--next" id="historiaLightboxNext" aria-label="Próxima foto">
+          &#10095;
+        </button>
+      </figure>
+      <div class="historia-lightbox__rodape">
+        <p class="historia-lightbox__legenda" id="historiaLightboxLegenda"></p>
+        <p class="historia-lightbox__contador" id="historiaLightboxContador"></p>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

@@ -60,6 +60,13 @@
   var src = script.getAttribute("src") || "";
   var match = src.match(/^(\.\.\/)+/);
   var base = match ? match[0] : "";
+
+  function urlCultoAoVivo() {
+    var rel = (base || "") + "culto-ao-vivo.html";
+    if (window.location.protocol === "file:") return rel;
+    return base ? rel : "/culto-ao-vivo.html";
+  }
+
   var home = base + "index.html";
 
   function deveMostrarMidiaPublica() {
@@ -97,6 +104,7 @@
               '<h3 class="contato-setad__titulo">Institucional</h3>' +
               '<ul class="contato-setad__lista">' +
                 '<li><a href="' + home + '#sobre">Sobre o SETAD</a></li>' +
+                '<li><a href="' + home + '#historia">Nossa história</a></li>' +
                 '<li><a href="' + base + 'polos/">Nossos polos</a></li>' +
                 '<li><a href="' + home + '#localizacao">Onde estamos</a></li>' +
                 '<li><a href="' + home + '#informacoes">Informações do seminário</a></li>' +
@@ -104,7 +112,7 @@
               "</ul>" +
               '<h3 class="contato-setad__titulo">Comunicação</h3>' +
               '<ul class="contato-setad__lista">' +
-                '<li><a href="' + base + 'culto-ao-vivo.html">Culto ao vivo</a></li>' +
+                '<li><a href="' + urlCultoAoVivo() + '">Culto ao vivo</a></li>' +
                 '<li><a href="' + home + '#midias">Redes sociais</a></li>' +
                 '<li><a href="https://www.instagram.com/setad.adbelem?igsh=cmVxZTA1MTZldmRx" target="_blank" rel="noopener noreferrer">Instagram</a></li>' +
                 '<li><a href="https://www.youtube.com/@SETAD-BELEM" target="_blank" rel="noopener noreferrer">YouTube</a></li>' +
@@ -184,7 +192,7 @@
             "</button>" +
           "</div>" +
           '<footer class="culto-janela__rodape">' +
-            '<a href="' + base + 'culto-ao-vivo.html" class="culto-janela__link" id="cultoJanelaTelaCheia">Abrir em tela cheia</a>' +
+            '<a href="' + urlCultoAoVivo() + '" class="culto-janela__link" id="cultoJanelaTelaCheia">Abrir em tela cheia</a>' +
           "</footer>" +
         "</div>" +
       "</div>";
@@ -225,6 +233,9 @@
     var tag = document.createElement("script");
     tag.id = atual.id;
     tag.src = base + atual.src;
+    tag.onerror = function () {
+      carregarScriptSequencial(scripts);
+    };
     tag.onload = function () {
       carregarScriptSequencial(scripts);
     };
@@ -232,10 +243,14 @@
   }
 
   if (deveMostrarMidiaPublica()) {
-    var midiaScripts = [
-      { id: "setadAudioCoordinatorLoader", src: "js/audio-coordinator.js" },
-      { id: "setadCultoLiveLoader", src: "js/culto-live.js" }
-    ];
+    var midiaScripts = [];
+
+    if (!window.SETADAudio) {
+      midiaScripts.push({ id: "setadAudioCoordinatorLoader", src: "js/audio-coordinator.js" });
+    }
+    if (!window.SETADCultoLive) {
+      midiaScripts.push({ id: "setadCultoLiveLoader", src: "js/culto-live.js" });
+    }
 
     if (deveMostrarRadioPlayer()) {
       midiaScripts.push({ id: "setadRadioPlayerLoader", src: "js/radio-player.js" });
@@ -245,6 +260,8 @@
       midiaScripts.push({ id: "setadCultoJanelaLoader", src: "js/culto-janela.js" });
     }
 
-    carregarScriptSequencial(midiaScripts);
+    if (midiaScripts.length) {
+      carregarScriptSequencial(midiaScripts);
+    }
   }
 })();
