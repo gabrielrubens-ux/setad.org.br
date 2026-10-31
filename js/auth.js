@@ -102,7 +102,7 @@ function protegerPaginaLoginAlunoIp() {
 
 function aplicarPoliticaDemonstracaoUi() {
   if (ambientePermiteDemonstracao()) return;
-  document.querySelectorAll("[data-setad-demo]").forEach(function (el) {
+  document.querySelectorAll("[data-setad-demo], [data-setad-dev]").forEach(function (el) {
     el.remove();
   });
 }

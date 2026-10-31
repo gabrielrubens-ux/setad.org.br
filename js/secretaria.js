@@ -71,6 +71,7 @@ function inicializarPainelSecretaria() {
   if (typeof configurarDemonstracaoCadastroAluno === "function") {
     configurarDemonstracaoCadastroAluno();
   }
+  aplicarVisibilidadeRestauracaoMatriculasDev();
 
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
@@ -220,7 +221,20 @@ function obterBackupMatriculasLocalStorage() {
   }
 }
 
+function ambienteFerramentasProgramador() {
+  return typeof ambientePermiteDemonstracao === "function" && ambientePermiteDemonstracao();
+}
+
+function aplicarVisibilidadeRestauracaoMatriculasDev() {
+  var bloco = document.getElementById("restaurarMatriculasBloco");
+  if (!bloco) return;
+  if (ambienteFerramentasProgramador()) {
+    bloco.hidden = false;
+  }
+}
+
 function atualizarUiRestauracaoMatriculas(totalServidor) {
+  if (!ambienteFerramentasProgramador()) return;
   var hint = document.getElementById("restaurarMatriculasHint");
   if (!hint) return;
   var backup = obterBackupMatriculasLocalStorage();
@@ -364,6 +378,8 @@ function extrairListaMatriculasDoJson(parsed) {
 }
 
 function configurarRestauracaoMatriculasSecretaria() {
+  if (!ambienteFerramentasProgramador()) return;
+  aplicarVisibilidadeRestauracaoMatriculasDev();
   var btnExport = document.getElementById("btnExportarMatriculasJson");
   var btnLocal = document.getElementById("btnRestaurarMatriculasLocal");
   var inputJson = document.getElementById("inputRestaurarMatriculasJson");
