@@ -77,6 +77,11 @@ function inicializarPainelSecretaria() {
   }
   aplicarVisibilidadeRestauracaoMatriculasDev();
 
+  configurarEscutaAtualizacaoDadosInstitucionais();
+  if (typeof SETAD !== "undefined" && SETAD.iniciarSincronizacaoTempoReal) {
+    SETAD.iniciarSincronizacaoTempoReal();
+  }
+
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
   configurarRestauracaoMatriculasSecretaria();
@@ -718,4 +723,28 @@ function renderizarThreadWpp(sessao, conversaId) {
       renderizarThreadWpp(sessao, conversaId);
     });
   }
+}
+
+function configurarEscutaAtualizacaoDadosInstitucionais() {
+  if (window._setadEscutaDadosInstitucionais) return;
+  window._setadEscutaDadosInstitucionais = true;
+
+  window.addEventListener("setad-dados-atualizados", function () {
+    if (typeof renderizarAlunosSecretaria === "function") {
+      renderizarAlunosSecretaria();
+    }
+    if (typeof renderizarVisaoSecretaria === "function") {
+      renderizarVisaoSecretaria();
+    }
+    if (typeof renderizarFichaAlunoInstitucionalAtual === "function") {
+      var sessao =
+        typeof obterSessaoSecretaria === "function" ? obterSessaoSecretaria() : null;
+      if (!sessao && typeof obterSessaoCoordenacao === "function") {
+        sessao = obterSessaoCoordenacao();
+      }
+      if (sessao) {
+        renderizarFichaAlunoInstitucionalAtual(sessao);
+      }
+    }
+  });
 }

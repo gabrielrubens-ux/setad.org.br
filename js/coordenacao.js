@@ -51,6 +51,11 @@ function inicializarPainelCoordenacao() {
 
   configurarAbasSecretaria(titulos, sessao);
 
+  configurarEscutaAtualizacaoDadosInstitucionais();
+  if (typeof SETAD !== "undefined" && SETAD.iniciarSincronizacaoTempoReal) {
+    SETAD.iniciarSincronizacaoTempoReal();
+  }
+
   inicializarDadosPadrao();
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();

@@ -146,6 +146,9 @@ function finalizarLoginApi(resposta, redirect) {
       posHydrate = window.SETAD.recuperarDadosLocais();
     }
     return posHydrate.then(function () {
+      if (typeof window.SETAD.iniciarSincronizacaoTempoReal === "function") {
+        window.SETAD.iniciarSincronizacaoTempoReal();
+      }
       window.location.href = redirect;
     });
   });
@@ -165,6 +168,9 @@ function finalizarLoginInstitucionalApi(resposta, areaPreferida) {
       posHydrate = window.SETAD.recuperarDadosLocais();
     }
     return posHydrate.then(function () {
+      if (typeof window.SETAD.iniciarSincronizacaoTempoReal === "function") {
+        window.SETAD.iniciarSincronizacaoTempoReal();
+      }
       if (typeof redirecionarAposLoginInstitucional === "function") {
         redirecionarAposLoginInstitucional(resposta.user, areaPreferida);
       }

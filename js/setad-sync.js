@@ -6,7 +6,17 @@
   "use strict";
 
   var SYNC_DELAY_MS = 400;
+  var PULL_INTERVAL_MS = 20000;
   var syncTimers = {};
+  var pullTimer = null;
+  var pullEmAndamento = null;
+  var tempoRealIniciado = false;
+
+  var MERGE_BEFORE_PUT = {
+    matriculas: "matriculas",
+    pagamentos: "pagamentos",
+    notasAcademicas: "notas-academicas"
+  };
 
   var BLOCK_EMPTY_SYNC = {
     matriculas: "_matriculasCountServidor",
@@ -143,6 +153,164 @@
     return Promise.all(jobs);
   }
 
+  function uniaoRegistrosPorId(baseServidor, overlayLocal) {
+    var porId = {};
+    (baseServidor || []).forEach(function (reg) {
+      if (reg && reg.id) porId[reg.id] = reg;
+    });
+    (overlayLocal || []).forEach(function (reg) {
+      if (!reg || !reg.id) return;
+      porId[reg.id] = Object.assign({}, porId[reg.id] || {}, reg);
+    });
+    return Object.values(porId);
+  }
+
+  function mesclarContagemAlterada(antes, depois) {
+    if ((antes || []).length !== (depois || []).length) return true;
+    var idsAntes = {};
+    (antes || []).forEach(function (r) {
+      if (r && r.id) idsAntes[r.id] = true;
+    });
+    for (var i = 0; i < (depois || []).length; i++) {
+      var reg = depois[i];
+      if (reg && reg.id && !idsAntes[reg.id]) return true;
+    }
+    return false;
+  }
+
+  function atualizarMetaContagemServidor(collection) {
+    var metaKey = BLOCK_EMPTY_SYNC[collection];
+    if (!metaKey) return;
+    var lista = cache[collection] || [];
+    cache[metaKey] = Math.max(cache[metaKey] || 0, lista.length);
+  }
+
+  function notificarDadosInstitucionaisAtualizados() {
+    if (typeof window.dispatchEvent !== "function") return;
+    window.dispatchEvent(new CustomEvent("setad-dados-atualizados"));
+  }
+
+  function sessaoDeveSincronizarTempoReal() {
+    if (!SETAD.session || !SETAD.session.perfil) return false;
+    var perfis = [
+      "secretaria",
+      "coordenacao",
+      "diretor",
+      "contador",
+      "professor",
+      "autorizado"
+    ];
+    return perfis.indexOf(SETAD.session.perfil) >= 0;
+  }
+
+  function pullColecoesInstitucionaisDoServidor(opcoes) {
+    opcoes = opcoes || {};
+    if (!window.SETAD || !SETAD.apiAtivo || !SETADApi) {
+      return Promise.resolve(false);
+    }
+    if (!sessaoDeveSincronizarTempoReal() && !opcoes.forcar) {
+      return Promise.resolve(false);
+    }
+    if (pullEmAndamento) return pullEmAndamento;
+
+    pullEmAndamento = Promise.all([
+      SETADApi.get("/matriculas"),
+      SETADApi.get("/pagamentos"),
+      SETADApi.get("/notas-academicas")
+    ])
+      .then(function (respostas) {
+        var alterou = false;
+        var matRes = respostas[0];
+        var pagRes = respostas[1];
+        var notasRes = respostas[2];
+
+        if (matRes.ok && Array.isArray(matRes.items)) {
+          var matAntes = cache.matriculas || [];
+          var matMesclada = uniaoRegistrosPorId(matAntes, matRes.items);
+          if (mesclarContagemAlterada(matAntes, matMesclada)) alterou = true;
+          cache.matriculas = matMesclada;
+          cache._matriculasHidratadas = true;
+          cache._matriculasCountServidor = Math.max(
+            cache._matriculasCountServidor || 0,
+            matRes.items.length,
+            matMesclada.length
+          );
+        }
+
+        if (pagRes.ok && Array.isArray(pagRes.items)) {
+          var pagAntes = cache.pagamentos || [];
+          var pagMesclada = uniaoRegistrosPorId(pagAntes, pagRes.items);
+          if (mesclarContagemAlterada(pagAntes, pagMesclada)) alterou = true;
+          cache.pagamentos = pagMesclada;
+          cache._pagamentosCountServidor = Math.max(
+            cache._pagamentosCountServidor || 0,
+            pagRes.items.length,
+            pagMesclada.length
+          );
+        }
+
+        if (notasRes.ok && Array.isArray(notasRes.items)) {
+          var notasAntes = cache.notasAcademicas || [];
+          var notasMesclada = uniaoRegistrosPorId(notasAntes, notasRes.items);
+          if (mesclarContagemAlterada(notasAntes, notasMesclada)) alterou = true;
+          cache.notasAcademicas = notasMesclada;
+          cache._notasCountServidor = Math.max(
+            cache._notasCountServidor || 0,
+            notasRes.items.length,
+            notasMesclada.length
+          );
+        }
+
+        if (alterou || opcoes.notificar) {
+          notificarDadosInstitucionaisAtualizados();
+        }
+        return alterou;
+      })
+      .catch(function (erro) {
+        console.warn("[SETAD] Falha ao atualizar dados do servidor:", erro);
+        return false;
+      })
+      .finally(function () {
+        pullEmAndamento = null;
+      });
+
+    return pullEmAndamento;
+  }
+
+  function iniciarSincronizacaoTempoReal() {
+    if (tempoRealIniciado || !SETAD.apiAtivo) return;
+    if (!sessaoDeveSincronizarTempoReal()) return;
+    tempoRealIniciado = true;
+
+    pullColecoesInstitucionaisDoServidor({ notificar: true });
+
+    if (pullTimer) clearInterval(pullTimer);
+    pullTimer = setInterval(function () {
+      pullColecoesInstitucionaisDoServidor({ notificar: true });
+    }, PULL_INTERVAL_MS);
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        pullColecoesInstitucionaisDoServidor({ notificar: true });
+      }
+    });
+  }
+
+  function enviarColecaoComMerge(collection, apiPath, listaLocal) {
+    listaLocal = listaLocal || [];
+    return SETADApi.get("/" + apiPath)
+      .then(function (resposta) {
+        var servidor = resposta.ok && Array.isArray(resposta.items) ? resposta.items : [];
+        var mesclada = uniaoRegistrosPorId(servidor, listaLocal);
+        cache[collection] = mesclada;
+        atualizarMetaContagemServidor(collection);
+        return SETADApi.syncCollection(apiPath, mesclada);
+      })
+      .then(function () {
+        notificarDadosInstitucionaisAtualizados();
+      });
+  }
+
   function scheduleSync(collection, apiPath) {
     if (!window.SETAD || !SETAD.apiAtivo) return;
 
@@ -175,10 +343,19 @@
     }
 
     syncTimers[collection] = setTimeout(function () {
-      SETADApi.syncCollection(apiPath, cache[collection] || [])
-        .catch(function (error) {
+      var listaLocal = cache[collection] || [];
+      var mergePath = MERGE_BEFORE_PUT[collection];
+
+      if (mergePath) {
+        enviarColecaoComMerge(collection, mergePath, listaLocal).catch(function (error) {
           console.warn("[SETAD] Falha ao sincronizar " + collection + ":", error);
         });
+        return;
+      }
+
+      SETADApi.syncCollection(apiPath, listaLocal).catch(function (error) {
+        console.warn("[SETAD] Falha ao sincronizar " + collection + ":", error);
+      });
     }, SYNC_DELAY_MS);
   }
 
@@ -209,6 +386,7 @@
             if (snap.ok) hydrate(snap.snapshot);
             return recuperarDadosLocaisParaServidor();
           }).then(function () {
+            iniciarSincronizacaoTempoReal();
             return true;
           });
         }
@@ -231,6 +409,9 @@
     hydrate: hydrate,
     scheduleSync: scheduleSync,
     recuperarDadosLocais: recuperarDadosLocaisParaServidor,
+    pullColecoesInstitucionais: pullColecoesInstitucionaisDoServidor,
+    iniciarSincronizacaoTempoReal: iniciarSincronizacaoTempoReal,
+    notificarDadosAtualizados: notificarDadosInstitucionaisAtualizados,
     setSession: function (user) {
       SETAD.session = user;
     },

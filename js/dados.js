@@ -956,11 +956,33 @@ function cadastrarMatriculaAsync(dados) {
     }
 
     if (setadGetCache("matriculas")) {
-      setadGetCache("matriculas").push(resposta.matricula);
+      var listaMat = setadGetCache("matriculas");
+      var jaExiste = listaMat.some(function (m) {
+        return m && m.id === resposta.matricula.id;
+      });
+      if (!jaExiste) {
+        listaMat.push(resposta.matricula);
+      }
+      if (window.SETAD && SETAD.cache) {
+        SETAD.cache._matriculasCountServidor = Math.max(
+          SETAD.cache._matriculasCountServidor || 0,
+          listaMat.length
+        );
+      }
     }
 
     if (resposta.pagamento && setadGetCache("pagamentos")) {
-      setadGetCache("pagamentos").push(resposta.pagamento);
+      var listaPag = setadGetCache("pagamentos");
+      var pagExiste = listaPag.some(function (p) {
+        return p && p.id === resposta.pagamento.id;
+      });
+      if (!pagExiste) {
+        listaPag.push(resposta.pagamento);
+      }
+    }
+
+    if (typeof SETAD !== "undefined" && SETAD.notificarDadosAtualizados) {
+      SETAD.notificarDadosAtualizados();
     }
 
     if (typeof notificarMatriculaNoWpp === "function") {
