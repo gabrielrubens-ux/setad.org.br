@@ -608,6 +608,7 @@ function renderizarAlunosSecretaria() {
         '<th class="lista-alunos__col--polo">Polo</th>' +
         '<th class="lista-alunos__col--origem">Origem</th>' +
         '<th class="lista-alunos__col--cadastro">Cadastro</th>' +
+        '<th class="lista-alunos__col--periodo-curso">Início / fim curso</th>' +
         '<th class="lista-alunos__col--status">Status</th>' +
         '<th class="lista-alunos__col--situacao">Situação</th>' +
         '<th class="lista-alunos__col--obs">Obs.</th>' +
@@ -660,6 +661,11 @@ function renderizarAlunosSecretaria() {
           escaparHtml(aluno.origem || "site") + '">' +
             escaparHtml(obterLabelOrigemMatricula(aluno.origem)) + "</span></td>" +
           '<td class="lista-alunos__col--cadastro">' + formatarData(aluno.dataMatricula) + "</td>" +
+          '<td class="lista-alunos__col--periodo-curso">' +
+            (typeof formatarCelulaPeriodoCursoListaAluno === "function"
+              ? formatarCelulaPeriodoCursoListaAluno(aluno)
+              : "—") +
+          "</td>" +
           '<td class="lista-alunos__col--status">' +
             (typeof renderizarBadgeSolicitacaoExclusao === "function"
               ? renderizarBadgeSolicitacaoExclusao(aluno.id)

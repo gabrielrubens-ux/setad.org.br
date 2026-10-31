@@ -69,6 +69,61 @@ function formatarSituacaoCursoListaAluno(matricula) {
   );
 }
 
+function formatarCelulaPeriodoCursoListaAluno(matricula) {
+  var esc =
+    typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var fmtData =
+    typeof formatarData === "function"
+      ? formatarData
+      : function (d) { return d || "—"; };
+  var iniRaw = matricula && matricula.cursoDataInicio;
+  var fimRaw = matricula && matricula.cursoDataTermino;
+  var ini = iniRaw ? fmtData(iniRaw) : "—";
+  var fim = fimRaw ? fmtData(fimRaw) : "—";
+
+  if (!iniRaw && !fimRaw) {
+    return (
+      '<span class="lista-alunos__periodo lista-alunos__periodo--vazio" title="Período não informado no cadastro">' +
+      esc("—") +
+      "</span>"
+    );
+  }
+
+  var resumoFinanceiro = "";
+  if (
+    typeof calcularResumoFinanceiroCurso === "function" &&
+    iniRaw &&
+    fimRaw
+  ) {
+    var resumo = calcularResumoFinanceiroCurso(matricula);
+    if (resumo.quantidadeMensalidades !== null) {
+      resumoFinanceiro =
+        " · " +
+        resumo.quantidadeMensalidades +
+        " mensalidade(s) · total previsto " +
+        (typeof formatarMoedaValorCurso === "function"
+          ? formatarMoedaValorCurso(resumo.valorTotalCurso)
+          : String(resumo.valorTotalCurso));
+    }
+  }
+
+  var title =
+    "Início: " + ini + " · Término: " + fim + resumoFinanceiro;
+
+  return (
+    '<span class="lista-alunos__periodo" title="' +
+    esc(title) +
+    '">' +
+    '<span class="lista-alunos__periodo-item"><span class="lista-alunos__periodo-rotulo">Início</span> ' +
+    esc(ini) +
+    "</span>" +
+    '<span class="lista-alunos__periodo-item"><span class="lista-alunos__periodo-rotulo">Fim</span> ' +
+    esc(fim) +
+    "</span>" +
+    "</span>"
+  );
+}
+
 function preencherSelectInstituicoesPresencial() {
   var select = document.getElementById("secInstituicaoPagamento");
   if (!select || select.dataset.preenchido === "1") return;

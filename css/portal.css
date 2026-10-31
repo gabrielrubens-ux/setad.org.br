@@ -1025,8 +1025,34 @@ body.portal-marca-dagua .wpp-float {
 
 .lista-alunos__scroll .lista-alunos__tabela {
   margin: 0;
-  min-width: 880px;
+  min-width: 960px;
   width: 100%;
+}
+
+.lista-alunos__periodo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.lista-alunos__periodo-rotulo {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--cor-texto-muted, #6b7280);
+  margin-right: 0.2rem;
+}
+
+.lista-alunos__periodo--vazio {
+  color: var(--cor-texto-muted, #9ca3af);
+}
+
+.lista-alunos__col--periodo-curso {
+  min-width: 7.5rem;
 }
 
 .lista-alunos__scroll thead th {
@@ -1081,7 +1107,7 @@ body.portal-marca-dagua .wpp-float {
   }
 
   .lista-alunos__scroll .lista-alunos__tabela {
-    min-width: 760px;
+    min-width: 820px;
   }
 }
 
@@ -1093,7 +1119,7 @@ body.portal-marca-dagua .wpp-float {
   }
 
   .lista-alunos__scroll .lista-alunos__tabela {
-    min-width: 620px;
+    min-width: 680px;
   }
 }
 
@@ -1103,7 +1129,7 @@ body.portal-marca-dagua .wpp-float {
   }
 
   .lista-alunos__scroll .lista-alunos__tabela {
-    min-width: 480px;
+    min-width: 520px;
   }
 
   .lista-alunos__scroll {
