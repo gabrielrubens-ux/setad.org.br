@@ -352,14 +352,33 @@ function obterClasseNotaBadge(valor) {
 
 function usuarioPodeEditarNotasAcademicas(sessao) {
   if (!sessao) return false;
-  var perfis = ["diretor", "secretaria", "coordenacao", "professor"];
+  var perfis = ["diretor", "secretaria", "coordenacao", "professor", "autorizado"];
   if (perfis.indexOf(sessao.perfil) >= 0) return true;
   if (typeof sessaoTemPerfilInstitucional === "function") {
-    return perfis.some(function (p) {
+    return ["secretaria", "coordenacao", "professor"].some(function (p) {
       return sessaoTemPerfilInstitucional(sessao, p);
     });
   }
   return false;
+}
+
+function podeEditarNotasNoQuadro(sessao, meta) {
+  meta = meta || {};
+  if (meta.somenteLeitura === true) return false;
+  if (meta.permissoesFicha && meta.permissoesFicha.notasEditar === true) {
+    return true;
+  }
+  return usuarioPodeEditarNotasAcademicas(sessao);
+}
+
+function garantirMateriaisIniciaisQuadroAluno(matricula, periodo, sessao) {
+  if (!matricula || !matricula.id) return;
+  if (!usuarioPodeEditarNotasAcademicas(sessao)) return;
+  var lista = listarMateriaisQuadroAluno(matricula, periodo);
+  if (lista.length) return;
+  var padrao = obterMateriaisPadraoModulo(matricula.modulo);
+  if (!padrao.length) return;
+  salvarListaMateriaisQuadro(matricula.id, periodo, padrao, sessao);
 }
 
 function salvarNotaAcademica(dados, sessao) {
@@ -507,6 +526,12 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
   }
 
   sessao = sessao || obterSessaoOperacionalListaAlunos();
+  if (!sessao && typeof obterSessaoFichaAlunoInstitucional === "function") {
+    sessao = obterSessaoFichaAlunoInstitucional();
+  }
+  if (!sessao && typeof window !== "undefined" && window.SETAD && SETAD.session) {
+    sessao = SETAD.session;
+  }
   if (!sessao) {
     container.innerHTML = '<p class="lista-vazia">Sessão inválida.</p>';
     return;
@@ -515,6 +540,8 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
   if (typeof renderizarQuadroMateriaisNotasAluno === "function") {
     renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, {
       somenteLeitura: meta.somenteLeitura === true,
+      lancamentoFicha: meta.lancamentoFicha === true,
+      permissoesFicha: meta.permissoesFicha || null,
       onAtualizar: function () {
         renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta);
       }

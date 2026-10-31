@@ -20,6 +20,30 @@ function obterPermissoesFichaAluno(sessao) {
     turmaEditar: false
   };
 
+  if (sessao && typeof sessaoTemPerfilInstitucional === "function") {
+    if (sessaoTemPerfilInstitucional(sessao, "secretaria")) {
+      perm.notas = true;
+      perm.notasEditar = true;
+      perm.mensalidades = true;
+      perm.turma = true;
+      perm.turmaEditar = true;
+      return perm;
+    }
+    if (sessaoTemPerfilInstitucional(sessao, "coordenacao")) {
+      perm.notas = true;
+      perm.notasEditar = true;
+      perm.turma = true;
+      perm.turmaEditar = true;
+      return perm;
+    }
+    if (sessaoTemPerfilInstitucional(sessao, "professor")) {
+      perm.notas = true;
+      perm.notasEditar = true;
+      perm.turma = true;
+      return perm;
+    }
+  }
+
   if (semFinanceiro || perfil === "coordenacao") {
     perm.notas = true;
     perm.notasEditar = true;
@@ -297,11 +321,23 @@ function renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm) {
     '<div id="fichaAlunoAbaNotas" class="ficha-aluno__quadro-notas-corpo"></div>' +
     "</section>";
 
-  if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
+  if (typeof renderizarQuadroMateriaisNotasAluno === "function") {
     var alvoNotas = document.getElementById("fichaAlunoAbaNotas");
+    renderizarQuadroMateriaisNotasAluno(alvoNotas, matricula, sessao, {
+      somenteLeitura: !podeEditar,
+      lancamentoFicha: true,
+      permissoesFicha: perm,
+      onAtualizar: function () {
+        renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm);
+      }
+    });
+  } else if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
+    var alvoNotasFallback = document.getElementById("fichaAlunoAbaNotas");
     renderizarPlanilhaNotasCadastroAluno(matricula, sessao, {
       somenteLeitura: !podeEditar,
-      containerEl: alvoNotas
+      lancamentoFicha: true,
+      permissoesFicha: perm,
+      containerEl: alvoNotasFallback
     });
   } else {
     document.getElementById("fichaAlunoAbaNotas").innerHTML =

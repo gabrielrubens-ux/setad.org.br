@@ -251,6 +251,46 @@ function salvarFormularioNotasTurma(container, alunos, sessao, meta, periodo) {
   }
 }
 
+function salvarLinhaQuadroNotasMaterial(tr, matricula, periodo, sessao) {
+  if (!tr || !matricula) {
+    return { ok: false, erro: "Linha inválida." };
+  }
+  var nomeAntigo = tr.getAttribute("data-quadro-material-antigo") || "";
+  var nomeNovo = (tr.querySelector(".quadro-notas__material") || {}).value || "";
+  nomeNovo = nomeNovo.trim();
+  if (!nomeNovo) {
+    return { ok: false, erro: "Informe o nome do material." };
+  }
+  var valorRaw = (tr.querySelector(".quadro-notas__valor") || {}).value;
+  if (nomeAntigo && nomeAntigo !== nomeNovo) {
+    renomearDisciplinaNotasAluno(matricula, periodo, nomeAntigo, nomeNovo, sessao);
+    var lista = listarMateriaisQuadroAluno(matricula, periodo).map(function (m) {
+      return m === nomeAntigo ? nomeNovo : m;
+    });
+    if (lista.indexOf(nomeNovo) < 0) lista.push(nomeNovo);
+    salvarListaMateriaisQuadro(matricula.id, periodo, lista, sessao);
+  }
+  var resultado = salvarNotaAcademica(
+    {
+      alunoEmail: matricula.email || "",
+      alunoNome: matricula.nomeCompleto,
+      matriculaId: matricula.id,
+      disciplina: nomeNovo,
+      tipo: "prova",
+      valor: valorRaw,
+      periodo: periodo
+    },
+    sessao
+  );
+  if (!resultado.ok) return resultado;
+  var listaFinal = listarMateriaisQuadroAluno(matricula, periodo);
+  if (listaFinal.indexOf(nomeNovo) < 0) {
+    listaFinal.push(nomeNovo);
+  }
+  salvarListaMateriaisQuadro(matricula.id, periodo, listaFinal, sessao);
+  return { ok: true, nome: nomeNovo };
+}
+
 function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta) {
   if (!container || !matricula) return;
   meta = meta || {};
@@ -258,7 +298,9 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
 
   var periodo = meta.periodo || obterPeriodoLetivoAtual();
   var podeEditar =
-    meta.somenteLeitura !== true && usuarioPodeEditarNotasAcademicas(sessao);
+    typeof podeEditarNotasNoQuadro === "function"
+      ? podeEditarNotasNoQuadro(sessao, meta)
+      : meta.somenteLeitura !== true && usuarioPodeEditarNotasAcademicas(sessao);
   var esc =
     typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
   var formatarNota =
@@ -268,6 +310,14 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
     obterMatriculas().find(function (m) {
       return m.id === matricula.id;
     }) || matricula;
+
+  if (podeEditar && typeof garantirMateriaisIniciaisQuadroAluno === "function") {
+    garantirMateriaisIniciaisQuadroAluno(matricula, periodo, sessao);
+    matricula =
+      obterMatriculas().find(function (m) {
+        return m.id === matricula.id;
+      }) || matricula;
+  }
 
   var materiais = listarMateriaisQuadroAluno(matricula, periodo);
 
@@ -354,18 +404,27 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
       : "") +
     "</td><td>—</td></tr>";
 
+  var tituloQuadro = meta.lancamentoFicha
+    ? "Lançamento de notas — ficha do aluno"
+    : "Quadro de notas por material";
+  var hintEdicao = meta.lancamentoFicha
+    ? "Preencha <strong>material</strong> e <strong>nota</strong> e clique em Salvar em cada linha (ou use Salvar todas)."
+    : "Edite o nome de cada material e a nota (0 a 10).";
+
   container.innerHTML =
-    '<div class="quadro-notas-materiais planilha-notas">' +
+    '<div class="quadro-notas-materiais planilha-notas' +
+    (meta.lancamentoFicha ? " quadro-notas-materiais--ficha" : "") +
+    '">' +
     '<header class="planilha-turma__cabecalho">' +
-    "<div><h3 class=\"planilha-turma__titulo\">Quadro de notas por material</h3>" +
+    "<div><h3 class=\"planilha-turma__titulo\">" +
+    esc(tituloQuadro) +
+    "</h3>" +
     '<p class="presencial-bloco__hint">Nível do curso: <strong>' +
     esc(moduloNome) +
     "</strong> · Período <strong>" +
     esc(periodo) +
     "</strong>. " +
-    (podeEditar
-      ? "Edite o nome de cada material e a nota (0 a 10)."
-      : "Somente leitura.") +
+    (podeEditar ? hintEdicao : "Somente leitura.") +
     "</p></div>" +
     (meta.mostrarAtualizar !== false
       ? '<button type="button" class="btn btn--secondary btn--sm" data-quadro-notas-atualizar="1">Atualizar</button>'
@@ -381,6 +440,7 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
     "</tbody></table></div>" +
     (podeEditar
       ? '<p class="quadro-notas-materiais__acoes">' +
+        '<button type="button" class="btn btn--primary btn--sm" id="quadroNotasBtnSalvarTodas">Salvar todas as linhas</button> ' +
         '<button type="button" class="btn btn--secondary btn--sm" id="quadroNotasBtnAddMaterial">+ Adicionar material</button>' +
         "</p>"
       : "") +
@@ -424,48 +484,47 @@ function configurarEventosQuadroMateriaisNotasAluno(container, matricula, sessao
   container.querySelectorAll(".quadro-notas__salvar").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var tr = btn.closest("tr");
-      if (!tr) return;
-      var nomeAntigo = tr.getAttribute("data-quadro-material-antigo") || "";
-      var nomeNovo = (tr.querySelector(".quadro-notas__material") || {}).value || "";
-      nomeNovo = nomeNovo.trim();
-      if (!nomeNovo) {
-        msg("Informe o nome do material.", false);
-        return;
-      }
-      var valorRaw = (tr.querySelector(".quadro-notas__valor") || {}).value;
-      if (nomeAntigo && nomeAntigo !== nomeNovo) {
-        renomearDisciplinaNotasAluno(matricula, periodo, nomeAntigo, nomeNovo, sessao);
-        var lista = listarMateriaisQuadroAluno(matricula, periodo).map(function (m) {
-          return m === nomeAntigo ? nomeNovo : m;
-        });
-        if (lista.indexOf(nomeNovo) < 0) lista.push(nomeNovo);
-        salvarListaMateriaisQuadro(matricula.id, periodo, lista, sessao);
-      }
-      var resultado = salvarNotaAcademica(
-        {
-          alunoEmail: matricula.email || "",
-          alunoNome: matricula.nomeCompleto,
-          matriculaId: matricula.id,
-          disciplina: nomeNovo,
-          tipo: "prova",
-          valor: valorRaw,
-          periodo: periodo
-        },
-        sessao
-      );
+      var resultado = salvarLinhaQuadroNotasMaterial(tr, matricula, periodo, sessao);
       if (!resultado.ok) {
         msg(resultado.erro || "Não foi possível salvar.", false);
         return;
       }
-      var listaFinal = listarMateriaisQuadroAluno(matricula, periodo);
-      if (listaFinal.indexOf(nomeNovo) < 0) {
-        listaFinal.push(nomeNovo);
-      }
-      salvarListaMateriaisQuadro(matricula.id, periodo, listaFinal, sessao);
-      msg("Nota salva para " + nomeNovo + ".", true);
+      msg("Nota salva para " + resultado.nome + ".", true);
       refresh();
     });
   });
+
+  container.querySelectorAll(".quadro-notas__valor").forEach(function (input) {
+    input.addEventListener("keydown", function (evento) {
+      if (evento.key !== "Enter") return;
+      evento.preventDefault();
+      var tr = input.closest("tr");
+      var btnSalvar = tr && tr.querySelector(".quadro-notas__salvar");
+      if (btnSalvar) btnSalvar.click();
+    });
+  });
+
+  var btnSalvarTodas = container.querySelector("#quadroNotasBtnSalvarTodas");
+  if (btnSalvarTodas) {
+    btnSalvarTodas.addEventListener("click", function () {
+      var linhas = container.querySelectorAll(
+        "tbody tr[data-quadro-material-antigo]"
+      );
+      var ok = 0;
+      var falhas = 0;
+      linhas.forEach(function (tr) {
+        var res = salvarLinhaQuadroNotasMaterial(tr, matricula, periodo, sessao);
+        if (res.ok) ok += 1;
+        else falhas += 1;
+      });
+      if (falhas === 0) {
+        msg(ok + " linha(s) salva(s).", true);
+      } else {
+        msg(ok + " salva(s), " + falhas + " com pendência (material ou nota).", false);
+      }
+      refresh();
+    });
+  }
 
   container.querySelectorAll(".quadro-notas__remover").forEach(function (btn) {
     btn.addEventListener("click", function () {
