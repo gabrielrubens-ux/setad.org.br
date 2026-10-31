@@ -28,6 +28,17 @@ function gerarId(prefixo) {
 function seedIfNeeded() {
   if (getMeta("seeded") === "true") return;
 
+  var usuariosExistentes = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
+  if (usuariosExistentes > 0) {
+    setMeta("seeded", "true");
+    console.log(
+      "[SETAD API] Banco já contém " +
+        usuariosExistentes +
+        " usuário(s); senhas e contas preservadas (seed de demo não aplicado)."
+    );
+    return;
+  }
+
   const isProd = process.env.NODE_ENV === "production";
   const allowDemo = process.env.SETAD_ALLOW_DEMO_SEED === "true";
 

@@ -19,12 +19,15 @@ Conta SETAD (`u378124100`), exemplo:
 
 ### 2. Variáveis no hPanel (Node.js → Environment variables)
 
-Envie **a lista completa** de variáveis (a Hostinger substitui tudo ao salvar):
+Envie **a lista completa** de variáveis (a Hostinger substitui tudo ao salvar).
+
+**A partir da versão com `server/persistencia-dados.js`**, se `NODE_ENV=production` e não houver caminho absoluto, o servidor usa automaticamente `~/.setad-data/setad.db` (fora do deploy) e tenta migrar um `data/setad.db` legado na primeira subida.
 
 | Nome | Valor recomendado |
 |------|-------------------|
-| `SETAD_DB_PATH` | `/home/u378124100/.setad-data/setad.db` |
-| `SETAD_UPLOADS_DIR` | `/home/u378124100/.setad-data/uploads` |
+| `SETAD_DB_PATH` | `/home/u378124100/.setad-data/setad.db` (opcional se o padrão `~/.setad-data` já estiver correto) |
+| `SETAD_UPLOADS_DIR` | `/home/u378124100/.setad-data/uploads` (opcional; padrão: pasta `uploads` ao lado do `.db`) |
+| `SETAD_DATA_DIR` | Alternativa: `/home/u378124100/.setad-data` (define pasta; db = `setad.db` dentro dela) |
 
 Mantenha também `NODE_ENV`, `JWT_SECRET`, `SETAD_PUBLIC_URL`, SMTP, etc. — ver [HOSTINGER-VARIAVEIS-AMBIENTE.md](./HOSTINGER-VARIAVEIS-AMBIENTE.md).
 

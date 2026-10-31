@@ -70,7 +70,11 @@ app.get("/api/health", function (_req, res) {
     service: "setad-api",
     version: "1.0.0",
     mode: "api",
-    emailSmtpConfigurado: smtpConfigurado()
+    emailSmtpConfigurado: smtpConfigurado(),
+    armazenamento: {
+      dadosForaDoDeploy: storage.dadosForaDoDeploy,
+      usuariosNoBanco: storage.totalUsuarios
+    }
   });
 });
 
@@ -102,10 +106,16 @@ app.listen(PORT, "0.0.0.0", function () {
   console.log("[SETAD] API: /api/health | Site + PWA + API unificados");
   console.log("[SETAD] SQLite:", storage.dbPath);
   console.log("[SETAD] Uploads:", storage.uploadsDir);
-  if (process.env.NODE_ENV === "production" && storage.dbRelativeToRepo) {
+  console.log(
+    "[SETAD] Usuários no banco:",
+    storage.totalUsuarios,
+    "| Persistente fora do deploy:",
+    storage.dadosForaDoDeploy ? "sim" : "não"
+  );
+  if (process.env.NODE_ENV === "production" && !storage.dadosForaDoDeploy) {
     console.warn(
-      "[SETAD] SETAD_DB_PATH relativo ao app — em deploy Git na Hostinger o banco pode ser recriado vazio. " +
-        "Use caminho absoluto fora da pasta do deploy (docs/HOSTINGER-PERSISTENCIA-DADOS.md)."
+      "[SETAD] AVISO: banco dentro da pasta do deploy — atualizações Git podem apagar cadastros e senhas. " +
+        "Defina SETAD_DATA_DIR ou SETAD_DB_PATH absoluto (docs/HOSTINGER-PERSISTENCIA-DADOS.md)."
     );
   }
 });

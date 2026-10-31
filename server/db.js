@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
+const { resolverArmazenamentoSetad } = require("./persistencia-dados");
 
-const DB_PATH = process.env.SETAD_DB_PATH || path.join(__dirname, "..", "data", "setad.db");
-const UPLOADS_DIR =
-  process.env.SETAD_UPLOADS_DIR || path.join(__dirname, "..", "data", "uploads");
+const REPO_ROOT = path.join(__dirname, "..");
+const armazenamento = resolverArmazenamentoSetad(REPO_ROOT);
+const DB_PATH = armazenamento.dbPath;
+const UPLOADS_DIR = armazenamento.uploadsDir;
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -251,9 +253,18 @@ module.exports = {
 };
 
 function getStorageInfo() {
+  var totalUsuarios = 0;
+  try {
+    totalUsuarios = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
+  } catch (_e) {
+    totalUsuarios = 0;
+  }
   return {
     dbPath: path.resolve(DB_PATH),
     uploadsDir: path.resolve(UPLOADS_DIR),
-    dbRelativeToRepo: !path.isAbsolute(DB_PATH)
+    dbRelativeToRepo: !armazenamento.dadosForaDoDeploy && !path.isAbsolute(DB_PATH),
+    dadosForaDoDeploy: armazenamento.dadosForaDoDeploy,
+    estrategiaArmazenamento: armazenamento.estrategia,
+    totalUsuarios: totalUsuarios
   };
 }
