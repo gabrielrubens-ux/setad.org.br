@@ -551,7 +551,9 @@ function renderizarAlunosSecretaria() {
   container.querySelectorAll(".btn-abrir-notas-aluno").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var id = btn.getAttribute("data-matricula-id");
-      if (id && typeof abrirCadastroAlunoNotasFromLista === "function") {
+      if (id && typeof abrirFichaAlunoNotasFromLista === "function") {
+        abrirFichaAlunoNotasFromLista(id);
+      } else if (id && typeof abrirCadastroAlunoNotasFromLista === "function") {
         abrirCadastroAlunoNotasFromLista(id);
       }
     });

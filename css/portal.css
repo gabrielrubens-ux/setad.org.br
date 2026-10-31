@@ -2624,6 +2624,14 @@ body.portal-marca-dagua .wpp-float {
   white-space: nowrap;
 }
 
+.ficha-aluno__turma-notas-resumo {
+  margin-bottom: 1rem;
+}
+
+.ficha-aluno__quadro-notas-corpo .quadro-notas-materiais {
+  margin-top: 0.25rem;
+}
+
 .quadro-notas-materiais__tabela .quadro-notas__material {
   width: 100%;
   min-width: 12rem;

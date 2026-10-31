@@ -49,7 +49,9 @@ function renderizarPainelCadastroAlunoAcademico(hostId, matricula, sessao, opcoe
 
     alvo.innerHTML = '<div id="secCadastroAbaNotas"></div>';
     if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
-      renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
+      renderizarPlanilhaNotasCadastroAluno(matricula, sessao, {
+        containerEl: document.getElementById("secCadastroAbaNotas")
+      });
     }
   }
 

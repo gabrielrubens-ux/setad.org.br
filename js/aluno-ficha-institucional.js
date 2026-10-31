@@ -289,12 +289,19 @@ function renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm) {
       ? '<span class="status-badge status-badge--pago ficha-aluno__quadro-notas-badge">Edição liberada</span>'
       : "") +
     "</header>" +
+    (typeof montarResumoTurmaAtualFichaAluno === "function"
+      ? '<div class="ficha-aluno__turma-notas-resumo">' +
+        montarResumoTurmaAtualFichaAluno(matricula) +
+        "</div>"
+      : "") +
     '<div id="fichaAlunoAbaNotas" class="ficha-aluno__quadro-notas-corpo"></div>' +
     "</section>";
 
   if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
+    var alvoNotas = document.getElementById("fichaAlunoAbaNotas");
     renderizarPlanilhaNotasCadastroAluno(matricula, sessao, {
-      somenteLeitura: !podeEditar
+      somenteLeitura: !podeEditar,
+      containerEl: alvoNotas
     });
   } else {
     document.getElementById("fichaAlunoAbaNotas").innerHTML =

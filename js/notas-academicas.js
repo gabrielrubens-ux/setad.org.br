@@ -66,7 +66,7 @@ function listarMateriaisQuadroAluno(matricula, periodo) {
     obterMateriaisPadraoModulo(modulo).forEach(incluir);
   }
 
-  obterNotasPorAluno(matricula.email).forEach(function (n) {
+  obterNotasDaMatricula(matricula).forEach(function (n) {
     if (
       (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
       (n.tipo || "prova") === "prova" &&
@@ -104,7 +104,7 @@ function salvarListaMateriaisQuadro(matriculaId, periodo, lista, sessao) {
   return atualizarDadosMatricula(matriculaId, { quadroMateriaisNotas: quadro });
 }
 
-function renomearDisciplinaNotasAluno(email, periodo, nomeAntigo, nomeNovo, sessao) {
+function renomearDisciplinaNotasAluno(emailOuMatricula, periodo, nomeAntigo, nomeNovo, sessao) {
   if (!usuarioPodeEditarNotasAcademicas(sessao)) {
     return { ok: false, erro: "Sem permissão." };
   }
@@ -113,18 +113,27 @@ function renomearDisciplinaNotasAluno(email, periodo, nomeAntigo, nomeNovo, sess
   if (!nomeAntigo || !nomeNovo || nomeAntigo === nomeNovo) {
     return { ok: true };
   }
-  var norm = (email || "").trim().toLowerCase();
+  var matricula =
+    emailOuMatricula && typeof emailOuMatricula === "object" ? emailOuMatricula : null;
+  var norm =
+    !matricula && emailOuMatricula
+      ? String(emailOuMatricula).trim().toLowerCase()
+      : "";
   var lista = obterNotasAcademicas();
   var alterou = false;
   lista = lista.map(function (n) {
+    var pertence = matricula
+      ? notaPertenceAMatricula(n, matricula)
+      : (n.alunoEmail || "").toLowerCase() === norm;
     if (
-      (n.alunoEmail || "").toLowerCase() === norm &&
+      pertence &&
       (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
       n.disciplina === nomeAntigo
     ) {
       alterou = true;
       return Object.assign({}, n, {
         disciplina: nomeNovo,
+        matriculaId: (matricula && matricula.id) || n.matriculaId || null,
         atualizadoEm: new Date().toISOString(),
         lancadoPor: sessao.email,
         lancadoPorPerfil: sessao.perfil
@@ -142,7 +151,13 @@ function removerMaterialQuadroAluno(matricula, periodo, nomeMaterial, sessao) {
     return m !== nomeMaterial;
   });
   salvarListaMateriaisQuadro(matricula.id, periodo, lista, sessao);
-  var nota = obterNotaLancamento(matricula.email, nomeMaterial, periodo, "prova", "Prova 1");
+  var nota = obterNotaLancamentoMatricula(
+    matricula,
+    nomeMaterial,
+    periodo,
+    "prova",
+    "Prova 1"
+  );
   if (nota) {
     salvarNotaAcademica(
       {
@@ -194,8 +209,51 @@ function salvarNotasAcademicas(lista) {
 
 function obterNotasPorAluno(email) {
   var norm = (email || "").trim().toLowerCase();
+  if (!norm) return [];
   return obterNotasAcademicas().filter(function (n) {
     return (n.alunoEmail || "").toLowerCase() === norm;
+  });
+}
+
+function notaPertenceAMatricula(nota, matricula) {
+  if (!nota || !matricula) return false;
+  if (matricula.id && nota.matriculaId === matricula.id) return true;
+  var norm =
+    typeof normalizarEmailMatricula === "function"
+      ? normalizarEmailMatricula(matricula.email)
+      : (matricula.email || "").trim().toLowerCase();
+  if (norm && (nota.alunoEmail || "").toLowerCase() === norm) return true;
+  return false;
+}
+
+function obterNotasDaMatricula(matricula) {
+  if (!matricula) return [];
+  return obterNotasAcademicas().filter(function (n) {
+    return notaPertenceAMatricula(n, matricula);
+  });
+}
+
+function matriculaPermiteLancamentoNotas(matricula) {
+  if (!matricula) return false;
+  if (matricula.id) return true;
+  var email =
+    typeof normalizarEmailMatricula === "function"
+      ? normalizarEmailMatricula(matricula.email)
+      : (matricula.email || "").trim();
+  return !!email;
+}
+
+function obterNotaLancamentoMatricula(matricula, disciplina, periodo, tipo, avaliacao) {
+  periodo = periodo || obterPeriodoLetivoAtual();
+  tipo = tipo || "prova";
+  avaliacao = avaliacao || "Prova 1";
+  return obterNotasDaMatricula(matricula).find(function (n) {
+    return (
+      n.disciplina === disciplina &&
+      (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
+      (n.tipo || "prova") === tipo &&
+      (n.avaliacao || "Prova 1") === avaliacao
+    );
   });
 }
 
@@ -209,11 +267,20 @@ function chaveNotaAcademica(nota) {
   ].join("|");
 }
 
-function obterNotaLancamento(email, disciplina, periodo, tipo, avaliacao) {
+function obterNotaLancamento(emailOuMatricula, disciplina, periodo, tipo, avaliacao) {
+  if (emailOuMatricula && typeof emailOuMatricula === "object") {
+    return obterNotaLancamentoMatricula(
+      emailOuMatricula,
+      disciplina,
+      periodo,
+      tipo,
+      avaliacao
+    );
+  }
   periodo = periodo || obterPeriodoLetivoAtual();
   tipo = tipo || "prova";
   avaliacao = avaliacao || "Prova 1";
-  var norm = (email || "").trim().toLowerCase();
+  var norm = (emailOuMatricula || "").trim().toLowerCase();
   return obterNotasAcademicas().find(function (n) {
     return (
       (n.alunoEmail || "").toLowerCase() === norm &&
@@ -225,9 +292,13 @@ function obterNotaLancamento(email, disciplina, periodo, tipo, avaliacao) {
   });
 }
 
-function calcularMediaAutomaticaAluno(email, periodo) {
+function calcularMediaAutomaticaAluno(emailOuMatricula, periodo) {
   periodo = periodo || obterPeriodoLetivoAtual();
-  var provas = obterNotasPorAluno(email).filter(function (n) {
+  var provas = (
+    emailOuMatricula && typeof emailOuMatricula === "object"
+      ? obterNotasDaMatricula(emailOuMatricula)
+      : obterNotasPorAluno(emailOuMatricula)
+  ).filter(function (n) {
     return (
       (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
       (n.tipo || "prova") === "prova" &&
@@ -243,20 +314,24 @@ function calcularMediaAutomaticaAluno(email, periodo) {
   return Math.round((soma / provas.length) * 100) / 100;
 }
 
-function obterMediaManualAluno(email, periodo) {
+function obterMediaManualAluno(emailOuMatricula, periodo) {
   periodo = periodo || obterPeriodoLetivoAtual();
-  return obterNotasPorAluno(email).find(function (n) {
+  var notas =
+    emailOuMatricula && typeof emailOuMatricula === "object"
+      ? obterNotasDaMatricula(emailOuMatricula)
+      : obterNotasPorAluno(emailOuMatricula);
+  return notas.find(function (n) {
     return (n.periodo || obterPeriodoLetivoAtual()) === periodo && n.tipo === "media_manual";
   });
 }
 
-function obterMediaExibicaoAluno(email, periodo) {
+function obterMediaExibicaoAluno(emailOuMatricula, periodo) {
   periodo = periodo || obterPeriodoLetivoAtual();
-  var manual = obterMediaManualAluno(email, periodo);
+  var manual = obterMediaManualAluno(emailOuMatricula, periodo);
   if (manual && manual.valor !== null && manual.valor !== undefined && manual.valor !== "") {
     return Number(manual.valor);
   }
-  return calcularMediaAutomaticaAluno(email, periodo);
+  return calcularMediaAutomaticaAluno(emailOuMatricula, periodo);
 }
 
 function formatarNotaValor(valor) {
@@ -288,12 +363,32 @@ function usuarioPodeEditarNotasAcademicas(sessao) {
 }
 
 function salvarNotaAcademica(dados, sessao) {
-  if (!dados || !dados.alunoEmail) {
+  if (!dados || (!dados.alunoEmail && !dados.matriculaId)) {
     return { ok: false, erro: "Informe o aluno." };
   }
   if (!usuarioPodeEditarNotasAcademicas(sessao)) {
     return { ok: false, erro: "Sem permissão para lançar notas." };
   }
+
+  var matricula = null;
+  if (dados.matriculaId && typeof obterMatriculas === "function") {
+    matricula = obterMatriculas().find(function (m) {
+      return m.id === dados.matriculaId;
+    });
+  }
+  if (!matricula && dados.alunoEmail && typeof obterMatriculaPorEmail === "function") {
+    matricula = obterMatriculaPorEmail(dados.alunoEmail);
+  }
+  if (matricula) {
+    dados.matriculaId = matricula.id;
+    if (!dados.alunoNome) dados.alunoNome = matricula.nomeCompleto;
+    if (!dados.alunoEmail && matricula.email) {
+      dados.alunoEmail = matricula.email;
+    }
+  }
+  dados.alunoEmail = dados.alunoEmail
+    ? String(dados.alunoEmail).trim().toLowerCase()
+    : "";
 
   var valor =
     dados.valor === null || dados.valor === undefined || dados.valor === ""
@@ -318,17 +413,18 @@ function salvarNotaAcademica(dados, sessao) {
     ? lista.find(function (n) {
         return n.id === dados.id;
       })
-    : obterNotaLancamento(dados.alunoEmail, disciplina, periodo, tipo, avaliacao);
-
-  var matricula =
-    typeof obterMatriculaPorEmail === "function"
-      ? obterMatriculaPorEmail(dados.alunoEmail)
-      : null;
+    : null;
+  if (!existente && matricula) {
+    existente = obterNotaLancamentoMatricula(matricula, disciplina, periodo, tipo, avaliacao);
+  }
+  if (!existente && dados.alunoEmail) {
+    existente = obterNotaLancamento(dados.alunoEmail, disciplina, periodo, tipo, avaliacao);
+  }
 
   var registro = Object.assign({}, existente || {}, {
     id: (existente && existente.id) || dados.id || gerarId("nota"),
     matriculaId: (matricula && matricula.id) || dados.matriculaId || null,
-    alunoEmail: dados.alunoEmail.trim().toLowerCase(),
+    alunoEmail: dados.alunoEmail,
     alunoNome:
       dados.alunoNome ||
       (matricula && matricula.nomeCompleto) ||
@@ -379,8 +475,9 @@ function obterSessaoOperacionalListaAlunos() {
 function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
   meta = meta || {};
   var container =
-    document.getElementById("secCadastroAbaNotas") ||
+    meta.containerEl ||
     document.getElementById("fichaAlunoAbaNotas") ||
+    document.getElementById("secCadastroAbaNotas") ||
     document.getElementById("secPlanilhaNotas");
   if (!container) return;
 
@@ -397,10 +494,16 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
     if (atualizada) matricula = atualizada;
   }
 
-  if (!matricula || !matricula.email) {
+  if (!matricula || !matriculaPermiteLancamentoNotas(matricula)) {
     container.innerHTML =
       '<p class="presencial-bloco__hint">Selecione um aluno na lista ou salve o cadastro para lançar notas.</p>';
     return;
+  }
+
+  if (!matricula.email) {
+    container.setAttribute("data-notas-sem-email", "1");
+  } else {
+    container.removeAttribute("data-notas-sem-email");
   }
 
   sessao = sessao || obterSessaoOperacionalListaAlunos();

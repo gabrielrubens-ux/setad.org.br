@@ -281,7 +281,7 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
   var linhas = materiais
     .map(function (nomeMaterial) {
       var nota = nomeMaterial
-        ? obterNotaLancamento(matricula.email, nomeMaterial, periodo, "prova", "Prova 1")
+        ? obterNotaLancamento(matricula, nomeMaterial, periodo, "prova", "Prova 1")
         : null;
       var valor =
         nota && nota.valor !== null && nota.valor !== undefined && nota.valor !== ""
@@ -327,8 +327,20 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
       '<tr><td colspan="3" class="lista-vazia">Nenhum material cadastrado para este período.</td></tr>';
   }
 
-  var media = obterMediaExibicaoAluno(matricula.email, periodo);
+  var media = obterMediaExibicaoAluno(matricula, periodo);
   var badgeMedia = obterClasseNotaBadge(media);
+  var turmaResumo =
+    typeof montarResumoTurmaAtualFichaAluno === "function"
+      ? montarResumoTurmaAtualFichaAluno(matricula)
+      : typeof formatarDirecionamentoAluno === "function"
+        ? '<p class="ficha-aluno__turma-atual"><strong>Turma / polo:</strong> ' +
+          esc(formatarDirecionamentoAluno(matricula)) +
+          "</p>"
+        : "";
+  var avisoSemEmail =
+    !matricula.email && podeEditar
+      ? '<p class="presencial-bloco__hint">Este aluno ainda não tem e-mail — as notas ficam vinculadas ao cadastro (ID). Inclua o e-mail quando possível.</p>'
+      : "";
   var linhaMedia =
     "<tr class=\"quadro-notas__linha-media\">" +
     "<td><strong>Média geral do período</strong></td>" +
@@ -359,6 +371,8 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
       ? '<button type="button" class="btn btn--secondary btn--sm" data-quadro-notas-atualizar="1">Atualizar</button>'
       : "") +
     "</header>" +
+    avisoSemEmail +
+    turmaResumo +
     '<div class="planilha-turma__scroll">' +
     '<table class="data-table data-table--compact quadro-notas-materiais__tabela">' +
     "<thead><tr><th>Material / disciplina</th><th>Nota</th><th>Ações</th></tr></thead><tbody>" +
@@ -420,13 +434,7 @@ function configurarEventosQuadroMateriaisNotasAluno(container, matricula, sessao
       }
       var valorRaw = (tr.querySelector(".quadro-notas__valor") || {}).value;
       if (nomeAntigo && nomeAntigo !== nomeNovo) {
-        renomearDisciplinaNotasAluno(
-          matricula.email,
-          periodo,
-          nomeAntigo,
-          nomeNovo,
-          sessao
-        );
+        renomearDisciplinaNotasAluno(matricula, periodo, nomeAntigo, nomeNovo, sessao);
         var lista = listarMateriaisQuadroAluno(matricula, periodo).map(function (m) {
           return m === nomeAntigo ? nomeNovo : m;
         });
@@ -435,7 +443,7 @@ function configurarEventosQuadroMateriaisNotasAluno(container, matricula, sessao
       }
       var resultado = salvarNotaAcademica(
         {
-          alunoEmail: matricula.email,
+          alunoEmail: matricula.email || "",
           alunoNome: matricula.nomeCompleto,
           matriculaId: matricula.id,
           disciplina: nomeNovo,
@@ -502,8 +510,8 @@ function configurarEventosQuadroMateriaisNotasAluno(container, matricula, sessao
   var editorMedia = container.querySelector("#quadroNotasEditorMedia");
   if (btnMedia && editorMedia) {
     btnMedia.addEventListener("click", function () {
-      var manual = obterMediaManualAluno(matricula.email, periodo);
-      var exib = obterMediaExibicaoAluno(matricula.email, periodo);
+      var manual = obterMediaManualAluno(matricula, periodo);
+      var exib = obterMediaExibicaoAluno(matricula, periodo);
       var input = container.querySelector("#quadroNotasMediaValor");
       if (input) {
         input.value =
@@ -530,7 +538,7 @@ function configurarEventosQuadroMateriaisNotasAluno(container, matricula, sessao
       var valor = container.querySelector("#quadroNotasMediaValor").value;
       var resultado = salvarNotaAcademica(
         {
-          alunoEmail: matricula.email,
+          alunoEmail: matricula.email || "",
           alunoNome: matricula.nomeCompleto,
           matriculaId: matricula.id,
           tipo: "media_manual",
