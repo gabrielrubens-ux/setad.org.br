@@ -7,7 +7,8 @@ const { getStorageInfo } = require("./db");
 const { importarAutorizadosIniciais } = require("./staff-ativacao");
 const {
   garantirStaffAcessoTodasAreas,
-  garantirStaffContabilidade
+  garantirStaffContabilidade,
+  garantirStaffSecretaria
 } = require("./staff-bootstrap");
 const { aplicarZeragemAcervoBiblioteca } = require("./biblioteca-acervo");
 const bibliaRoutes = require("./routes/biblia");
@@ -42,6 +43,7 @@ logStatusSmtpInicializacao();
 
 garantirStaffAcessoTodasAreas();
 garantirStaffContabilidade();
+garantirStaffSecretaria();
 aplicarZeragemAcervoBiblioteca();
 
 const app = express();

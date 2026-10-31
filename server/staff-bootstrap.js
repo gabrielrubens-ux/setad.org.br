@@ -22,6 +22,30 @@ const STAFF_CONTABILIDADE = [
   { email: "rsgestaofinanceirapa@gmail.com", nome: "RS Gestão Financeira PA" }
 ];
 
+/** Secretaria SETAD — painel da secretaria (primeiro acesso por e-mail). */
+const STAFF_SECRETARIA = [
+  { email: "santiagolais324@gmail.com", nome: "Laís Santiago da Silva" },
+  { email: "ledyannymaria.02@gmail.com", nome: "Ledyanny Maria" },
+  { email: "kathlensantiago@gmail.com", nome: "Kathlen Santiago" },
+  { email: "sfanny484@gmail.com", nome: "Steffany" }
+];
+
+function garantirStaffSecretaria() {
+  STAFF_SECRETARIA.forEach(function (item) {
+    const resultado = upsertAutorizado(item.email, item.nome, "secretaria", ["secretaria"]);
+    if (resultado.ok) {
+      console.log(
+        "[SETAD] Secretaria sincronizada:",
+        item.email,
+        "→",
+        resultado.perfis.join(", ")
+      );
+    } else {
+      console.warn("[SETAD] Falha ao sincronizar secretaria de", item.email, resultado.erro);
+    }
+  });
+}
+
 function garantirStaffContabilidade() {
   STAFF_CONTABILIDADE.forEach(function (item) {
     const resultado = upsertAutorizado(item.email, item.nome, "contador", ["contador"]);
@@ -63,6 +87,8 @@ module.exports = {
   PERFIS_TODAS_AREAS_INSTITUCIONAIS,
   STAFF_ACESSO_TODAS_AREAS,
   STAFF_CONTABILIDADE,
+  STAFF_SECRETARIA,
   garantirStaffAcessoTodasAreas,
-  garantirStaffContabilidade
+  garantirStaffContabilidade,
+  garantirStaffSecretaria
 };
