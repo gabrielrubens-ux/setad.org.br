@@ -986,6 +986,35 @@ body.portal-marca-dagua .wpp-float {
   margin-top: 0;
 }
 
+.situacao-curso-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.situacao-curso-badge--cursando {
+  background: rgba(35, 64, 107, 0.12);
+  color: var(--cor-primaria, #23406b);
+}
+
+.situacao-curso-badge--bolsista {
+  background: rgba(124, 58, 237, 0.12);
+  color: #5b21b6;
+}
+
+.situacao-curso-badge--trancado {
+  background: rgba(180, 83, 9, 0.15);
+  color: #92400e;
+}
+
+.situacao-curso-badge--concluido {
+  background: rgba(34, 139, 34, 0.12);
+  color: #166534;
+}
+
 .nota-badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;

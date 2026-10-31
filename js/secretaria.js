@@ -497,7 +497,7 @@ function renderizarAlunosSecretaria() {
     '<table class="data-table">' +
       "<thead><tr>" +
         "<th>Nome</th><th>E-mail</th><th>Telefone</th><th>Módulo</th>" +
-        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Observação</th><th>Ações</th>" +
+        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Situação</th><th>Observação</th><th>Ações</th>" +
       "</tr></thead><tbody>" +
       matriculas.map(function (aluno) {
         var moduloNome = MODULOS_CURSO[aluno.modulo]
@@ -543,6 +543,11 @@ function renderizarAlunosSecretaria() {
               : "") +
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
+          "</td>" +
+          "<td>" +
+            (typeof formatarSituacaoCursoListaAluno === "function"
+              ? formatarSituacaoCursoListaAluno(aluno)
+              : escaparHtml(aluno.situacaoCurso || "Cursando")) +
           "</td>" +
           "<td>" + formatarCelulaObservacaoListaAluno(aluno.observacoes) + "</td>" +
           '<td><div class="matricula-acoes matricula-acoes--grade">' +

@@ -1,5 +1,68 @@
 /* Fluxo de cadastro presencial: novo aluno ou quadro (pagamentos na Ficha do aluno). */
 
+var SITUACOES_CURSO_SETAD = {
+  cursando: "Cursando",
+  bolsista: "Bolsista",
+  trancado: "Trancado",
+  concluido: "Concluído"
+};
+
+function anexarDadosCursoPresencialAosDados(dados) {
+  var inicio = document.getElementById("secCursoInicio");
+  var termino = document.getElementById("secCursoTermino");
+  var situacao = document.getElementById("secSituacaoCurso");
+  dados.cursoDataInicio = inicio && inicio.value ? inicio.value : "";
+  dados.cursoDataTermino = termino && termino.value ? termino.value : "";
+  dados.situacaoCurso =
+    situacao && situacao.value ? situacao.value : "cursando";
+  return dados;
+}
+
+function validarDatasCursoPresencial(dados) {
+  if (dados.cursoDataInicio && dados.cursoDataTermino) {
+    if (String(dados.cursoDataTermino) < String(dados.cursoDataInicio)) {
+      return "A data de término do curso deve ser igual ou posterior ao início.";
+    }
+  }
+  return null;
+}
+
+function preencherCamposCursoPresencialNaMatricula(matricula) {
+  var inicioEl = document.getElementById("secCursoInicio");
+  var terminoEl = document.getElementById("secCursoTermino");
+  var situacaoEl = document.getElementById("secSituacaoCurso");
+  if (inicioEl) inicioEl.value = (matricula && matricula.cursoDataInicio) || "";
+  if (terminoEl) terminoEl.value = (matricula && matricula.cursoDataTermino) || "";
+  if (situacaoEl) {
+    situacaoEl.value = (matricula && matricula.situacaoCurso) || "cursando";
+  }
+}
+
+function formatarSituacaoCursoListaAluno(matricula) {
+  var esc =
+    typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var sit = (matricula && matricula.situacaoCurso) || "cursando";
+  if (!SITUACOES_CURSO_SETAD[sit]) sit = "cursando";
+  var label = SITUACOES_CURSO_SETAD[sit];
+  var fmtData =
+    typeof formatarData === "function"
+      ? formatarData
+      : function (d) { return d || "—"; };
+  var ini = matricula.cursoDataInicio ? fmtData(matricula.cursoDataInicio) : "—";
+  var fim = matricula.cursoDataTermino ? fmtData(matricula.cursoDataTermino) : "—";
+  var titleAttr = ("Início: " + ini + " · Término: " + fim)
+    .replace(/"/g, "&quot;");
+  return (
+    '<span class="situacao-curso-badge situacao-curso-badge--' +
+    esc(sit) +
+    '" title="' +
+    titleAttr +
+    '">' +
+    esc(label) +
+    "</span>"
+  );
+}
+
 function preencherSelectInstituicoesPresencial() {
   var select = document.getElementById("secInstituicaoPagamento");
   if (!select || select.dataset.preenchido === "1") return;
@@ -254,6 +317,9 @@ function preencherFormularioComMatricula(matricula, opcoes) {
   document.getElementById("secCidade").value = matricula.cidade || "";
   document.getElementById("secEstado").value = matricula.estado || "";
   document.getElementById("secIgreja").value = matricula.igreja || "";
+  var obsEl = document.getElementById("secObservacoes");
+  if (obsEl) obsEl.value = matricula.observacoes || "";
+  preencherCamposCursoPresencialNaMatricula(matricula);
 
   var poloEl = document.getElementById("secPolo");
   if (poloEl) {
@@ -378,7 +444,9 @@ function limparFormularioCadastroPresencial(form, sessao, opcoes) {
     "secCidade",
     "secIgreja",
     "secObservacoes",
-    "secModulo"
+    "secModulo",
+    "secCursoInicio",
+    "secCursoTermino"
   ];
   camposLimpar.forEach(function (idCampo) {
     var el = document.getElementById(idCampo);
@@ -389,6 +457,8 @@ function limparFormularioCadastroPresencial(form, sessao, opcoes) {
       el.value = "";
     }
   });
+  var situacaoEl = document.getElementById("secSituacaoCurso");
+  if (situacaoEl) situacaoEl.value = "cursando";
 
   if (typeof atualizarSelectSalaTurmaPresencial === "function") {
     atualizarSelectSalaTurmaPresencial("", "");
@@ -547,8 +617,15 @@ function configurarCadastroPresencial(sessao, opcoes) {
       cadastradoPor: sessao.email,
       observacoes: document.getElementById("secObservacoes").value.trim()
     };
+    anexarDadosCursoPresencialAosDados(dados);
     if (typeof anexarDirecionamentoInternoAosDados === "function") {
       anexarDirecionamentoInternoAosDados(dados);
+    }
+    var erroCurso = validarDatasCursoPresencial(dados);
+    if (erroCurso) {
+      mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+      mensagemEl.textContent = erroCurso;
+      return;
     }
 
     if (form.dataset.omitirPagamento === "1") {
@@ -832,6 +909,7 @@ function salvarCadastroDigitalQuadro(sessao) {
     igreja: document.getElementById("secIgreja").value.trim(),
     observacoes: document.getElementById("secObservacoes").value.trim()
   };
+  anexarDadosCursoPresencialAosDados(dados);
   if (typeof anexarDirecionamentoInternoAosDados === "function") {
     anexarDirecionamentoInternoAosDados(dados);
   }
@@ -900,6 +978,9 @@ function finalizarCadastroPresencialComPagamento(
       igreja: dados.igreja,
       observacoes: dados.observacoes,
       modulo: dados.modulo,
+      cursoDataInicio: dados.cursoDataInicio,
+      cursoDataTermino: dados.cursoDataTermino,
+      situacaoCurso: dados.situacaoCurso,
       poloId: dados.poloId,
       poloNome: dados.poloNome,
       salaTurmaId: dados.salaTurmaId,
