@@ -478,15 +478,22 @@ function renderizarAlunosSecretaria() {
           typeof formatarDirecionamentoAluno === "function"
             ? formatarDirecionamentoAluno(aluno)
             : "—";
-        var wppBtn = aluno.telefone
-          ? '<a class="btn btn--secondary btn--sm" href="https://wa.me/' +
-            normalizarTelefoneWpp(aluno.telefone) +
-            '" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
-          : "";
-        var btnMensalidades =
-          '<button type="button" class="btn btn--secondary btn--sm btn-abrir-mensalidades-aluno" data-matricula-id="' +
+        var sessaoLista =
+          typeof obterSessaoOperacionalListaAlunos === "function"
+            ? obterSessaoOperacionalListaAlunos()
+            : null;
+        var semFinanceiro =
+          typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+          coordenacaoPedagogicaSemFinanceiro(sessaoLista);
+        var btnNotas =
+          '<button type="button" class="btn btn--secondary btn--sm btn-abrir-notas-aluno" data-matricula-id="' +
           escaparHtml(aluno.id) +
-          '">Mensalidades</button>';
+          '">Notas</button>';
+        var btnMensalidades = semFinanceiro
+          ? ""
+          : '<button type="button" class="btn btn--secondary btn--sm btn-abrir-mensalidades-aluno" data-matricula-id="' +
+            escaparHtml(aluno.id) +
+            '">Mensalidades</button>';
 
         return "<tr>" +
           "<td>" + escaparHtml(aluno.nomeCompleto) + "</td>" +
@@ -504,8 +511,11 @@ function renderizarAlunosSecretaria() {
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
           "</td>" +
-          '<td><div class="matricula-acoes">' + btnMensalidades + wppBtn +
-            renderizarBotaoExcluirMatricula(aluno) + "</div></td>" +
+          '<td><div class="matricula-acoes">' +
+            btnNotas +
+            btnMensalidades +
+            renderizarBotaoExcluirMatricula(aluno) +
+            "</div></td>" +
         "</tr>";
       }).join("") +
       "</tbody></table>";
@@ -517,6 +527,15 @@ function renderizarAlunosSecretaria() {
       var id = btn.getAttribute("data-matricula-id");
       if (id && typeof abrirCadastroPresencialComMatricula === "function") {
         abrirCadastroPresencialComMatricula(id);
+      }
+    });
+  });
+
+  container.querySelectorAll(".btn-abrir-notas-aluno").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-matricula-id");
+      if (id && typeof abrirCadastroAlunoNotasFromLista === "function") {
+        abrirCadastroAlunoNotasFromLista(id);
       }
     });
   });

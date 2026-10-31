@@ -209,6 +209,90 @@ function salvarNotaAcademica(dados, sessao) {
   return { ok: true, nota: registro };
 }
 
+function obterSessaoOperacionalListaAlunos() {
+  if (
+    typeof document !== "undefined" &&
+    document.body &&
+    document.body.classList.contains("painel-coordenacao") &&
+    typeof obterSessaoCoordenacao === "function"
+  ) {
+    return obterSessaoCoordenacao();
+  }
+  if (typeof obterSessaoSecretaria === "function") {
+    return obterSessaoSecretaria();
+  }
+  return null;
+}
+
+function renderizarPlanilhaNotasCadastroAluno(matricula, sessao) {
+  var container = document.getElementById("secPlanilhaNotas");
+  if (!container) return;
+
+  matricula =
+    matricula ||
+    (typeof obterMatriculaAtivaNoCadastroPresencial === "function"
+      ? obterMatriculaAtivaNoCadastroPresencial()
+      : null);
+
+  if (!matricula || !matricula.email) {
+    container.innerHTML =
+      '<p class="presencial-bloco__hint">Selecione um aluno na lista ou salve o cadastro para lançar notas.</p>';
+    return;
+  }
+
+  if (typeof renderizarPlanilhaNotasTurma !== "function") {
+    container.innerHTML = '<p class="lista-vazia">Módulo de notas indisponível.</p>';
+    return;
+  }
+
+  sessao = sessao || obterSessaoOperacionalListaAlunos();
+  if (!sessao) {
+    container.innerHTML = '<p class="lista-vazia">Sessão inválida.</p>';
+    return;
+  }
+
+  renderizarPlanilhaNotasTurma(container, [matricula], sessao, {
+    titulo: "Notas de " + (matricula.nomeCompleto || "aluno"),
+    subtitulo:
+      "Período " +
+      obterPeriodoLetivoAtual() +
+      ". Alterações aparecem para aluno, professores, coordenação e direção.",
+    mostrarAtualizar: true,
+    onAtualizar: function () {
+      renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
+    }
+  });
+}
+
+function abrirCadastroAlunoNotasFromLista(matriculaId) {
+  var matricula = obterMatriculas().find(function (m) {
+    return m.id === matriculaId;
+  });
+  if (!matricula) return;
+
+  var sessao = obterSessaoOperacionalListaAlunos();
+  if (!sessao) return;
+
+  var tab = document.querySelector('[data-tab="tab-cadastro"]');
+  if (tab) tab.click();
+
+  var tipoNovo = document.getElementById("secTipoAlunoNovo");
+  if (tipoNovo) tipoNovo.checked = true;
+  if (typeof aplicarModoTipoAlunoPresencial === "function") {
+    aplicarModoTipoAlunoPresencial();
+  }
+  if (typeof preencherFormularioComMatricula === "function") {
+    preencherFormularioComMatricula(matricula);
+  }
+
+  renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
+
+  var bloco = document.getElementById("secBlocoNotasCadastro");
+  if (bloco) {
+    bloco.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+}
+
 function renderizarNotasAlunoPainel(sessao) {
   var container = document.getElementById("notasAlunoContainer");
   if (!container || !sessao) return;
