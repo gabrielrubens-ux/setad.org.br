@@ -311,8 +311,8 @@ function renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, meta)
       return m.id === matricula.id;
     }) || matricula;
 
-  if (podeEditar && typeof garantirMateriaisIniciaisQuadroAluno === "function") {
-    garantirMateriaisIniciaisQuadroAluno(matricula, periodo, sessao);
+  if (podeEditar && typeof garantirMateriaisOficiaisQuadroAluno === "function") {
+    garantirMateriaisOficiaisQuadroAluno(matricula, periodo, sessao);
     matricula =
       obterMatriculas().find(function (m) {
         return m.id === matricula.id;

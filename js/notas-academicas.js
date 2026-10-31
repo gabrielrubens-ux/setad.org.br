@@ -2,13 +2,6 @@
 
 var NOTAS_ACADEMICAS_KEY = "setad_notas_academicas";
 
-var DISCIPLINAS_SETAD = [
-  "Teologia Sistemática I",
-  "Hermenêutica Bíblica",
-  "História da Igreja",
-  "Teologia Prática"
-];
-
 var MATERIAIS_NOTAS_POR_MODULO = {
   basico: [
     "Introdução à Bíblia",
@@ -17,10 +10,36 @@ var MATERIAIS_NOTAS_POR_MODULO = {
     "Vida Devocional"
   ],
   medio: [
-    "Teologia Sistemática I",
-    "Hermenêutica Bíblica",
-    "História da Igreja",
-    "Teologia Prática"
+    /* Curso médio em Teologia e Ciências Bíblicas — grade oficial SETAD */
+    "Ética cristã",
+    "Aconselhamento pastoral",
+    "Cristologia",
+    "Soteriologia",
+    "Eclesiologia",
+    "Hermenêutica",
+    "Bibliologia",
+    "História do cristianismo",
+    "Teontologia",
+    "Pneumatologia",
+    "Panorama do Antigo Testamento",
+    "Panorama do Novo Testamento",
+    "Evangelismo e discipulado",
+    "Direito eclesial, ética e cidadania",
+    "Implantação de novas igrejas",
+    "Liderança eclesiástica",
+    "Homilética",
+    "Teologia pastoral",
+    "Antropologia bíblica",
+    "Angelologia",
+    "Hamartiologia",
+    "Escatologia",
+    "Didática e metodologia do ensino cristão",
+    "Geografia bíblica",
+    "Arqueologia bíblica",
+    "Noções de hebraico bíblico",
+    "Noções de grego bíblico",
+    "Manuscritologia e tradução da Bíblia",
+    "Noções de exegese bíblica"
   ],
   avancado: [
     "Teologia Sistemática II",
@@ -36,6 +55,50 @@ var MATERIAIS_NOTAS_POR_MODULO = {
   ]
 };
 
+/** Incrementar ao alterar a grade oficial de um módulo (ex.: médio v2 = 29 disciplinas). */
+var MATERIAIS_QUADRO_VERSAO_OFICIAL = {
+  basico: 1,
+  medio: 2,
+  avancado: 1,
+  teologia: 1
+};
+
+var DISCIPLINAS_SETAD = [
+  "Teologia Sistemática I",
+  "Hermenêutica Bíblica",
+  "História da Igreja",
+  "Teologia Prática"
+];
+
+function obterModuloAcademicoAluno(matricula) {
+  if (!matricula) return "medio";
+  if (matricula.setadeNivel === "medio" || matricula.setadeNivel === "avancado") {
+    return matricula.setadeNivel;
+  }
+  return matricula.modulo || "medio";
+}
+
+function normalizarNomeMaterialComparacao(nome) {
+  return String(nome || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function listasMateriaisIguais(listaA, listaB) {
+  if (!listaA || !listaB || listaA.length !== listaB.length) return false;
+  for (var i = 0; i < listaA.length; i++) {
+    if (
+      normalizarNomeMaterialComparacao(listaA[i]) !==
+      normalizarNomeMaterialComparacao(listaB[i])
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function obterMateriaisPadraoModulo(modulo) {
   var chave = modulo || "medio";
   if (MATERIAIS_NOTAS_POR_MODULO[chave]) {
@@ -47,7 +110,7 @@ function obterMateriaisPadraoModulo(modulo) {
 function listarMateriaisQuadroAluno(matricula, periodo) {
   if (!matricula) return [];
   periodo = periodo || obterPeriodoLetivoAtual();
-  var modulo = matricula.modulo || "medio";
+  var modulo = obterModuloAcademicoAluno(matricula);
   var porId = {};
   var ordem = [];
 
@@ -60,22 +123,34 @@ function listarMateriaisQuadroAluno(matricula, periodo) {
 
   var quadroPersistido =
     matricula.quadroMateriaisNotas && matricula.quadroMateriaisNotas[periodo];
+  var listaOficial = obterMateriaisPadraoModulo(modulo);
+  var versaoQuadro =
+    matricula.quadroMateriaisVersao && matricula.quadroMateriaisVersao[periodo];
+  var versaoAlvo = MATERIAIS_QUADRO_VERSAO_OFICIAL[modulo] || 1;
+  var quadroOficialMedio =
+    modulo === "medio" &&
+    versaoQuadro >= versaoAlvo &&
+    Array.isArray(quadroPersistido) &&
+    listasMateriaisIguais(quadroPersistido, listaOficial);
+
   if (Array.isArray(quadroPersistido) && quadroPersistido.length) {
     quadroPersistido.forEach(incluir);
   } else {
-    obterMateriaisPadraoModulo(modulo).forEach(incluir);
+    listaOficial.forEach(incluir);
   }
 
-  obterNotasDaMatricula(matricula).forEach(function (n) {
-    if (
-      (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
-      (n.tipo || "prova") === "prova" &&
-      n.disciplina &&
-      n.disciplina !== "Média geral"
-    ) {
-      incluir(n.disciplina);
-    }
-  });
+  if (!quadroOficialMedio) {
+    obterNotasDaMatricula(matricula).forEach(function (n) {
+      if (
+        (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
+        (n.tipo || "prova") === "prova" &&
+        n.disciplina &&
+        n.disciplina !== "Média geral"
+      ) {
+        incluir(n.disciplina);
+      }
+    });
+  }
 
   return ordem;
 }
@@ -102,6 +177,73 @@ function salvarListaMateriaisQuadro(matriculaId, periodo, lista, sessao) {
       return !!s;
     });
   return atualizarDadosMatricula(matriculaId, { quadroMateriaisNotas: quadro });
+}
+
+function sincronizarMateriaisOficiaisNaMatricula(matricula, periodo) {
+  if (!matricula) {
+    return { matricula: matricula, alterou: false };
+  }
+  periodo = periodo || obterPeriodoLetivoAtual();
+  var modulo = obterModuloAcademicoAluno(matricula);
+  var oficial = obterMateriaisPadraoModulo(modulo);
+  if (!oficial.length) {
+    return { matricula: matricula, alterou: false };
+  }
+
+  var versaoAlvo = MATERIAIS_QUADRO_VERSAO_OFICIAL[modulo] || 1;
+  var versaoMap = Object.assign({}, matricula.quadroMateriaisVersao || {});
+  var versaoAtual = versaoMap[periodo] || 0;
+  var quadroMap = Object.assign({}, matricula.quadroMateriaisNotas || {});
+  var listaAtual = Array.isArray(quadroMap[periodo]) ? quadroMap[periodo].slice() : [];
+
+  var precisaAtualizar = false;
+  if (modulo === "medio") {
+    precisaAtualizar =
+      versaoAtual < versaoAlvo || !listasMateriaisIguais(listaAtual, oficial);
+  } else if (!listaAtual.length) {
+    precisaAtualizar = true;
+  }
+
+  if (!precisaAtualizar) {
+    return { matricula: matricula, alterou: false };
+  }
+
+  quadroMap[periodo] = oficial.slice();
+  versaoMap[periodo] = versaoAlvo;
+
+  return {
+    alterou: true,
+    matricula: Object.assign({}, matricula, {
+      quadroMateriaisNotas: quadroMap,
+      quadroMateriaisVersao: versaoMap
+    })
+  };
+}
+
+function aplicarMigracaoMateriaisOficiaisEmMatriculas(matriculas) {
+  if (!Array.isArray(matriculas) || !matriculas.length) {
+    return { lista: matriculas || [], alterou: false };
+  }
+  var periodo =
+    typeof obterPeriodoLetivoAtual === "function" ? obterPeriodoLetivoAtual() : "";
+  var alterou = false;
+  var lista = matriculas.map(function (m) {
+    var sync = sincronizarMateriaisOficiaisNaMatricula(m, periodo);
+    if (sync.alterou) alterou = true;
+    return sync.matricula;
+  });
+  return { lista: lista, alterou: alterou };
+}
+
+function garantirMateriaisOficiaisQuadroAluno(matricula, periodo, sessao) {
+  if (!matricula || !matricula.id) return;
+  if (!usuarioPodeEditarNotasAcademicas(sessao)) return;
+  var sync = sincronizarMateriaisOficiaisNaMatricula(matricula, periodo);
+  if (!sync.alterou || typeof atualizarDadosMatricula !== "function") return;
+  atualizarDadosMatricula(matricula.id, {
+    quadroMateriaisNotas: sync.matricula.quadroMateriaisNotas,
+    quadroMateriaisVersao: sync.matricula.quadroMateriaisVersao
+  });
 }
 
 function renomearDisciplinaNotasAluno(emailOuMatricula, periodo, nomeAntigo, nomeNovo, sessao) {
@@ -372,13 +514,7 @@ function podeEditarNotasNoQuadro(sessao, meta) {
 }
 
 function garantirMateriaisIniciaisQuadroAluno(matricula, periodo, sessao) {
-  if (!matricula || !matricula.id) return;
-  if (!usuarioPodeEditarNotasAcademicas(sessao)) return;
-  var lista = listarMateriaisQuadroAluno(matricula, periodo);
-  if (lista.length) return;
-  var padrao = obterMateriaisPadraoModulo(matricula.modulo);
-  if (!padrao.length) return;
-  salvarListaMateriaisQuadro(matricula.id, periodo, padrao, sessao);
+  garantirMateriaisOficiaisQuadroAluno(matricula, periodo, sessao);
 }
 
 function salvarNotaAcademica(dados, sessao) {

@@ -498,7 +498,23 @@ function repararArmazenamentoMatriculas() {
     }
   }
 
-  return normalizadas;
+  var listaFinal = normalizadas;
+  if (typeof aplicarMigracaoMateriaisOficiaisEmMatriculas === "function") {
+    var migracao = aplicarMigracaoMateriaisOficiaisEmMatriculas(listaFinal);
+    if (migracao.alterou) {
+      listaFinal = migracao.lista;
+      if (setadApiAtivo()) {
+        window.SETAD.cache.matriculas = listaFinal;
+        if (typeof salvarMatriculas === "function") {
+          salvarMatriculas(listaFinal);
+        }
+      } else {
+        salvarMatriculas(listaFinal);
+      }
+    }
+  }
+
+  return listaFinal;
 }
 
 function obterMatriculasBrutas() {
