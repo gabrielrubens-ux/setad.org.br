@@ -89,7 +89,7 @@ function inicializarPainelSecretaria() {
       sessao: sessao
     });
   }
-  configurarCadastroPresencial(sessao);
+  configurarCadastroPresencial(sessao, { omitirPagamento: true });
   renderizarCadastroColaboradores("colaboradoresSecretariaContainer", sessao);
   if (typeof renderizarEmissaoBoletoSecretaria === "function") {
     renderizarEmissaoBoletoSecretaria("boletosSecretariaContainer", sessao);

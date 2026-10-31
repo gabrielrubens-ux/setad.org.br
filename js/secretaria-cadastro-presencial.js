@@ -1,4 +1,4 @@
-/* Fluxo de cadastro presencial: novo aluno ou quadro + pagamento integrado */
+/* Fluxo de cadastro presencial: novo aluno ou quadro (pagamentos na Ficha do aluno). */
 
 function preencherSelectInstituicoesPresencial() {
   var select = document.getElementById("secInstituicaoPagamento");
@@ -82,7 +82,7 @@ function selecionarMatriculaQuadroPresencial(matricula) {
     msg.textContent =
       "Aluno localizado: " +
       matricula.nomeCompleto +
-      ". Complete os dados abaixo se necessário ou registre pagamento.";
+      ". Complete os dados abaixo e use a <strong>Ficha do aluno</strong> para mensalidades e pagamentos.";
   }
 }
 
@@ -285,8 +285,16 @@ function preencherFormularioComMatricula(matricula, opcoes) {
   var valorEl = document.getElementById("secValorPagamento");
   if (valorEl) {
     valorEl.dataset.editadoManual = "";
-    atualizarValorSugeridoPresencial();
+    if (typeof atualizarValorSugeridoPresencial === "function") {
+      atualizarValorSugeridoPresencial();
+    }
   }
+
+  var blocoAcad = document.getElementById("secBlocoAcademicoAluno");
+  if (blocoAcad && matricula.id) {
+    blocoAcad.hidden = false;
+  }
+
   if (!opcoes.omitirPainelAcademico) {
     if (typeof renderizarPainelCadastroAlunoAcademico === "function") {
       var sessaoPainel =
@@ -356,7 +364,7 @@ function configurarCadastroPresencial(sessao, opcoes) {
 
   opcoes = opcoes || {};
   form.dataset.cadastroBound = "1";
-  if (opcoes.omitirPagamento) {
+  if (opcoes.omitirPagamento !== false) {
     form.dataset.omitirPagamento = "1";
     var blocoPag = form.querySelector(".presencial-bloco--pagamento");
     if (blocoPag) blocoPag.hidden = true;
@@ -365,14 +373,11 @@ function configurarCadastroPresencial(sessao, opcoes) {
   }
   aplicarMascaraCpf(document.getElementById("secCpf"));
   aplicarMascaraTelefone(document.getElementById("secTelefone"));
-  if (!opcoes.omitirPagamento) {
+  if (opcoes.omitirPagamento === false) {
     configurarUiPagamentoPresencial();
-  }
-  if (
-    !opcoes.omitirPagamento &&
-    typeof configurarPlanilhaMensalidadesCadastro === "function"
-  ) {
-    configurarPlanilhaMensalidadesCadastro();
+    if (typeof configurarPlanilhaMensalidadesCadastro === "function") {
+      configurarPlanilhaMensalidadesCadastro();
+    }
   } else if (
     document.getElementById("secPainelAcademicoAluno") &&
     typeof renderizarPainelCadastroAlunoAcademico === "function"
@@ -466,7 +471,19 @@ function configurarCadastroPresencial(sessao, opcoes) {
           }
           sucessoEl.classList.add("matricula-sucesso--visivel");
           sucessoEl.innerHTML =
-            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a equipe do seminário.";
+            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a equipe do seminário.<br>" +
+            "Para mensalidades e pagamentos, abra a <strong>Ficha do aluno</strong> na lista de alunos.";
+          if (typeof renderizarVisaoSecretaria === "function") {
+            renderizarVisaoSecretaria();
+          }
+          if (typeof renderizarAlunosSecretaria === "function") {
+            renderizarAlunosSecretaria();
+          }
+          if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
+            reinicializarDirecionamentoPresencialAposReset();
+          }
+          var blocoAcad = document.getElementById("secBlocoAcademicoAluno");
+          if (blocoAcad) blocoAcad.hidden = true;
           form.reset();
         })
         .catch(function () {
