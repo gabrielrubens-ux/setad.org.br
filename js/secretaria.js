@@ -204,9 +204,11 @@ function renderizarVisaoSecretaria() {
 function renderizarAlunosSecretaria() {
   var container = document.getElementById("alunosSecretariaContainer");
   var filtroEl = document.getElementById("filtroOrigemAlunos");
+  var buscaEl = document.getElementById("buscaAlunosSecretaria");
   if (!container) return;
 
   var filtro = filtroEl ? filtroEl.value : "todos";
+  var termoBusca = buscaEl ? buscaEl.value.trim() : "";
   var matriculas = obterMatriculas().slice().sort(function (a, b) {
     return new Date(b.dataMatricula) - new Date(a.dataMatricula);
   });
@@ -217,8 +219,19 @@ function renderizarAlunosSecretaria() {
     });
   }
 
+  if (
+    termoBusca.length >= 2 &&
+    typeof filtrarMatriculasPorTermoBusca === "function"
+  ) {
+    matriculas = filtrarMatriculasPorTermoBusca(matriculas, termoBusca);
+  }
+
   if (matriculas.length === 0) {
-    container.innerHTML = '<p class="lista-vazia">Nenhum aluno encontrado para este filtro.</p>';
+    container.innerHTML =
+      termoBusca.length >= 2
+        ? '<p class="lista-vazia">Nenhum aluno encontrado para esta busca.</p>'
+        : '<p class="lista-vazia">Nenhum aluno encontrado para este filtro.</p>';
+    configurarFiltrosListaAlunosSecretaria();
     return;
   }
 
@@ -264,15 +277,32 @@ function renderizarAlunosSecretaria() {
       }).join("") +
       "</tbody></table>";
 
-  if (filtroEl && !filtroEl.dataset.listener) {
-    filtroEl.dataset.listener = "1";
-    filtroEl.addEventListener("change", renderizarAlunosSecretaria);
-  }
+  configurarFiltrosListaAlunosSecretaria();
 
   configurarExclusaoAlunosMatricula("alunosSecretariaContainer", function () {
     renderizarAlunosSecretaria();
     renderizarVisaoSecretaria();
   });
+}
+
+function configurarFiltrosListaAlunosSecretaria() {
+  var filtroEl = document.getElementById("filtroOrigemAlunos");
+  var buscaEl = document.getElementById("buscaAlunosSecretaria");
+
+  if (filtroEl && !filtroEl.dataset.listener) {
+    filtroEl.dataset.listener = "1";
+    filtroEl.addEventListener("change", renderizarAlunosSecretaria);
+  }
+
+  if (buscaEl && !buscaEl.dataset.listener) {
+    buscaEl.dataset.listener = "1";
+    var timer = null;
+    buscaEl.addEventListener("input", function () {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(renderizarAlunosSecretaria, 200);
+    });
+    buscaEl.addEventListener("search", renderizarAlunosSecretaria);
+  }
 }
 
 function renderizarInboxWpp(sessao) {

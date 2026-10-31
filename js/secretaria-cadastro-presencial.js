@@ -52,35 +52,147 @@ function alternarObrigatoriedadeFormPresencial(quadro) {
   });
 }
 
-function obterTipoIdentificadorQuadro() {
-  var marcado = document.querySelector('input[name="secQuadroTipoId"]:checked');
-  return marcado ? marcado.value : "email";
+function ocultarResultadosBuscaQuadro() {
+  var lista = document.getElementById("secQuadroResultados");
+  var input = document.getElementById("secQuadroIdentificador");
+  if (lista) {
+    lista.hidden = true;
+    lista.innerHTML = "";
+  }
+  if (input) input.setAttribute("aria-expanded", "false");
 }
 
-function atualizarCampoIdentificadorQuadro() {
-  var tipo = obterTipoIdentificadorQuadro();
-  var input = document.getElementById("secQuadroIdentificador");
-  var label = document.getElementById("secQuadroIdentificadorLabel");
-  if (!input || !label) return;
+function formatarRotuloResultadoQuadro(matricula) {
+  var partes = [matricula.nomeCompleto || "Sem nome"];
+  if (matricula.email) partes.push(matricula.email);
+  if (matricula.cpf) partes.push(matricula.cpf);
+  return partes.join(" · ");
+}
 
-  if (tipo === "cpf") {
-    label.textContent = "CPF do aluno *";
-    input.type = "text";
-    input.inputMode = "numeric";
-    input.placeholder = "000.000.000-00";
-    input.autocomplete = "off";
-    if (input.dataset.mascaraCpf !== "1" && typeof aplicarMascaraCpf === "function") {
-      aplicarMascaraCpf(input);
-      input.dataset.mascaraCpf = "1";
-    }
-  } else {
-    label.textContent = "E-mail do aluno *";
-    input.type = "email";
-    input.inputMode = "email";
-    input.placeholder = "aluno@email.com";
-    input.autocomplete = "email";
+function selecionarMatriculaQuadroPresencial(matricula) {
+  if (!matricula) return;
+  var msg = document.getElementById("secQuadroMensagem");
+  limparMensagemQuadro();
+  limparMensagemEmailQuadro();
+  preencherFormularioComMatricula(matricula);
+  sincronizarIdentificadorQuadroComMatricula(matricula);
+  ocultarResultadosBuscaQuadro();
+  if (msg) {
+    msg.className = "form-mensagem form-mensagem--sucesso visible";
+    msg.textContent =
+      "Aluno localizado: " +
+      matricula.nomeCompleto +
+      ". Complete os dados abaixo se necessário ou registre pagamento.";
   }
-  input.value = "";
+}
+
+function renderizarResultadosBuscaQuadro(termo) {
+  var lista = document.getElementById("secQuadroResultados");
+  var input = document.getElementById("secQuadroIdentificador");
+  if (!lista || !input) return;
+
+  if (typeof buscarMatriculasQuadroPorTermo !== "function") {
+    ocultarResultadosBuscaQuadro();
+    return;
+  }
+
+  var resultados = buscarMatriculasQuadroPorTermo(termo, 12);
+  lista.innerHTML = "";
+
+  if (!termo || termo.trim().length < 2 || !resultados.length) {
+    ocultarResultadosBuscaQuadro();
+    return;
+  }
+
+  resultados.forEach(function (matricula) {
+    var item = document.createElement("li");
+    item.className = "presencial-busca-quadro__item";
+    item.setAttribute("role", "option");
+    item.tabIndex = 0;
+    item.textContent = formatarRotuloResultadoQuadro(matricula);
+    item.addEventListener("mousedown", function (evento) {
+      evento.preventDefault();
+      selecionarMatriculaQuadroPresencial(matricula);
+    });
+    item.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter" || evento.key === " ") {
+        evento.preventDefault();
+        selecionarMatriculaQuadroPresencial(matricula);
+      }
+    });
+    lista.appendChild(item);
+  });
+
+  lista.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+}
+
+function configurarBuscaQuadroPresencial() {
+  var input = document.getElementById("secQuadroIdentificador");
+  if (!input || input.dataset.buscaQuadroBound === "1") return;
+  input.dataset.buscaQuadroBound = "1";
+
+  input.type = "search";
+  input.inputMode = "search";
+  input.placeholder = "Nome, e-mail ou CPF";
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-controls", "secQuadroResultados");
+  input.setAttribute("aria-expanded", "false");
+  input.setAttribute("aria-autocomplete", "list");
+
+  var timer = null;
+  input.addEventListener("input", function () {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(function () {
+      renderizarResultadosBuscaQuadro(input.value);
+    }, 180);
+  });
+
+  input.addEventListener("focus", function () {
+    renderizarResultadosBuscaQuadro(input.value);
+  });
+
+  input.addEventListener("keydown", function (evento) {
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      var termo = input.value.trim();
+      var exato =
+        typeof obterMatriculaPorCpfOuEmail === "function"
+          ? obterMatriculaPorCpfOuEmail(termo)
+          : null;
+      if (exato) {
+        selecionarMatriculaQuadroPresencial(exato);
+        return;
+      }
+      if (typeof buscarMatriculasQuadroPorTermo === "function") {
+        var unico = buscarMatriculasQuadroPorTermo(termo, 2);
+        if (unico.length === 1) {
+          selecionarMatriculaQuadroPresencial(unico[0]);
+          return;
+        }
+      }
+      var lista = document.getElementById("secQuadroResultados");
+      var primeiro = lista && lista.querySelector(".presencial-busca-quadro__item");
+      if (primeiro && !lista.hidden) {
+        primeiro.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+        return;
+      }
+      var msg = document.getElementById("secQuadroMensagem");
+      limparMensagemQuadro();
+      if (msg && termo) {
+        msg.className = "form-mensagem visible";
+        msg.textContent =
+          "Nenhum aluno encontrado. Ajuste a busca ou clique em “Incluir no quadro digital”.";
+      }
+    }
+    if (evento.key === "Escape") {
+      ocultarResultadosBuscaQuadro();
+    }
+  });
+
+  input.addEventListener("blur", function () {
+    window.setTimeout(ocultarResultadosBuscaQuadro, 200);
+  });
 }
 
 function aplicarModoTipoAlunoPresencial() {
@@ -97,8 +209,9 @@ function aplicarModoTipoAlunoPresencial() {
     if (matriculaId) matriculaId.value = "";
     limparMensagemQuadro();
     limparMensagemEmailQuadro();
+    ocultarResultadosBuscaQuadro();
   } else {
-    atualizarCampoIdentificadorQuadro();
+    configurarBuscaQuadroPresencial();
   }
 }
 
@@ -121,15 +234,11 @@ function sincronizarIdentificadorQuadroComMatricula(matricula) {
   if (!input || !matricula) return;
 
   if (matricula.email) {
-    var emailRadio = document.querySelector('input[name="secQuadroTipoId"][value="email"]');
-    if (emailRadio) emailRadio.checked = true;
-    atualizarCampoIdentificadorQuadro();
     input.value = matricula.email;
   } else if (matricula.cpf) {
-    var cpfRadio = document.querySelector('input[name="secQuadroTipoId"][value="cpf"]');
-    if (cpfRadio) cpfRadio.checked = true;
-    atualizarCampoIdentificadorQuadro();
     input.value = matricula.cpf;
+  } else {
+    input.value = matricula.nomeCompleto || "";
   }
 }
 
@@ -250,42 +359,7 @@ function configurarCadastroPresencial(sessao, opcoes) {
   document.querySelectorAll('input[name="secTipoAluno"]').forEach(function (radio) {
     radio.addEventListener("change", aplicarModoTipoAlunoPresencial);
   });
-  document.querySelectorAll('input[name="secQuadroTipoId"]').forEach(function (radio) {
-    radio.addEventListener("change", atualizarCampoIdentificadorQuadro);
-  });
   aplicarModoTipoAlunoPresencial();
-
-  var btnBuscar = document.getElementById("secBtnBuscarQuadro");
-  if (btnBuscar) {
-    btnBuscar.addEventListener("click", function () {
-      var termo = document.getElementById("secQuadroIdentificador").value.trim();
-      var msg = document.getElementById("secQuadroMensagem");
-      limparMensagemQuadro();
-      limparMensagemEmailQuadro();
-
-      if (!termo) {
-        msg.className = "form-mensagem form-mensagem--erro visible";
-        msg.textContent = "Informe o e-mail ou o CPF conforme a opção selecionada.";
-        return;
-      }
-
-      var matricula = obterMatriculaPorCpfOuEmail(termo);
-      if (!matricula) {
-        msg.className = "form-mensagem visible";
-        msg.textContent =
-          "Ainda não há cadastro com esse dado. Clique em “Incluir no quadro digital” para lançar o aluno.";
-        return;
-      }
-
-      preencherFormularioComMatricula(matricula);
-      sincronizarIdentificadorQuadroComMatricula(matricula);
-      msg.className = "form-mensagem form-mensagem--sucesso visible";
-      msg.textContent =
-        "Aluno localizado: " +
-        matricula.nomeCompleto +
-        ". Complete os dados abaixo se necessário ou registre pagamento.";
-    });
-  }
 
   var btnSalvarQuadro = document.getElementById("secBtnSalvarQuadroDigital");
   if (btnSalvarQuadro) {
@@ -427,7 +501,7 @@ function configurarCadastroPresencial(sessao, opcoes) {
       if (!matriculaQuadro) {
         mensagemEl.className = "form-mensagem form-mensagem--erro visible";
         mensagemEl.textContent =
-          "Salve o aluno em “Cadastro digital do quadro” ou busque pelo CPF/e-mail antes do pagamento.";
+          "Salve o aluno em “Cadastro digital do quadro” ou busque pelo nome, CPF ou e-mail antes do pagamento.";
         return;
       }
 
@@ -517,15 +591,26 @@ function salvarCadastroDigitalQuadro(sessao) {
   }
   if (sucessoEl) sucessoEl.classList.remove("matricula-sucesso--visivel");
 
-  var tipoId = obterTipoIdentificadorQuadro();
   var identificador = document.getElementById("secQuadroIdentificador").value.trim();
   var emailForm = document.getElementById("secEmail");
+  var tipoAuto =
+    typeof detectarTipoIdentificadorQuadro === "function"
+      ? detectarTipoIdentificadorQuadro(identificador)
+      : null;
 
   var dados = {
     nomeCompleto: document.getElementById("secNome").value.trim(),
-    email: tipoId === "email" ? identificador.toLowerCase() : (emailForm ? emailForm.value.trim().toLowerCase() : ""),
+    email:
+      tipoAuto === "email"
+        ? identificador.toLowerCase()
+        : emailForm
+          ? emailForm.value.trim().toLowerCase()
+          : "",
     telefone: document.getElementById("secTelefone").value.trim(),
-    cpf: tipoId === "cpf" ? identificador : document.getElementById("secCpf").value.trim(),
+    cpf:
+      tipoAuto === "cpf"
+        ? identificador
+        : document.getElementById("secCpf").value.trim(),
     dataNascimento: document.getElementById("secNascimento").value,
     cidade: document.getElementById("secCidade").value.trim(),
     estado: document.getElementById("secEstado").value,
@@ -544,7 +629,7 @@ function salvarCadastroDigitalQuadro(sessao) {
   }
 
   var resultado = salvarAlunoQuadroSeminario(dados, sessao, {
-    tipoId: tipoId,
+    tipoId: "auto",
     identificador: identificador
   });
   if (!resultado.ok) {

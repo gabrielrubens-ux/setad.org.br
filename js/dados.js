@@ -568,6 +568,79 @@ function obterMatriculaPorCpfOuEmail(termo) {
   }) || encontrada;
 }
 
+function normalizarTextoBuscaPresencial(texto) {
+  return String(texto || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function classificarTermoBuscaQuadroPresencial(termo) {
+  const bruto = String(termo || "").trim();
+  if (!bruto) return null;
+  if (bruto.indexOf("@") >= 0) return "email";
+  const digitos = normalizarCpfSomenteDigitos(bruto);
+  if (digitos.length >= 3 && /^[\d.\s\-/]+$/.test(bruto)) return "cpf";
+  return "nome";
+}
+
+function filtrarMatriculasPorTermoBusca(lista, termo) {
+  const bruto = String(termo || "").trim();
+  if (!bruto || bruto.length < 2) return lista;
+
+  const modo = classificarTermoBuscaQuadroPresencial(bruto);
+
+  if (modo === "email") {
+    const pedaco = normalizarEmailMatricula(bruto);
+    if (!pedaco) return [];
+    return lista.filter(function (m) {
+      const email = normalizarEmailMatricula(m.email);
+      return email && email.indexOf(pedaco) >= 0;
+    });
+  }
+
+  if (modo === "cpf") {
+    const digitos = normalizarCpfSomenteDigitos(bruto);
+    return lista.filter(function (m) {
+      const cpf = normalizarCpfSomenteDigitos(m.cpf);
+      return cpf && cpf.indexOf(digitos) === 0;
+    });
+  }
+
+  const needle = normalizarTextoBuscaPresencial(bruto);
+  return lista.filter(function (m) {
+    const nome = normalizarTextoBuscaPresencial(m.nomeCompleto);
+    return nome && nome.indexOf(needle) >= 0;
+  });
+}
+
+function buscarMatriculasQuadroPorTermo(termo, limite) {
+  const bruto = String(termo || "").trim();
+  const max = typeof limite === "number" && limite > 0 ? limite : 12;
+  if (!bruto || bruto.length < 2) return [];
+
+  return filtrarMatriculasPorTermoBusca(obterMatriculas(), bruto).slice(0, max);
+}
+
+function detectarTipoIdentificadorQuadro(valorBruto) {
+  const modo = classificarTermoBuscaQuadroPresencial(valorBruto);
+  if (modo === "nome") return null;
+  return modo;
+}
+
+function interpretarIdentificadorQuadroAutomatico(valorBruto) {
+  const tipo = detectarTipoIdentificadorQuadro(valorBruto);
+  if (!tipo) {
+    return {
+      ok: false,
+      erro:
+        "Para incluir no quadro digital, informe e-mail ou CPF no campo de busca — ou selecione o aluno na lista."
+    };
+  }
+  return interpretarIdentificadorQuadro(tipo, valorBruto);
+}
+
 function atualizarDadosMatricula(matriculaId, patch) {
   const matriculas = obterMatriculas();
   const indice = matriculas.findIndex(function (m) {
@@ -634,14 +707,20 @@ function mesclarCampoQuadro(novo, antigo) {
 }
 
 function salvarAlunoQuadroSeminario(dados, sessao, opcoes) {
-  const tipoId = opcoes && opcoes.tipoId ? opcoes.tipoId : "email";
+  const tipoId =
+    opcoes && opcoes.tipoId && opcoes.tipoId !== "auto"
+      ? opcoes.tipoId
+      : "auto";
   const identificador =
     (opcoes && opcoes.identificador) ||
     dados.email ||
     dados.cpf ||
     "";
 
-  const idInfo = interpretarIdentificadorQuadro(tipoId, identificador);
+  const idInfo =
+    tipoId === "auto"
+      ? interpretarIdentificadorQuadroAutomatico(identificador)
+      : interpretarIdentificadorQuadro(tipoId, identificador);
   if (!idInfo.ok) return idInfo;
 
   const emailDoForm = normalizarEmailMatricula(dados.email);
