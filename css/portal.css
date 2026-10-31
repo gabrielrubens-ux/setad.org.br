@@ -1111,6 +1111,27 @@ body.portal-marca-dagua .wpp-float {
   }
 }
 
+.curso-financeiro-resumo {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda, #e2e8f0);
+  background: var(--cor-fundo-suave, #f6f7f9);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.curso-financeiro-resumo p {
+  margin: 0 0 0.35rem;
+}
+
+.curso-financeiro-resumo p:last-child {
+  margin-bottom: 0;
+}
+
+.curso-financeiro-resumo__total {
+  margin-top: 0.5rem !important;
+}
+
 .matricula-form__acoes {
   display: flex;
   flex-wrap: wrap;
@@ -2700,6 +2721,18 @@ body.portal-marca-dagua .wpp-float {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.cadastro-mensalidades__cabecalho-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cadastro-mensalidades__resumo-curso {
+  margin-top: 0.75rem;
+  max-width: 36rem;
 }
 
 .cadastro-mensalidades__titulo {

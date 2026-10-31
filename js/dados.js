@@ -914,6 +914,9 @@ function cadastrarMatricula(dados) {
   }
 
   const matriculas = obterMatriculas();
+  if (typeof aplicarValoresModuloPadraoNaMatricula === "function") {
+    aplicarValoresModuloPadraoNaMatricula(dados);
+  }
   const novaMatricula = Object.assign({}, dados, {
     email: emailNormalizado,
     cpf: dados.cpf ? String(dados.cpf).trim() : "",
@@ -965,6 +968,9 @@ function cadastrarMatriculaAsync(dados) {
     origem: dados.origem || "site",
     cadastradoPor: dados.cadastradoPor || null
   });
+  if (typeof aplicarValoresModuloPadraoNaMatricula === "function") {
+    aplicarValoresModuloPadraoNaMatricula(payload);
+  }
 
   return SETADApi.criarMatriculaPublica(payload).then(function (resposta) {
     if (!resposta.ok) {

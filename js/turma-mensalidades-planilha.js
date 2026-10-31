@@ -38,9 +38,11 @@ function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagame
   var valorDefault =
     pag && pag.valor
       ? pag.valor
-      : typeof obterMensalidadeModulo === "function"
-        ? obterMensalidadeModulo(matricula.modulo)
-        : 0;
+      : typeof obterValorMensalidadeMatricula === "function"
+        ? obterValorMensalidadeMatricula(matricula)
+        : typeof obterMensalidadeModulo === "function"
+          ? obterMensalidadeModulo(matricula.modulo)
+          : 0;
 
   container.querySelector("#planilhaTurmaEditorMatriculaId").value = matriculaId;
   container.querySelector("#planilhaTurmaEditorReferencia").value = referencia;

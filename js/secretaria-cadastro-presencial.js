@@ -15,6 +15,9 @@ function anexarDadosCursoPresencialAosDados(dados) {
   dados.cursoDataTermino = termino && termino.value ? termino.value : "";
   dados.situacaoCurso =
     situacao && situacao.value ? situacao.value : "cursando";
+  if (typeof anexarValoresFinanceirosPresencialAosDados === "function") {
+    anexarValoresFinanceirosPresencialAosDados(dados);
+  }
   return dados;
 }
 
@@ -35,6 +38,9 @@ function preencherCamposCursoPresencialNaMatricula(matricula) {
   if (terminoEl) terminoEl.value = (matricula && matricula.cursoDataTermino) || "";
   if (situacaoEl) {
     situacaoEl.value = (matricula && matricula.situacaoCurso) || "cursando";
+  }
+  if (typeof preencherCamposValoresFinanceirosPresencial === "function") {
+    preencherCamposValoresFinanceirosPresencial(matricula);
   }
 }
 
@@ -89,10 +95,24 @@ function atualizarValorSugeridoPresencial() {
   if (!mod) return;
 
   var tipo = tipoCobranca.value;
-  if (tipo === "matricula" && typeof obterTaxaMatriculaModulo === "function") {
-    valorEl.value = String(obterTaxaMatriculaModulo(mod));
-  } else if (tipo === "mensalidade" && typeof obterMensalidadeModulo === "function") {
-    valorEl.value = String(obterMensalidadeModulo(mod));
+  if (tipo === "matricula") {
+    var matriculaCampo = document.getElementById("secValorMatricula");
+    if (matriculaCampo && matriculaCampo.value !== "") {
+      valorEl.value = matriculaCampo.value;
+      return;
+    }
+    if (typeof obterTaxaMatriculaModulo === "function") {
+      valorEl.value = String(obterTaxaMatriculaModulo(mod));
+    }
+  } else if (tipo === "mensalidade") {
+    var mensalidadeCampo = document.getElementById("secValorMensalidade");
+    if (mensalidadeCampo && mensalidadeCampo.value !== "") {
+      valorEl.value = mensalidadeCampo.value;
+      return;
+    }
+    if (typeof obterMensalidadeModulo === "function") {
+      valorEl.value = String(obterMensalidadeModulo(mod));
+    }
   }
 }
 
@@ -446,7 +466,9 @@ function limparFormularioCadastroPresencial(form, sessao, opcoes) {
     "secObservacoes",
     "secModulo",
     "secCursoInicio",
-    "secCursoTermino"
+    "secCursoTermino",
+    "secValorMatricula",
+    "secValorMensalidade"
   ];
   camposLimpar.forEach(function (idCampo) {
     var el = document.getElementById(idCampo);
@@ -456,9 +478,13 @@ function limparFormularioCadastroPresencial(form, sessao, opcoes) {
     } else {
       el.value = "";
     }
+    if (el.dataset) el.dataset.editadoManual = "";
   });
   var situacaoEl = document.getElementById("secSituacaoCurso");
   if (situacaoEl) situacaoEl.value = "cursando";
+  if (typeof atualizarResumoFinanceiroCursoPresencial === "function") {
+    atualizarResumoFinanceiroCursoPresencial();
+  }
 
   if (typeof atualizarSelectSalaTurmaPresencial === "function") {
     atualizarSelectSalaTurmaPresencial("", "");
@@ -558,6 +584,9 @@ function configurarCadastroPresencial(sessao, opcoes) {
   }
   if (typeof configurarDirecionamentoPresencialInterno === "function") {
     configurarDirecionamentoPresencialInterno();
+  }
+  if (typeof configurarValoresCursoPresencial === "function") {
+    configurarValoresCursoPresencial();
   }
 
   document.querySelectorAll('input[name="secTipoAluno"]').forEach(function (radio) {
@@ -981,6 +1010,8 @@ function finalizarCadastroPresencialComPagamento(
       cursoDataInicio: dados.cursoDataInicio,
       cursoDataTermino: dados.cursoDataTermino,
       situacaoCurso: dados.situacaoCurso,
+      valorMatricula: dados.valorMatricula,
+      valorMensalidade: dados.valorMensalidade,
       poloId: dados.poloId,
       poloNome: dados.poloNome,
       salaTurmaId: dados.salaTurmaId,

@@ -214,7 +214,10 @@ function criarRegistroPagamentoMatricula(matricula) {
     alunoEmail: matricula.email,
     modulo: matricula.modulo,
     tipo: "matricula",
-    valor: obterTaxaMatriculaModulo(matricula.modulo),
+    valor:
+      typeof obterValorMatriculaMatricula === "function"
+        ? obterValorMatriculaMatricula(matricula)
+        : obterTaxaMatriculaModulo(matricula.modulo),
     referencia: "Taxa de matrícula — " + moduloNome,
     vencimento: new Date().toISOString(),
     status: "pendente",

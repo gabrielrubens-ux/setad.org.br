@@ -210,6 +210,18 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
       "</td></tr>";
   }
 
+  var resumoCursoHtml = "";
+  if (typeof montarHtmlResumoFinanceiroCurso === "function") {
+    resumoCursoHtml =
+      '<div class="cadastro-mensalidades__resumo-curso curso-financeiro-resumo">' +
+      montarHtmlResumoFinanceiroCurso(
+        typeof calcularResumoFinanceiroCurso === "function"
+          ? calcularResumoFinanceiroCurso(matricula)
+          : null
+      ) +
+      "</div>";
+  }
+
   container.innerHTML =
     '<div class="cadastro-mensalidades__cabecalho">' +
     "<div>" +
@@ -217,8 +229,14 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
     esc(matricula.nomeCompleto) +
     "</h3>" +
     '<p class="presencial-bloco__hint">Lançamentos visíveis ao contador e à direção. Clique em <strong>Editar</strong> para alterar valor, situação e forma de pagamento.</p>' +
+    resumoCursoHtml +
     "</div>" +
+    '<div class="cadastro-mensalidades__cabecalho-acoes">' +
+    (podeEditar && typeof gerarMensalidadesPeriodoCurso === "function"
+      ? '<button type="button" class="btn btn--secondary btn--sm" id="secBtnGerarMensalidadesPeriodo">Gerar parcelas do período</button>'
+      : "") +
     '<button type="button" class="btn btn--secondary btn--sm" id="secBtnAtualizarPlanilha">Atualizar</button>' +
+    "</div>" +
     "</div>" +
     '<div class="cadastro-mensalidades-planilha">' +
     '<table class="data-table data-table--compact cadastro-mensalidades-table">' +
@@ -238,6 +256,27 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
         obterMatriculaAtivaNoCadastroPresencial(),
         sessao
       );
+    });
+  }
+
+  var btnGerar = container.querySelector("#secBtnGerarMensalidadesPeriodo");
+  if (btnGerar) {
+    btnGerar.addEventListener("click", function () {
+      var ativa = obterMatriculaAtivaNoCadastroPresencial() || matricula;
+      var resultado = gerarMensalidadesPeriodoCurso(ativa);
+      if (!resultado.ok) {
+        window.alert(resultado.erro || "Não foi possível gerar as parcelas.");
+        return;
+      }
+      window.alert(
+        "Parcelas do período: " +
+          resultado.criadas +
+          " criada(s)" +
+          (resultado.atualizadas
+            ? ", " + resultado.atualizadas + " valor(es) atualizado(s)."
+            : ".")
+      );
+      renderizarPlanilhaMensalidadesCadastroAluno(ativa, sessao);
     });
   }
 

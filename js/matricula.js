@@ -42,6 +42,17 @@ function processarMatricula(form) {
     igreja: document.getElementById("matIgreja").value.trim(),
     origem: "site"
   };
+  var matValorEl = document.getElementById("matValorMatricula");
+  var menValorEl = document.getElementById("matValorMensalidade");
+  if (matValorEl && matValorEl.value !== "") {
+    dados.valorMatricula = matValorEl.value;
+  }
+  if (menValorEl && menValorEl.value !== "") {
+    dados.valorMensalidade = menValorEl.value;
+  }
+  if (typeof aplicarValoresModuloPadraoNaMatricula === "function") {
+    aplicarValoresModuloPadraoNaMatricula(dados);
+  }
 
   const erro = validarMatricula(dados);
   if (erro) {
@@ -92,7 +103,14 @@ function processarMatricula(form) {
 
 function finalizarSucessoMatricula(form, dados, matricula, mensagemEl, sucessoEl) {
   const moduloNome = MODULOS_CURSO[dados.modulo].nome;
-  const taxaMatricula = obterTaxaMatriculaModulo(dados.modulo);
+  const taxaMatricula =
+    typeof obterValorMatriculaMatricula === "function"
+      ? obterValorMatriculaMatricula(matricula)
+      : obterTaxaMatriculaModulo(dados.modulo);
+  const mensalidade =
+    typeof obterValorMensalidadeMatricula === "function"
+      ? obterValorMensalidadeMatricula(matricula)
+      : obterMensalidadeModulo(dados.modulo);
 
   form.reset();
   form.dataset.enviando = "0";
@@ -101,6 +119,7 @@ function finalizarSucessoMatricula(form, dados, matricula, mensagemEl, sucessoEl
     "<strong>Matrícula enviada com sucesso!</strong><br>" +
     escaparHtml(dados.nomeCompleto) + ", sua inscrição no módulo <strong>" +
     escaparHtml(moduloNome) + "</strong> foi registrada.<br>" +
+    "Mensalidade acordada: <strong>" + formatarMoeda(mensalidade) + "</strong>. " +
     "Redirecionando para a área de pagamento da taxa de matrícula (" +
     formatarMoeda(taxaMatricula) + ")...";
 
@@ -256,6 +275,12 @@ function selecionarModulo(moduloId) {
 
   select.value = moduloId;
   destacarModuloSelecionado(moduloId);
+  if (typeof aplicarValoresPadraoModuloNosCampos === "function") {
+    aplicarValoresPadraoModuloNosCampos("mat");
+  }
+  if (typeof atualizarResumoFinanceiroMatriculaPublica === "function") {
+    atualizarResumoFinanceiroMatriculaPublica();
+  }
 }
 
 /**
@@ -289,6 +314,12 @@ function inicializarSelecaoModulos() {
 
   select.addEventListener("change", function () {
     destacarModuloSelecionado(select.value);
+    if (typeof aplicarValoresPadraoModuloNosCampos === "function") {
+      aplicarValoresPadraoModuloNosCampos("mat");
+    }
+    if (typeof atualizarResumoFinanceiroMatriculaPublica === "function") {
+      atualizarResumoFinanceiroMatriculaPublica();
+    }
   });
 }
 
@@ -426,4 +457,7 @@ document.addEventListener("DOMContentLoaded", function () {
   aplicarMascaraTelefone(document.getElementById("matTelefone"));
   preencherModuloDaUrl();
   inicializarSelecaoModulos();
+  if (typeof configurarValoresCursoMatriculaPublica === "function") {
+    configurarValoresCursoMatriculaPublica();
+  }
 });
