@@ -2442,6 +2442,41 @@ body.portal-marca-dagua .wpp-float {
   color: var(--cor-texto-suave, #555);
 }
 
+.cadastro-mensalidades__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cadastro-mensalidades__titulo {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.cadastro-mensalidades__resumo {
+  margin-bottom: 1rem;
+}
+
+.cadastro-mensalidades__debito {
+  color: var(--cor-alerta, #b45309);
+}
+
+.cadastro-mensalidades-planilha {
+  overflow-x: auto;
+}
+
+.cadastro-mensalidades__vazio {
+  text-align: center;
+  color: var(--cor-texto-suave, #666);
+}
+
+.presencial-bloco--mensalidades {
+  margin-top: 1.25rem;
+}
+
 .presencial-tipo-aluno {
   display: flex;
   flex-direction: column;

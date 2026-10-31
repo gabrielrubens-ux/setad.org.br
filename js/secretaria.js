@@ -65,6 +65,13 @@ function inicializarPainelSecretaria() {
   inicializarDadosPadrao();
   inicializarDadosFinanceiros();
 
+  if (typeof garantirMatriculaDemonstracaoSetad === "function") {
+    garantirMatriculaDemonstracaoSetad();
+  }
+  if (typeof configurarDemonstracaoCadastroAluno === "function") {
+    configurarDemonstracaoCadastroAluno();
+  }
+
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
   configurarRestauracaoMatriculasSecretaria();
@@ -458,6 +465,10 @@ function renderizarAlunosSecretaria() {
             normalizarTelefoneWpp(aluno.telefone) +
             '" target="_blank" rel="noopener noreferrer">WhatsApp</a>'
           : "";
+        var btnMensalidades =
+          '<button type="button" class="btn btn--secondary btn--sm btn-abrir-mensalidades-aluno" data-matricula-id="' +
+          escaparHtml(aluno.id) +
+          '">Mensalidades</button>';
 
         return "<tr>" +
           "<td>" + escaparHtml(aluno.nomeCompleto) + "</td>" +
@@ -475,13 +486,22 @@ function renderizarAlunosSecretaria() {
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
           "</td>" +
-          '<td><div class="matricula-acoes">' + wppBtn +
+          '<td><div class="matricula-acoes">' + btnMensalidades + wppBtn +
             renderizarBotaoExcluirMatricula(aluno) + "</div></td>" +
         "</tr>";
       }).join("") +
       "</tbody></table>";
 
   configurarFiltrosListaAlunosSecretaria();
+
+  container.querySelectorAll(".btn-abrir-mensalidades-aluno").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-matricula-id");
+      if (id && typeof abrirCadastroPresencialComMatricula === "function") {
+        abrirCadastroPresencialComMatricula(id);
+      }
+    });
+  });
 
   configurarExclusaoAlunosMatricula("alunosSecretariaContainer", function () {
     renderizarAlunosSecretaria();

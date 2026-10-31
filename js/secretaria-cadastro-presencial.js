@@ -286,6 +286,9 @@ function preencherFormularioComMatricula(matricula) {
     valorEl.dataset.editadoManual = "";
     atualizarValorSugeridoPresencial();
   }
+  if (typeof renderizarPlanilhaMensalidadesCadastroAluno === "function") {
+    renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+  }
 }
 
 function configurarUiPagamentoPresencial() {
@@ -351,6 +354,9 @@ function configurarCadastroPresencial(sessao, opcoes) {
   aplicarMascaraTelefone(document.getElementById("secTelefone"));
   if (!opcoes.omitirPagamento) {
     configurarUiPagamentoPresencial();
+  }
+  if (typeof configurarPlanilhaMensalidadesCadastro === "function") {
+    configurarPlanilhaMensalidadesCadastro();
   }
   if (typeof configurarDirecionamentoPresencialInterno === "function") {
     configurarDirecionamentoPresencialInterno();
@@ -455,6 +461,20 @@ function configurarCadastroPresencial(sessao, opcoes) {
     var instituicaoId = document.getElementById("secInstituicaoPagamento").value || null;
     var obsPagamento = document.getElementById("secObsPagamento").value.trim();
     var referenciaOutro = document.getElementById("secReferenciaOutro").value.trim();
+    var referenciaMensalidade =
+      typeof obterMesReferenciaPagamentoPresencial === "function"
+        ? obterMesReferenciaPagamentoPresencial()
+        : null;
+    var opcoesPagamentoForm = {
+      tipoCobranca: tipoCobranca,
+      situacaoPagamento: situacaoPagamento,
+      formaPagamento: formaPagamento,
+      valor: valorPagamento,
+      instituicaoId: instituicaoId,
+      observacoesPagamento: obsPagamento,
+      referenciaOutro: referenciaOutro,
+      referenciaMensalidade: referenciaMensalidade
+    };
 
     if (tipoCobranca === "outro" && !referenciaOutro) {
       mensagemEl.className = "form-mensagem form-mensagem--erro visible";
@@ -521,8 +541,34 @@ function configurarCadastroPresencial(sessao, opcoes) {
           instituicaoId: instituicaoId,
           observacoesPagamento: obsPagamento,
           referenciaOutro: referenciaOutro,
+          referenciaMensalidade: referenciaMensalidade,
           apenasPagamento: true
         }
+      );
+      return;
+    }
+
+    if (matriculaIdExistente) {
+      var matriculaSalva = obterMatriculas().find(function (m) {
+        return m.id === matriculaIdExistente;
+      });
+      if (!matriculaSalva) {
+        mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+        mensagemEl.textContent = "Matrícula não encontrada. Busque o aluno novamente.";
+        return;
+      }
+      form.dataset.enviando = "1";
+      finalizarCadastroPresencialComPagamento(
+        form,
+        mensagemEl,
+        sucessoEl,
+        sessao,
+        matriculaSalva,
+        dados,
+        Object.assign({}, opcoesPagamentoForm, {
+          apenasPagamento: true,
+          manterCadastro: true
+        })
       );
       return;
     }
@@ -559,16 +605,10 @@ function configurarCadastroPresencial(sessao, opcoes) {
           sessao,
           resultado.matricula,
           dados,
-          {
-            tipoCobranca: tipoCobranca,
-            situacaoPagamento: situacaoPagamento,
-            formaPagamento: formaPagamento,
-            valor: valorPagamento,
-            instituicaoId: instituicaoId,
-            observacoesPagamento: obsPagamento,
-            referenciaOutro: referenciaOutro,
-            apenasPagamento: false
-          }
+          Object.assign({}, opcoesPagamentoForm, {
+            apenasPagamento: false,
+            manterCadastro: true
+          })
         );
       })
       .catch(function () {
@@ -709,14 +749,34 @@ function finalizarCadastroPresencialComPagamento(
     return;
   }
 
-  form.reset();
-  document.getElementById("secOrigem").value = "presencial";
-  document.getElementById("secMatriculaId").value = "";
-  document.getElementById("secTipoAlunoNovo").checked = true;
-  aplicarModoTipoAlunoPresencial();
-  if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
-    reinicializarDirecionamentoPresencialAposReset();
+  var manterCadastro = opcoesPagamento.manterCadastro || opcoesPagamento.apenasPagamento;
+  matricula =
+    obterMatriculas().find(function (m) {
+      return m.id === matricula.id;
+    }) || matricula;
+
+  if (manterCadastro) {
+    document.getElementById("secMatriculaId").value = matricula.id;
+    document.getElementById("secOrigem").value = matricula.origem || "presencial";
+    preencherFormularioComMatricula(matricula);
+    document.getElementById("secObsPagamento").value = "";
+    document.getElementById("secReferenciaOutro").value = "";
+    if (document.getElementById("secSituacaoPagamento")) {
+      document.getElementById("secSituacaoPagamento").value = "pago_presencial";
+    }
+  } else {
+    form.reset();
+    document.getElementById("secOrigem").value = "presencial";
+    document.getElementById("secMatriculaId").value = "";
+    document.getElementById("secTipoAlunoNovo").checked = true;
+    aplicarModoTipoAlunoPresencial();
+    if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
+      reinicializarDirecionamentoPresencialAposReset();
+    }
   }
+
+  form.dataset.enviando = "0";
+
   var valorEl = document.getElementById("secValorPagamento");
   if (valorEl) valorEl.dataset.editadoManual = "";
   atualizarValorSugeridoPresencial();
@@ -738,6 +798,10 @@ function finalizarCadastroPresencialComPagamento(
     "<br>Valor: " +
     (typeof formatarMoeda === "function" ? formatarMoeda(pag.valor) : pag.valor) +
     ". Disponível para contabilidade e direção.";
+
+  if (typeof renderizarPlanilhaMensalidadesCadastroAluno === "function") {
+    renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+  }
 
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();

@@ -91,6 +91,151 @@ function seedIfNeeded() {
     dataEnvio: "2026-03-20T14:30:00.000Z"
   }]);
 
+  const matriculaDemo = {
+    id: "mat-demonstracao-setad",
+    nomeCompleto: "Ana Demonstração Silva",
+    email: "demonstracao.aluno@setad.org.br",
+    telefone: "(91) 99100-0020",
+    cpf: "529.982.247-25",
+    dataNascimento: "1995-06-15",
+    cidade: "Belém",
+    estado: "PA",
+    modulo: "basico",
+    igreja: "Assembleia de Deus — cadastro fictício",
+    dataMatricula: "2026-01-15T12:00:00.000Z",
+    status: "ativo",
+    origem: "demonstracao",
+    observacoes:
+      "Aluno fictício para treinar mensalidades, planilha e painéis do contador/diretor.",
+    cadastradoPor: "sistema@setad.org.br"
+  };
+
+  upsertJson("matriculas", matriculaDemo);
+
+  replaceJsonCollection("pagamentos", [
+    {
+      id: "pag-demo-matricula",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "matricula",
+      valor: 50,
+      referencia: "Taxa de matrícula — Básico",
+      vencimento: "2026-01-15T12:00:00.000Z",
+      status: "pago",
+      formaPagamento: "PIX",
+      instituicaoId: "banco-003",
+      dataPagamento: "2026-01-16T10:30:00.000Z",
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial",
+      pagoPor: "secretaria"
+    },
+    {
+      id: "pag-demo-mens-0",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 1,
+      valor: 80,
+      referencia: "Mensalidade 01/2026",
+      vencimento: "2026-01-10T03:00:00.000Z",
+      status: "pago",
+      formaPagamento: "PIX",
+      instituicaoId: "banco-003",
+      dataPagamento: "2026-02-05T11:00:00.000Z",
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    },
+    {
+      id: "pag-demo-mens-1",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 2,
+      valor: 80,
+      referencia: "Mensalidade 02/2026",
+      vencimento: "2026-02-10T03:00:00.000Z",
+      status: "pago",
+      formaPagamento: "PIX",
+      dataPagamento: "2026-03-08T09:15:00.000Z",
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    },
+    {
+      id: "pag-demo-mens-2",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 3,
+      valor: 80,
+      referencia: "Mensalidade 03/2026",
+      vencimento: "2026-03-10T03:00:00.000Z",
+      status: "pago",
+      formaPagamento: "PIX",
+      dataPagamento: "2026-04-02T16:40:00.000Z",
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    },
+    {
+      id: "pag-demo-mens-3",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 4,
+      valor: 80,
+      referencia: "Mensalidade 04/2026",
+      vencimento: "2026-04-10T03:00:00.000Z",
+      status: "pendente",
+      formaPagamento: null,
+      dataPagamento: null,
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    },
+    {
+      id: "pag-demo-mens-4",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 5,
+      valor: 80,
+      referencia: "Mensalidade 05/2026",
+      vencimento: "2026-05-10T03:00:00.000Z",
+      status: "pendente",
+      formaPagamento: null,
+      dataPagamento: null,
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    },
+    {
+      id: "pag-demo-mens-5",
+      matriculaId: matriculaDemo.id,
+      alunoNome: matriculaDemo.nomeCompleto,
+      alunoEmail: matriculaDemo.email,
+      modulo: "basico",
+      tipo: "mensalidade",
+      parcela: 6,
+      valor: 80,
+      referencia: "Mensalidade 06/2026",
+      vencimento: "2026-06-10T03:00:00.000Z",
+      status: "agendado",
+      formaPagamento: null,
+      dataPagamento: null,
+      criadoEm: "2026-01-15T12:00:00.000Z",
+      canal: "presencial"
+    }
+  ]);
+
   replaceJsonCollection("folha_pagamento", [
     {
       id: "folha-001",

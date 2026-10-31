@@ -445,6 +445,22 @@ function obterReferenciaMensalidadeAtual() {
   );
 }
 
+function referenciaMensalidadeDoInputMonth(inputMonth) {
+  if (!inputMonth || String(inputMonth).indexOf("-") === -1) {
+    return obterReferenciaMensalidadeAtual();
+  }
+  const partes = String(inputMonth).split("-");
+  const ano = partes[0];
+  const mes = partes[1];
+  return "Mensalidade " + mes + "/" + ano;
+}
+
+function vencimentoAPartirReferenciaMensalidade(referencia) {
+  const match = String(referencia || "").match(/(\d{2})\/(\d{4})/);
+  if (!match) return new Date().toISOString();
+  return new Date(Number(match[2]), Number(match[1]) - 1, 10).toISOString();
+}
+
 function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
   if (!matricula || !matricula.id) {
     return { ok: false, erro: "Matrícula inválida para o pagamento." };
@@ -508,7 +524,7 @@ function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
         tipo: "mensalidade",
         valor: valor,
         referencia: ref,
-        vencimento: new Date().toISOString(),
+        vencimento: vencimentoAPartirReferenciaMensalidade(ref),
         status: "pendente",
         formaPagamento: null,
         dataPagamento: null,
@@ -546,7 +562,7 @@ function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
     pagamento.status = "pago";
     pagamento.formaPagamento = forma;
     pagamento.instituicaoId = instituicaoId;
-    pagamento.dataPagamento = new Date().toISOString();
+    pagamento.dataPagamento = opcoes.dataPagamentoRegistro || new Date().toISOString();
     pagamento.pagoPor = "secretaria";
   } else {
     pagamento.status = "pendente";
@@ -2411,6 +2427,49 @@ function preencherFormularioInstituicao(inst) {
 
 /* --- Renderização: visão do diretor (financeiro resumido + equipe) --- */
 
+function montarTabelaAlunosMensalidadeEmAbertoDiretor() {
+  if (typeof listarAlunosResumoPagamentosContador !== "function") {
+    return "";
+  }
+  const alunos = listarAlunosResumoPagamentosContador()
+    .map(function (aluno) {
+      const resumo = resumoExtratoAluno(aluno.email);
+      const emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
+      return { aluno: aluno, emAberto: emAberto, resumo: resumo };
+    })
+    .filter(function (item) {
+      return item.emAberto > 0;
+    })
+    .sort(function (a, b) {
+      return b.emAberto - a.emAberto;
+    });
+
+  if (!alunos.length) {
+    return '<p class="painel-vazio">Nenhum aluno com mensalidade em aberto no momento.</p>';
+  }
+
+  const linhas = alunos
+    .map(function (item) {
+      return (
+        "<tr>" +
+        "<td><strong>" + escaparHtml(item.aluno.nome) + "</strong><br>" +
+        "<small>" + escaparHtml(item.aluno.email) + "</small></td>" +
+        "<td>" + formatarMoeda(item.emAberto) + "</td>" +
+        "<td>" + formatarMoeda(item.resumo.valorPago) + "</td>" +
+        "<td><a href=\"painel-contador-aluno-pagamentos.html?email=" +
+        encodeURIComponent(item.aluno.email) + "\">Ver extrato</a></td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+
+  return (
+    '<table class="data-table data-table--compact">' +
+    "<thead><tr><th>Aluno</th><th>Em aberto</th><th>Recebido</th><th></th></tr></thead>" +
+    "<tbody>" + linhas + "</tbody></table>"
+  );
+}
+
 function renderizarFinanceiroDiretor(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -2428,8 +2487,10 @@ function renderizarFinanceiroDiretor(containerId) {
       '<article class="financeiro-card"><p class="financeiro-card__label">Folha paga</p>' +
         '<p class="financeiro-card__valor">' + formatarMoeda(resumo.pagoFolha) + "</p></article>" +
     "</div>" +
+    '<h3 class="financeiro-subtitulo">Alunos com mensalidades em aberto</h3>' +
+    montarTabelaAlunosMensalidadeEmAbertoDiretor() +
     '<h3 class="financeiro-subtitulo">Últimos pagamentos de alunos</h3>' +
-    renderizarTabelaPagamentosResumo(obterPagamentosAlunos().slice(-5));
+    renderizarTabelaPagamentosResumo(obterPagamentosAlunos().slice(-8));
 }
 
 function renderizarTabelaPagamentosResumo(pagamentos) {
