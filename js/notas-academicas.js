@@ -9,6 +9,158 @@ var DISCIPLINAS_SETAD = [
   "Teologia Prática"
 ];
 
+var MATERIAIS_NOTAS_POR_MODULO = {
+  basico: [
+    "Introdução à Bíblia",
+    "Doutrina Cristã",
+    "Evangelismo e Discipulado",
+    "Vida Devocional"
+  ],
+  medio: [
+    "Teologia Sistemática I",
+    "Hermenêutica Bíblica",
+    "História da Igreja",
+    "Teologia Prática"
+  ],
+  avancado: [
+    "Teologia Sistemática II",
+    "Apologética",
+    "Administração Eclesiástica",
+    "Missões e Evangelismo"
+  ],
+  teologia: [
+    "Teologia Bíblica",
+    "Ética Cristã",
+    "Liturgia e Culto",
+    "Filosofia e Religião"
+  ]
+};
+
+function obterMateriaisPadraoModulo(modulo) {
+  var chave = modulo || "medio";
+  if (MATERIAIS_NOTAS_POR_MODULO[chave]) {
+    return MATERIAIS_NOTAS_POR_MODULO[chave].slice();
+  }
+  return DISCIPLINAS_SETAD.slice();
+}
+
+function listarMateriaisQuadroAluno(matricula, periodo) {
+  if (!matricula) return [];
+  periodo = periodo || obterPeriodoLetivoAtual();
+  var modulo = matricula.modulo || "medio";
+  var porId = {};
+  var ordem = [];
+
+  function incluir(nome) {
+    var limpo = String(nome || "").trim();
+    if (!limpo || porId[limpo]) return;
+    porId[limpo] = true;
+    ordem.push(limpo);
+  }
+
+  var quadroPersistido =
+    matricula.quadroMateriaisNotas && matricula.quadroMateriaisNotas[periodo];
+  if (Array.isArray(quadroPersistido) && quadroPersistido.length) {
+    quadroPersistido.forEach(incluir);
+  } else {
+    obterMateriaisPadraoModulo(modulo).forEach(incluir);
+  }
+
+  obterNotasPorAluno(matricula.email).forEach(function (n) {
+    if (
+      (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
+      (n.tipo || "prova") === "prova" &&
+      n.disciplina &&
+      n.disciplina !== "Média geral"
+    ) {
+      incluir(n.disciplina);
+    }
+  });
+
+  return ordem;
+}
+
+function salvarListaMateriaisQuadro(matriculaId, periodo, lista, sessao) {
+  if (!usuarioPodeEditarNotasAcademicas(sessao)) {
+    return { ok: false, erro: "Sem permissão." };
+  }
+  if (typeof atualizarDadosMatricula !== "function") {
+    return { ok: false, erro: "Cadastro indisponível." };
+  }
+  var matricula = obterMatriculas().find(function (m) {
+    return m.id === matriculaId;
+  });
+  if (!matricula) {
+    return { ok: false, erro: "Matrícula não encontrada." };
+  }
+  var quadro = Object.assign({}, matricula.quadroMateriaisNotas || {});
+  quadro[periodo] = (lista || [])
+    .map(function (s) {
+      return String(s || "").trim();
+    })
+    .filter(function (s) {
+      return !!s;
+    });
+  return atualizarDadosMatricula(matriculaId, { quadroMateriaisNotas: quadro });
+}
+
+function renomearDisciplinaNotasAluno(email, periodo, nomeAntigo, nomeNovo, sessao) {
+  if (!usuarioPodeEditarNotasAcademicas(sessao)) {
+    return { ok: false, erro: "Sem permissão." };
+  }
+  nomeAntigo = String(nomeAntigo || "").trim();
+  nomeNovo = String(nomeNovo || "").trim();
+  if (!nomeAntigo || !nomeNovo || nomeAntigo === nomeNovo) {
+    return { ok: true };
+  }
+  var norm = (email || "").trim().toLowerCase();
+  var lista = obterNotasAcademicas();
+  var alterou = false;
+  lista = lista.map(function (n) {
+    if (
+      (n.alunoEmail || "").toLowerCase() === norm &&
+      (n.periodo || obterPeriodoLetivoAtual()) === periodo &&
+      n.disciplina === nomeAntigo
+    ) {
+      alterou = true;
+      return Object.assign({}, n, {
+        disciplina: nomeNovo,
+        atualizadoEm: new Date().toISOString(),
+        lancadoPor: sessao.email,
+        lancadoPorPerfil: sessao.perfil
+      });
+    }
+    return n;
+  });
+  if (alterou) salvarNotasAcademicas(lista);
+  return { ok: true };
+}
+
+function removerMaterialQuadroAluno(matricula, periodo, nomeMaterial, sessao) {
+  if (!matricula || !nomeMaterial) return { ok: false, erro: "Material inválido." };
+  var lista = listarMateriaisQuadroAluno(matricula, periodo).filter(function (m) {
+    return m !== nomeMaterial;
+  });
+  salvarListaMateriaisQuadro(matricula.id, periodo, lista, sessao);
+  var nota = obterNotaLancamento(matricula.email, nomeMaterial, periodo, "prova", "Prova 1");
+  if (nota) {
+    salvarNotaAcademica(
+      {
+        id: nota.id,
+        alunoEmail: matricula.email,
+        alunoNome: matricula.nomeCompleto,
+        matriculaId: matricula.id,
+        disciplina: nomeMaterial,
+        tipo: "prova",
+        valor: null,
+        periodo: periodo
+      },
+      sessao
+    );
+  }
+  return { ok: true };
+}
+
 function obterPeriodoLetivoAtual() {
   var d = new Date();
   var semestre = d.getMonth() < 6 ? 1 : 2;
@@ -238,20 +390,37 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
       ? obterMatriculaAtivaNoCadastroPresencial()
       : null);
 
+  if (matricula && matricula.id) {
+    var atualizada = obterMatriculas().find(function (m) {
+      return m.id === matricula.id;
+    });
+    if (atualizada) matricula = atualizada;
+  }
+
   if (!matricula || !matricula.email) {
     container.innerHTML =
       '<p class="presencial-bloco__hint">Selecione um aluno na lista ou salve o cadastro para lançar notas.</p>';
     return;
   }
 
-  if (typeof renderizarPlanilhaNotasTurma !== "function") {
-    container.innerHTML = '<p class="lista-vazia">Módulo de notas indisponível.</p>';
-    return;
-  }
-
   sessao = sessao || obterSessaoOperacionalListaAlunos();
   if (!sessao) {
     container.innerHTML = '<p class="lista-vazia">Sessão inválida.</p>';
+    return;
+  }
+
+  if (typeof renderizarQuadroMateriaisNotasAluno === "function") {
+    renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, {
+      somenteLeitura: meta.somenteLeitura === true,
+      onAtualizar: function () {
+        renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta);
+      }
+    });
+    return;
+  }
+
+  if (typeof renderizarPlanilhaNotasTurma !== "function") {
+    container.innerHTML = '<p class="lista-vazia">Módulo de notas indisponível.</p>';
     return;
   }
 
@@ -313,6 +482,16 @@ function renderizarNotasAlunoPainel(sessao) {
   if (!matricula) {
     container.innerHTML =
       '<p class="lista-vazia">Matrícula não encontrada. Procure a secretaria do seminário.</p>';
+    return;
+  }
+  if (typeof renderizarQuadroMateriaisNotasAluno === "function") {
+    renderizarQuadroMateriaisNotasAluno(container, matricula, sessao, {
+      somenteLeitura: true,
+      mostrarAtualizar: true,
+      onAtualizar: function () {
+        renderizarNotasAlunoPainel(sessao);
+      }
+    });
     return;
   }
   if (typeof renderizarPlanilhaNotasTurma !== "function") {

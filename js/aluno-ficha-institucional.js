@@ -280,7 +280,7 @@ function renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm) {
     (podeEditar
       ? "Período " +
         esc(periodo) +
-        ". Use <strong>Editar</strong> em cada disciplina ou em <strong>Média</strong> para lançar ou alterar."
+        ". Informe o <strong>material</strong> e a <strong>nota</strong> de cada disciplina conforme o nível do curso. Use <strong>Adicionar material</strong> quando precisar."
       : "Visualização do período " +
         esc(periodo) +
         ". Alterações são feitas pela secretaria ou coordenação pedagógica.") +
