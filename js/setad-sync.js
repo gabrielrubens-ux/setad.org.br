@@ -30,6 +30,8 @@
 
   function hydrate(snapshot) {
     cache.matriculas = snapshot.matriculas || [];
+    cache._matriculasHidratadas = true;
+    cache._matriculasCountServidor = (snapshot.matriculas || []).length;
     cache.livros = snapshot.livros || [];
     cache.entregas = snapshot.entregas || [];
     cache.pagamentos = snapshot.pagamentos || [];
@@ -49,6 +51,18 @@
 
   function scheduleSync(collection, apiPath) {
     if (!window.SETAD || !SETAD.apiAtivo) return;
+
+    if (collection === "matriculas") {
+      var lista = cache[collection] || [];
+      if (
+        lista.length === 0 &&
+        cache._matriculasHidratadas &&
+        cache._matriculasCountServidor > 0
+      ) {
+        console.warn("[SETAD] Bloqueada sincronização de matrículas vazia com o servidor.");
+        return;
+      }
+    }
 
     if (syncTimers[collection]) {
       clearTimeout(syncTimers[collection]);

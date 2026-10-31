@@ -67,6 +67,7 @@ function inicializarPainelSecretaria() {
 
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
+  configurarRestauracaoMatriculasSecretaria();
   if (typeof renderizarPainelTurmasInstitucional === "function") {
     renderizarPainelTurmasInstitucional("turmasSecretariaContainer", {
       intro:
@@ -201,6 +202,145 @@ function renderizarVisaoSecretaria() {
     "Em produção, conecte a API oficial do WhatsApp Business para sincronizar mensagens em tempo real.</p>";
 }
 
+function obterBackupMatriculasLocalStorage() {
+  try {
+    var raw = localStorage.getItem("setad_matriculas_alunos");
+    if (!raw) return [];
+    var lista = JSON.parse(raw);
+    return Array.isArray(lista) ? lista : [];
+  } catch (erro) {
+    return [];
+  }
+}
+
+function atualizarUiRestauracaoMatriculas(totalServidor) {
+  var hint = document.getElementById("restaurarMatriculasHint");
+  if (!hint) return;
+  var backup = obterBackupMatriculasLocalStorage();
+  hint.textContent =
+    "No servidor: " +
+    totalServidor +
+    " cadastro(s)." +
+    (backup.length
+      ? " Backup neste navegador: " + backup.length + " — use Restaurar se faltar aluno na lista."
+      : " Se tiver arquivo JSON exportado, use Importar.");
+}
+
+function recarregarMatriculasDoServidor() {
+  if (typeof SETADApi === "undefined" || !SETADApi.get) {
+    return Promise.resolve();
+  }
+  return SETADApi.get("/matriculas").then(function (resposta) {
+    if (resposta.ok && window.SETAD && window.SETAD.cache) {
+      window.SETAD.cache.matriculas = resposta.items || [];
+      window.SETAD.cache._matriculasHidratadas = true;
+      window.SETAD.cache._matriculasCountServidor = window.SETAD.cache.matriculas.length;
+    }
+  });
+}
+
+function executarRestauracaoMatriculas(items, origemLabel) {
+  var msgEl = document.getElementById("restaurarMatriculasMsg");
+  if (!items || !items.length) {
+    if (msgEl) {
+      msgEl.className = "form-mensagem form-mensagem--erro visible";
+      msgEl.textContent = "Nenhum cadastro encontrado para restaurar.";
+    }
+    return;
+  }
+  if (
+    !confirm(
+      "Restaurar " +
+        items.length +
+        " matrícula(s) a partir de " +
+        origemLabel +
+        "?\n\nOs registros serão mesclados por id (sem apagar os que já existirem)."
+    )
+  ) {
+    return;
+  }
+  if (typeof SETADApi === "undefined" || !SETADApi.restaurarMergeMatriculas) {
+    if (msgEl) {
+      msgEl.className = "form-mensagem form-mensagem--erro visible";
+      msgEl.textContent = "API indisponível. Faça login no painel com o site em produção.";
+    }
+    return;
+  }
+  if (msgEl) {
+    msgEl.className = "form-mensagem visible";
+    msgEl.textContent = "Restaurando…";
+  }
+  SETADApi.restaurarMergeMatriculas(items)
+    .then(function (resposta) {
+      if (!resposta.ok) {
+        if (msgEl) {
+          msgEl.className = "form-mensagem form-mensagem--erro visible";
+          msgEl.textContent = resposta.erro || "Não foi possível restaurar.";
+        }
+        return;
+      }
+      return recarregarMatriculasDoServidor().then(function () {
+        renderizarAlunosSecretaria();
+        renderizarVisaoSecretaria();
+        if (msgEl) {
+          msgEl.className = "form-mensagem form-mensagem--sucesso visible";
+          msgEl.textContent =
+            "Restauração concluída. Total no servidor: " +
+            resposta.total +
+            " (antes: " +
+            resposta.anterior +
+            ").";
+        }
+      });
+    })
+    .catch(function () {
+      if (msgEl) {
+        msgEl.className = "form-mensagem form-mensagem--erro visible";
+        msgEl.textContent = "Erro de comunicação ao restaurar.";
+      }
+    });
+}
+
+function configurarRestauracaoMatriculasSecretaria() {
+  var btnLocal = document.getElementById("btnRestaurarMatriculasLocal");
+  var inputJson = document.getElementById("inputRestaurarMatriculasJson");
+  if (btnLocal && !btnLocal.dataset.bound) {
+    btnLocal.dataset.bound = "1";
+    btnLocal.addEventListener("click", function () {
+      executarRestauracaoMatriculas(
+        obterBackupMatriculasLocalStorage(),
+        "backup deste navegador"
+      );
+    });
+  }
+  if (inputJson && !inputJson.dataset.bound) {
+    inputJson.dataset.bound = "1";
+    inputJson.addEventListener("change", function () {
+      var arquivo = inputJson.files && inputJson.files[0];
+      inputJson.value = "";
+      if (!arquivo) return;
+      var leitor = new FileReader();
+      leitor.onload = function () {
+        try {
+          var parsed = JSON.parse(String(leitor.result || ""));
+          var lista = Array.isArray(parsed) ? parsed : parsed.items;
+          if (!Array.isArray(lista)) {
+            throw new Error("JSON inválido");
+          }
+          executarRestauracaoMatriculas(lista, "arquivo " + arquivo.name);
+        } catch (erro) {
+          var msgEl = document.getElementById("restaurarMatriculasMsg");
+          if (msgEl) {
+            msgEl.className = "form-mensagem form-mensagem--erro visible";
+            msgEl.textContent = "Arquivo JSON inválido. Envie um array de matrículas.";
+          }
+        }
+      };
+      leitor.readAsText(arquivo, "UTF-8");
+    });
+  }
+}
+
 function renderizarAlunosSecretaria() {
   var container = document.getElementById("alunosSecretariaContainer");
   var filtroEl = document.getElementById("filtroOrigemAlunos");
@@ -209,6 +349,10 @@ function renderizarAlunosSecretaria() {
 
   var filtro = filtroEl ? filtroEl.value : "todos";
   var termoBusca = buscaEl ? buscaEl.value.trim() : "";
+  var totalServidor = obterMatriculas().length;
+  atualizarUiRestauracaoMatriculas(totalServidor);
+  configurarRestauracaoMatriculasSecretaria();
+
   var matriculas = obterMatriculas().slice().sort(function (a, b) {
     return new Date(b.dataMatricula) - new Date(a.dataMatricula);
   });

@@ -1,4 +1,5 @@
 const express = require("express");
+const { gerarId } = require("../seed");
 const {
   db,
   listJson,
@@ -190,7 +191,8 @@ router.post("/public/matriculas", limitarMatriculaPublica, function (req, res) {
   res.status(201).json({ ok: true, matricula, pagamento });
 });
 
-function makeCollectionRoutes(pathName, table, writePerfis) {
+function makeCollectionRoutes(pathName, table, writePerfis, opcoes) {
+  opcoes = opcoes || {};
   router.get("/" + pathName, authRequired, requirePerfis(...STAFF_READ), function (_req, res) {
     res.json({ ok: true, items: listJson(table) });
   });
@@ -199,6 +201,16 @@ function makeCollectionRoutes(pathName, table, writePerfis) {
     const items = Array.isArray(req.body) ? req.body : req.body.items;
     if (!Array.isArray(items)) {
       return res.status(400).json({ ok: false, erro: "Envie um array de registros." });
+    }
+    if (opcoes.blockEmptyReplace) {
+      const atual = listJson(table);
+      if (items.length === 0 && atual.length > 0) {
+        return res.status(409).json({
+          ok: false,
+          erro:
+            "Operação bloqueada: não é permitido substituir todas as matrículas por uma lista vazia. Use restauração ou exclusão individual."
+        });
+      }
     }
     replaceJsonCollection(table, items);
     res.json({ ok: true, total: items.length });
@@ -219,7 +231,53 @@ function makeCollectionRoutes(pathName, table, writePerfis) {
   });
 }
 
-makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "coordenacao", "professor"]);
+makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "coordenacao", "professor"], {
+  blockEmptyReplace: true
+});
+
+router.post(
+  "/matriculas/restaurar-merge",
+  authRequired,
+  requirePerfis("diretor", "secretaria", "coordenacao"),
+  function (req, res) {
+    const bruto = req.body && req.body.items;
+    if (!Array.isArray(bruto) || bruto.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        erro: "Envie { items: [ ...matrículas ] } com ao menos um registro."
+      });
+    }
+
+    const existentes = listJson(COLLECTIONS.matriculas);
+    const porId = {};
+    existentes.forEach(function (m) {
+      if (m && m.id) porId[m.id] = m;
+    });
+
+    let novos = 0;
+    bruto.forEach(function (item) {
+      if (!item || typeof item !== "object") return;
+      let id = item.id;
+      if (!id) {
+        id = gerarId("mat");
+        novos += 1;
+      }
+      porId[id] = Object.assign({}, porId[id], item, { id: id });
+    });
+
+    const merged = Object.values(porId);
+    replaceJsonCollection(COLLECTIONS.matriculas, merged);
+
+    res.json({
+      ok: true,
+      total: merged.length,
+      recebidos: bruto.length,
+      novos: novos,
+      anterior: existentes.length
+    });
+  }
+);
+
 makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "coordenacao"]);
 makeCollectionRoutes("entregas", COLLECTIONS.entregas, STAFF_WRITE.concat(["aluno"]));
 makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"]);

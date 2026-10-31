@@ -2393,6 +2393,26 @@ body.portal-marca-dagua .wpp-float {
   min-width: 12rem;
 }
 
+.secretaria-restore-matriculas {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: rgba(35, 64, 107, 0.06);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+}
+
+.secretaria-restore-matriculas__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.secretaria-restore-matriculas__file {
+  cursor: pointer;
+  margin: 0;
+}
+
 .secretaria-form textarea {
   width: 100%;
   padding: 0.65rem 0.75rem;

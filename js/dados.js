@@ -397,15 +397,33 @@ function sanitizarMatriculaRegistro(matricula) {
   const quadroSeminario = !!matricula.quadroSeminario;
 
   if (!email) {
-    if (!quadroSeminario || cpfDigitos.length < 11 || !nome) {
+    if (!nome || nome.length < 2) {
       return null;
     }
-    return Object.assign({}, matricula, {
-      email: "",
-      cpf: matricula.cpf ? String(matricula.cpf).trim() : "",
-      nomeCompleto: nome,
-      quadroSeminario: true
-    });
+    if (cpfDigitos.length >= 11) {
+      return Object.assign({}, matricula, {
+        email: "",
+        cpf: matricula.cpf ? String(matricula.cpf).trim() : "",
+        nomeCompleto: nome,
+        quadroSeminario: !!matricula.quadroSeminario
+      });
+    }
+    if (matricula.id) {
+      return Object.assign({}, matricula, {
+        email: "",
+        nomeCompleto: nome,
+        quadroSeminario: !!matricula.quadroSeminario
+      });
+    }
+    if (quadroSeminario && cpfDigitos.length >= 11) {
+      return Object.assign({}, matricula, {
+        email: "",
+        cpf: matricula.cpf ? String(matricula.cpf).trim() : "",
+        nomeCompleto: nome,
+        quadroSeminario: true
+      });
+    }
+    return null;
   }
 
   return Object.assign({}, matricula, {
@@ -416,6 +434,10 @@ function sanitizarMatriculaRegistro(matricula) {
 }
 
 function repararArmazenamentoMatriculas() {
+  if (setadApiAtivo() && window.SETAD.cache.matriculas === null) {
+    return [];
+  }
+
   const matriculas = obterMatriculasBrutas();
   const porEmail = {};
   const quadroSemEmailPorId = {};
@@ -461,7 +483,19 @@ function repararArmazenamentoMatriculas() {
     JSON.stringify(normalizadas) !== JSON.stringify(matriculas);
 
   if (precisaSalvar) {
-    salvarMatriculas(normalizadas);
+    if (setadApiAtivo()) {
+      if (normalizadas.length === 0 && matriculas.length > 0) {
+        console.warn(
+          "[SETAD] Reparo de matrículas ignorado para não apagar cadastros no servidor."
+        );
+        return matriculas
+          .map(sanitizarMatriculaRegistro)
+          .filter(Boolean);
+      }
+      window.SETAD.cache.matriculas = normalizadas;
+    } else {
+      salvarMatriculas(normalizadas);
+    }
   }
 
   return normalizadas;

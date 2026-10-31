@@ -125,6 +125,9 @@
     syncCollection: function (nome, items) {
       return request("PUT", "/" + nome, items);
     },
+    restaurarMergeMatriculas: function (items) {
+      return request("POST", "/matriculas/restaurar-merge", { items: items });
+    },
     salvarFotoAluno: function (email, dataUrl) {
       return request("PUT", "/fotos/alunos/" + encodeURIComponent(email), { dataUrl: dataUrl });
     },
