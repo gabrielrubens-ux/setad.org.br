@@ -32,7 +32,8 @@ const COLLECTIONS = {
   exclusoesEmails: "exclusoes_emails",
   wppConversas: "wpp_conversas",
   relatoriosContabeis: "relatorios_contabeis",
-  lancamentosContabeis: "lancamentos_contabeis"
+  lancamentosContabeis: "lancamentos_contabeis",
+  notasAcademicas: "notas_academicas"
 };
 
 const STAFF_READ = ["diretor", "contador", "secretaria", "coordenacao", "professor", "autorizado"];
@@ -59,7 +60,8 @@ router.get("/snapshot", authRequired, function (req, res) {
     fotosStaff: {},
     verificacoesPendentes: [],
     relatoriosContabeis: [],
-    lancamentosContabeis: []
+    lancamentosContabeis: [],
+    notasAcademicas: []
   };
 
   if (usuarioTemAlgumPerfil(req.user, STAFF_OPERACIONAL)) {
@@ -88,6 +90,17 @@ router.get("/snapshot", authRequired, function (req, res) {
       snapshot.lancamentosContabeis = listJson(COLLECTIONS.lancamentosContabeis);
     }
 
+    if (
+      usuarioTemAlgumPerfil(req.user, [
+        "diretor",
+        "secretaria",
+        "coordenacao",
+        "professor"
+      ])
+    ) {
+      snapshot.notasAcademicas = listJson(COLLECTIONS.notasAcademicas);
+    }
+
     db.prepare("SELECT email, data_url, atualizado_em FROM fotos_alunos").all().forEach((row) => {
       snapshot.fotosAlunos[row.email] = { dataUrl: row.data_url, atualizadoEm: row.atualizado_em };
     });
@@ -98,6 +111,9 @@ router.get("/snapshot", authRequired, function (req, res) {
     snapshot.matriculas = listJson(COLLECTIONS.matriculas).filter((m) => (m.email || "").toLowerCase() === email.toLowerCase());
     snapshot.entregas = listJson(COLLECTIONS.entregas).filter((e) => (e.alunoEmail || "").toLowerCase() === email.toLowerCase());
     snapshot.pagamentos = listJson(COLLECTIONS.pagamentos).filter((p) => (p.alunoEmail || "").toLowerCase() === email.toLowerCase());
+    snapshot.notasAcademicas = listJson(COLLECTIONS.notasAcademicas).filter(
+      (n) => (n.alunoEmail || "").toLowerCase() === email.toLowerCase()
+    );
 
     const foto = db.prepare("SELECT data_url, atualizado_em FROM fotos_alunos WHERE email = ?").get(email.toLowerCase());
     if (foto) {
@@ -281,6 +297,12 @@ router.post(
 makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "coordenacao"]);
 makeCollectionRoutes("entregas", COLLECTIONS.entregas, STAFF_WRITE.concat(["aluno"]));
 makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"]);
+makeCollectionRoutes("notas-academicas", COLLECTIONS.notasAcademicas, [
+  "diretor",
+  "secretaria",
+  "coordenacao",
+  "professor"
+]);
 makeCollectionRoutes("funcionarios", COLLECTIONS.funcionarios, ["diretor", "contador"]);
 makeCollectionRoutes("folha", COLLECTIONS.folha, ["diretor", "contador"]);
 makeCollectionRoutes("instituicoes", COLLECTIONS.instituicoes, ["diretor", "contador"]);

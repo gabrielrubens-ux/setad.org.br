@@ -141,6 +141,14 @@ function montarCelulaPlanilhaTurmaMensalidade(matricula, coluna, sessao) {
 function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
   if (!container) return;
   meta = meta || {};
+  if (
+    typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+    coordenacaoPedagogicaSemFinanceiro(sessao)
+  ) {
+    container.innerHTML =
+      '<p class="lista-vazia">Mensalidades e lançamentos financeiros não estão disponíveis para a coordenação pedagógica.</p>';
+    return;
+  }
   alunos = (alunos || []).slice().sort(function (a, b) {
     return (a.nomeCompleto || "").localeCompare(b.nomeCompleto || "", "pt-BR");
   });

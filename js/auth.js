@@ -283,6 +283,19 @@ function sessaoTemPerfilInstitucional(sessao, perfil) {
   return perfisInstitucionaisDaSessao(sessao).indexOf(perfil) !== -1;
 }
 
+/** No painel da coordenação pedagógica: notas sim; mensalidades e pagamentos não. */
+function coordenacaoPedagogicaSemFinanceiro(sessao) {
+  if (
+    typeof document !== "undefined" &&
+    document.body &&
+    document.body.classList.contains("painel-coordenacao")
+  ) {
+    return true;
+  }
+  if (!sessao) return false;
+  return sessao.perfil === "coordenacao";
+}
+
 function obterSessaoDirecao() {
   if (authApiAtivo() && window.SETAD.session) {
     const sessao = window.SETAD.session;

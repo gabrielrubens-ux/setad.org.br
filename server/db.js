@@ -116,6 +116,11 @@ function initSchema() {
       dados TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS notas_academicas (
+      id TEXT PRIMARY KEY,
+      dados TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS app_meta (
       chave TEXT PRIMARY KEY,
       valor TEXT NOT NULL

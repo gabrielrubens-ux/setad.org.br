@@ -118,6 +118,9 @@ function inicializarPainelDiretor() {
     if (tabId === "tab-contab-polos" && typeof renderizarContabilidadePolos === "function") {
       renderizarContabilidadePolos("contabPolosDiretorContainer", sessao);
     }
+    if (tabId === "tab-notas" && typeof renderizarHubNotasInstitucional === "function") {
+      renderizarHubNotasInstitucional("notasDiretorHub", sessao, { abaInicial: "notas" });
+    }
   });
 
   inicializarDadosPadrao();

@@ -984,6 +984,53 @@ body.portal-marca-dagua .wpp-float {
   color: var(--cor-texto-suave);
 }
 
+.nota-badge--baixa {
+  background-color: rgba(180, 40, 40, 0.12);
+  color: #8b1a1a;
+}
+
+.turma-painel-academico {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.turma-painel-academico__abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--cor-borda, rgba(0, 0, 0, 0.08));
+  padding-bottom: 0.25rem;
+}
+
+.turma-painel-academico__aba {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.turma-painel-academico__aba:hover {
+  background: rgba(13, 26, 214, 0.06);
+  color: var(--cor-texto);
+}
+
+.turma-painel-academico__aba--ativa {
+  background: var(--cor-primaria-fundo, rgba(13, 26, 214, 0.1));
+  border-color: var(--cor-primaria, #0d1ad6);
+  color: var(--cor-primaria-escura, #0a1299);
+}
+
+.turma-painel-academico__conteudo {
+  min-height: 120px;
+}
+
 /* Cards de trabalhos */
 .trabalhos-list {
   display: flex;

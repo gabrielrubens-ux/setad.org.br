@@ -53,9 +53,10 @@ function inicializarPainelCoordenacao() {
   if (typeof renderizarPainelTurmasInstitucional === "function") {
     renderizarPainelTurmasInstitucional("turmasCoordenacaoContainer", {
       intro:
-        "Polo SETADE em destaque (nível e sala). Demais polos em Belém. Clique para ver alunos vinculados.",
+        "Polo SETADE em destaque (nível e sala). Demais polos em Belém. Clique na turma para lançar notas e médias (sem acesso a mensalidades).",
       mostrarFiltro: true,
       mostrarAlunosAoClicar: true,
+      abaInicialDetalhe: "notas",
       sessao: sessao
     });
   }

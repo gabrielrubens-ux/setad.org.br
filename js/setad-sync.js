@@ -25,7 +25,8 @@
     contasAlunos: null,
     verificacoesPendentes: null,
     relatoriosContabeis: null,
-    lancamentosContabeis: null
+    lancamentosContabeis: null,
+    notasAcademicas: null
   };
 
   function hydrate(snapshot) {
@@ -47,6 +48,7 @@
     cache.verificacoesPendentes = snapshot.verificacoesPendentes || [];
     cache.relatoriosContabeis = snapshot.relatoriosContabeis || [];
     cache.lancamentosContabeis = snapshot.lancamentosContabeis || [];
+    cache.notasAcademicas = snapshot.notasAcademicas || [];
   }
 
   function scheduleSync(collection, apiPath) {

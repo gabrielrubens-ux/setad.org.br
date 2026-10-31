@@ -70,6 +70,18 @@ function inicializarPainel(tipo) {
         renderizarCentralImpressaoSetad("impressaoProfessorContainer", sessao);
       }
 
+      if (tipo === "aluno" && tabId === "tab-notas" && typeof renderizarNotasAlunoPainel === "function") {
+        renderizarNotasAlunoPainel(sessao);
+      }
+
+      if (
+        tipo === "professor" &&
+        tabId === "tab-notas" &&
+        typeof renderizarHubNotasInstitucional === "function"
+      ) {
+        renderizarHubNotasInstitucional("notasProfessorHub", sessao, { abaInicial: "notas" });
+      }
+
     });
 
   });
@@ -108,6 +120,10 @@ function inicializarPainel(tipo) {
       renderizarTurmasPainelAluno(sessao);
     }
 
+    if (typeof renderizarNotasAlunoPainel === "function") {
+      renderizarNotasAlunoPainel(sessao);
+    }
+
   } else {
 
     renderizarTrabalhosProfessor();
@@ -124,6 +140,10 @@ function inicializarPainel(tipo) {
 
     if (typeof renderizarCentralImpressaoSetad === "function") {
       renderizarCentralImpressaoSetad("impressaoProfessorContainer", sessao);
+    }
+
+    if (typeof renderizarHubNotasInstitucional === "function") {
+      renderizarHubNotasInstitucional("notasProfessorHub", sessao, { abaInicial: "notas" });
     }
 
   }

@@ -99,8 +99,13 @@ function renderizarPainelTurmasInstitucional(containerId, opcoes) {
 
     grid.querySelectorAll("[data-turma-id]").forEach(function (card) {
       function abrir() {
+        var id = card.getAttribute("data-turma-id");
+        if (typeof opcoes.onTurmaClick === "function") {
+          opcoes.onTurmaClick(id);
+          return;
+        }
         if (!opcoes.mostrarAlunosAoClicar) return;
-        mostrarAlunosDaTurma(card.getAttribute("data-turma-id"));
+        mostrarAlunosDaTurma(id);
       }
       card.addEventListener("click", abrir);
       card.addEventListener("keydown", function (ev) {
@@ -121,23 +126,26 @@ function renderizarPainelTurmasInstitucional(containerId, opcoes) {
     detalhe.hidden = false;
 
     detalhe.innerHTML =
-      '<div class="turmas-detalhe__toolbar">' +
-      '<button type="button" class="btn btn--secondary btn--sm" id="turmasDetalheVoltar">← Voltar às turmas</button>' +
-      "</div>" +
-      '<div id="turmasPlanilhaMensalidades"></div>';
+      '<div id="turmasDetalheVoltarWrap" class="turmas-detalhe__toolbar"></div>' +
+      '<div id="turmasPainelAcademico"></div>';
 
-    var voltar = document.getElementById("turmasDetalheVoltar");
-    if (voltar) {
-      voltar.addEventListener("click", function () {
-        detalhe.hidden = true;
-        detalhe.innerHTML = "";
-      });
+    var voltarWrap = document.getElementById("turmasDetalheVoltarWrap");
+    if (voltarWrap) {
+      voltarWrap.innerHTML =
+        '<button type="button" class="btn btn--secondary btn--sm" id="turmasDetalheVoltar">← Voltar às turmas</button>';
+      var voltar = document.getElementById("turmasDetalheVoltar");
+      if (voltar) {
+        voltar.addEventListener("click", function () {
+          detalhe.hidden = true;
+          detalhe.innerHTML = "";
+        });
+      }
     }
 
-    var planilhaEl = document.getElementById("turmasPlanilhaMensalidades");
+    var alvo = document.getElementById("turmasPainelAcademico");
     if (!alunos.length) {
-      if (planilhaEl) {
-        planilhaEl.innerHTML =
+      if (alvo) {
+        alvo.innerHTML =
           '<h3 class="turmas-detalhe__titulo">' +
           escaparHtml(turma.nome) +
           '</h3><p class="lista-vazia">Nenhum aluno vinculado a esta turma ainda.</p>';
@@ -146,18 +154,28 @@ function renderizarPainelTurmasInstitucional(containerId, opcoes) {
       return;
     }
 
-    if (planilhaEl && typeof renderizarPlanilhaMensalidadesTurma === "function") {
-      renderizarPlanilhaMensalidadesTurma(planilhaEl, alunos, sessao, {
-        titulo: turma.nome + " — mensalidades",
+    if (alvo && typeof renderizarPainelTurmaMensalidadesENotas === "function") {
+      renderizarPainelTurmaMensalidadesENotas(alvo, alunos, sessao, {
+        titulo: turma.nome,
+        turmaId: turma.id,
+        abaInicial:
+          opcoes.abaInicialDetalhe ||
+          (typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+          coordenacaoPedagogicaSemFinanceiro(sessao)
+            ? "notas"
+            : "mensalidades"),
         subtitulo:
-          "Planilha da turma: pagamentos e pendências de todos os alunos. Edite na hora do recebimento.",
+          typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+          coordenacaoPedagogicaSemFinanceiro(sessao)
+            ? "Notas e médias desta turma. Pagamentos são da secretaria."
+            : "Mensalidades e notas desta turma. Alterações refletem em todo o sistema.",
         onAtualizar: function () {
           mostrarAlunosDaTurma(turmaId);
         }
       });
-    } else if (planilhaEl) {
-      planilhaEl.innerHTML =
-        '<p class="lista-vazia">Carregue o módulo financeiro para ver a planilha de mensalidades.</p>';
+    } else if (alvo) {
+      alvo.innerHTML =
+        '<p class="lista-vazia">Carregue os módulos acadêmico e financeiro para ver esta turma.</p>';
     }
     detalhe.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }

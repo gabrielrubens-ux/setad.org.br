@@ -355,7 +355,10 @@ function configurarCadastroPresencial(sessao, opcoes) {
   if (!opcoes.omitirPagamento) {
     configurarUiPagamentoPresencial();
   }
-  if (typeof configurarPlanilhaMensalidadesCadastro === "function") {
+  if (
+    !opcoes.omitirPagamento &&
+    typeof configurarPlanilhaMensalidadesCadastro === "function"
+  ) {
     configurarPlanilhaMensalidadesCadastro();
   }
   if (typeof configurarDirecionamentoPresencialInterno === "function") {
