@@ -961,6 +961,19 @@ body.portal-marca-dagua .wpp-float {
   border-bottom: none;
 }
 
+.lista-alunos__obs {
+  display: inline-block;
+  max-width: 14rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.lista-alunos__obs--vazio {
+  color: var(--cor-texto-muted, #9ca3af);
+}
+
 .nota-badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;

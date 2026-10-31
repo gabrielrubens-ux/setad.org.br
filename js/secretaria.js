@@ -438,6 +438,23 @@ function configurarRestauracaoMatriculasSecretaria() {
   }
 }
 
+function formatarCelulaObservacaoListaAluno(observacoes) {
+  var texto = (observacoes || "").trim();
+  if (!texto) {
+    return '<span class="lista-alunos__obs lista-alunos__obs--vazio">—</span>';
+  }
+  var max = 80;
+  var resumo = texto.length > max ? texto.slice(0, max) + "…" : texto;
+  var titleAttr = escaparHtml(texto).replace(/"/g, "&quot;");
+  return (
+    '<span class="lista-alunos__obs" title="' +
+    titleAttr +
+    '">' +
+    escaparHtml(resumo) +
+    "</span>"
+  );
+}
+
 function renderizarAlunosSecretaria() {
   var container = document.getElementById("alunosSecretariaContainer");
   var filtroEl = document.getElementById("filtroOrigemAlunos");
@@ -480,7 +497,7 @@ function renderizarAlunosSecretaria() {
     '<table class="data-table">' +
       "<thead><tr>" +
         "<th>Nome</th><th>E-mail</th><th>Telefone</th><th>Módulo</th>" +
-        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Ações</th>" +
+        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Observação</th><th>Ações</th>" +
       "</tr></thead><tbody>" +
       matriculas.map(function (aluno) {
         var moduloNome = MODULOS_CURSO[aluno.modulo]
@@ -527,6 +544,7 @@ function renderizarAlunosSecretaria() {
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
           "</td>" +
+          "<td>" + formatarCelulaObservacaoListaAluno(aluno.observacoes) + "</td>" +
           '<td><div class="matricula-acoes matricula-acoes--grade">' +
             '<div class="matricula-acoes__linha">' + btnNotas + btnMensalidades + "</div>" +
             '<div class="matricula-acoes__linha">' +
