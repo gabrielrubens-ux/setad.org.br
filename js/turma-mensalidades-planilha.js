@@ -2,6 +2,89 @@
 
 var PLANILHA_TURMA_QTD_MESES = 8;
 
+/** Mantém o editor aberto ao re-renderizar a planilha (sync institucional). */
+var PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
+
+function planilhaMensalidadesEditorEstaAberto() {
+  var editor = document.getElementById("planilhaTurmaEditor");
+  return !!(editor && !editor.hidden);
+}
+
+function fecharEditorPlanilhaTurma(container) {
+  var editor = container
+    ? container.querySelector("#planilhaTurmaEditor")
+    : document.getElementById("planilhaTurmaEditor");
+  if (editor) editor.hidden = true;
+  PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
+}
+
+function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagamentoId) {
+  var editor = container.querySelector("#planilhaTurmaEditor");
+  if (!editor) return false;
+
+  var matricula =
+    typeof obterMatriculaPorId === "function"
+      ? obterMatriculaPorId(matriculaId)
+      : obterMatriculas().find(function (m) {
+          return m.id === matriculaId;
+        });
+  if (!matricula) return false;
+
+  var pag = pagamentoId
+    ? obterPagamentosAlunos().find(function (p) {
+        return p.id === pagamentoId;
+      })
+    : null;
+  var valorDefault =
+    pag && pag.valor
+      ? pag.valor
+      : typeof obterMensalidadeModulo === "function"
+        ? obterMensalidadeModulo(matricula.modulo)
+        : 0;
+
+  container.querySelector("#planilhaTurmaEditorMatriculaId").value = matriculaId;
+  container.querySelector("#planilhaTurmaEditorReferencia").value = referencia;
+  container.querySelector("#planilhaTurmaEditorPagamentoId").value = pagamentoId || "";
+  container.querySelector("#planilhaTurmaEditorValor").value = String(valorDefault);
+  container.querySelector("#planilhaTurmaEditorStatus").value =
+    pag && pag.status ? pag.status : "pago";
+  container.querySelector("#planilhaTurmaEditorForma").value =
+    (pag && pag.formaPagamento) || "";
+  container.querySelector("#planilhaTurmaEditorObs").value =
+    (pag && pag.observacoes) || "";
+
+  var titulo = container.querySelector("#planilhaTurmaEditorTitulo");
+  if (titulo) {
+    titulo.textContent =
+      matricula.nomeCompleto + " — " + referencia.replace(/^Mensalidade\s*/, "");
+  }
+
+  var msg = container.querySelector("#planilhaTurmaEditorMsg");
+  if (msg) {
+    msg.className = "form-mensagem";
+    msg.textContent = "";
+  }
+
+  editor.hidden = false;
+  return true;
+}
+
+function restaurarEditorPlanilhaTurmaSeAberto(container) {
+  if (!PLANILHA_MENSALIDADES_EDITOR_ABERTO || !container) return;
+  var st = PLANILHA_MENSALIDADES_EDITOR_ABERTO;
+  if (!preencherEditorPlanilhaTurma(container, st.matriculaId, st.referencia, st.pagamentoId)) {
+    PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
+    return;
+  }
+  requestAnimationFrame(function () {
+    var editor = container.querySelector("#planilhaTurmaEditor");
+    var campo = editor && editor.querySelector("#planilhaTurmaEditorValor");
+    if (campo && typeof campo.focus === "function") {
+      campo.focus({ preventScroll: true });
+    }
+  });
+}
+
 function gerarColunasMensalidadePlanilhaTurma() {
   var colunas = [];
   var base = new Date();
@@ -269,7 +352,9 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
   }
 
   container.querySelectorAll(".planilha-turma__btn-cel").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (evento) {
+      evento.preventDefault();
+      evento.stopPropagation();
       abrirEditorPlanilhaTurma(container, btn, sessao);
     });
   });
@@ -280,7 +365,7 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
 
   if (btnCancelar && editor) {
     btnCancelar.addEventListener("click", function () {
-      editor.hidden = true;
+      fecharEditorPlanilhaTurma(container);
     });
   }
 
@@ -341,11 +426,13 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
           : resultado.erro || "Não foi possível salvar.";
       }
       if (resultado.ok) {
-        editor.hidden = true;
+        fecharEditorPlanilhaTurma(container);
         refresh();
       }
     });
   }
+
+  restaurarEditorPlanilhaTurmaSeAberto(container);
 }
 
 function abrirEditorPlanilhaTurma(container, btn, sessao) {
@@ -354,48 +441,29 @@ function abrirEditorPlanilhaTurma(container, btn, sessao) {
 
   var matriculaId = btn.getAttribute("data-planilha-matricula");
   var referencia = btn.getAttribute("data-planilha-ref");
-  var pagamentoId = btn.getAttribute("data-planilha-pagamento");
-  var matricula =
-    typeof obterMatriculaPorId === "function"
-      ? obterMatriculaPorId(matriculaId)
-      : null;
-  if (!matricula) return;
+  var pagamentoId = btn.getAttribute("data-planilha-pagamento") || "";
 
-  var pag = pagamentoId
-    ? obterPagamentosAlunos().find(function (p) { return p.id === pagamentoId; })
-    : null;
-  var valorDefault =
-    pag && pag.valor
-      ? pag.valor
-      : typeof obterMensalidadeModulo === "function"
-        ? obterMensalidadeModulo(matricula.modulo)
-        : 0;
-
-  container.querySelector("#planilhaTurmaEditorMatriculaId").value = matriculaId;
-  container.querySelector("#planilhaTurmaEditorReferencia").value = referencia;
-  container.querySelector("#planilhaTurmaEditorPagamentoId").value = pagamentoId || "";
-  container.querySelector("#planilhaTurmaEditorValor").value = String(valorDefault);
-  container.querySelector("#planilhaTurmaEditorStatus").value =
-    pag && pag.status ? pag.status : "pago";
-  container.querySelector("#planilhaTurmaEditorForma").value =
-    (pag && pag.formaPagamento) || "";
-  container.querySelector("#planilhaTurmaEditorObs").value =
-    (pag && pag.observacoes) || "";
-
-  var titulo = container.querySelector("#planilhaTurmaEditorTitulo");
-  if (titulo) {
-    titulo.textContent =
-      matricula.nomeCompleto + " — " + referencia.replace(/^Mensalidade\s*/, "");
+  if (
+    !preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagamentoId || null)
+  ) {
+    return;
   }
 
-  var msg = container.querySelector("#planilhaTurmaEditorMsg");
-  if (msg) {
-    msg.className = "form-mensagem";
-    msg.textContent = "";
-  }
+  PLANILHA_MENSALIDADES_EDITOR_ABERTO = {
+    matriculaId: matriculaId,
+    referencia: referencia,
+    pagamentoId: pagamentoId
+  };
 
-  editor.hidden = false;
-  editor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      var campo = editor.querySelector("#planilhaTurmaEditorValor");
+      if (campo && typeof campo.focus === "function") {
+        campo.focus({ preventScroll: true });
+      }
+      editor.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function listarTurmasDoPoloContabilidade(poloId) {

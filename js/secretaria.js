@@ -763,7 +763,25 @@ function configurarEscutaAtualizacaoDadosInstitucionais() {
         sessao = obterSessaoCoordenacao();
       }
       if (sessao) {
-        renderizarFichaAlunoInstitucionalAtual(sessao);
+        var editorPagamentoAberto =
+          typeof planilhaMensalidadesEditorEstaAberto === "function" &&
+          planilhaMensalidadesEditorEstaAberto();
+        var abaFichaAtiva =
+          document.getElementById("tab-ficha-aluno") &&
+          document.getElementById("tab-ficha-aluno").classList.contains("active");
+        if (
+          editorPagamentoAberto &&
+          abaFichaAtiva &&
+          typeof renderizarPlanilhaMensalidadesCadastroAluno === "function" &&
+          typeof obterMatriculaFichaAlunoAtual === "function"
+        ) {
+          var matriculaFicha = obterMatriculaFichaAlunoAtual();
+          if (matriculaFicha) {
+            renderizarPlanilhaMensalidadesCadastroAluno(matriculaFicha, sessao);
+          }
+        } else {
+          renderizarFichaAlunoInstitucionalAtual(sessao);
+        }
       }
     }
   });

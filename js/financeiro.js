@@ -631,6 +631,8 @@ function garantirExtratoAluno(sessao) {
     return p.alunoEmail.toLowerCase() === email;
   });
 
+  var alterou = false;
+
   for (let i = 0; i < MESES_CURSO_TOTAL; i++) {
     const mesTotal = INICIO_CURSO.mes - 1 + i;
     const ano = INICIO_CURSO.ano + Math.floor(mesTotal / 12);
@@ -662,6 +664,7 @@ function garantirExtratoAluno(sessao) {
         dataPagamento: null,
         criadoEm: new Date().toISOString()
       });
+      alterou = true;
     }
   }
 
@@ -678,11 +681,14 @@ function garantirExtratoAluno(sessao) {
           p.instituicaoId = "banco-003";
           p.dataPagamento = "2026-03-10T14:00:00.000Z";
           p.pagoPor = "aluno";
+          alterou = true;
         }
       });
   }
 
-  salvarPagamentosAlunos(pagamentos);
+  if (alterou) {
+    salvarPagamentosAlunos(pagamentos);
+  }
 }
 
 function obterProximaParcelaPendente(email) {

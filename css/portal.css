@@ -974,6 +974,18 @@ body.portal-marca-dagua .wpp-float {
   color: var(--cor-texto-muted, #9ca3af);
 }
 
+.matricula-form__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.matricula-form__acoes .matricula-form__btn {
+  margin-top: 0;
+}
+
 .nota-badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;
@@ -2756,6 +2768,11 @@ body.portal-marca-dagua .wpp-float {
   border: 1px solid var(--cor-borda, #ddd);
   border-radius: 8px;
   background: var(--cor-fundo-suave, #f8f9fa);
+  scroll-margin-top: 5rem;
+}
+
+.planilha-turma__editor[hidden] {
+  display: none !important;
 }
 
 .polo-contab__planilha {

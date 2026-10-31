@@ -369,10 +369,47 @@ function limparFormularioCadastroPresencial(form, sessao, opcoes) {
     }
   }
 
+  var camposLimpar = [
+    "secNome",
+    "secEmail",
+    "secTelefone",
+    "secCpf",
+    "secNascimento",
+    "secCidade",
+    "secIgreja",
+    "secObservacoes",
+    "secModulo"
+  ];
+  camposLimpar.forEach(function (idCampo) {
+    var el = document.getElementById(idCampo);
+    if (!el) return;
+    if (el.tagName === "SELECT") {
+      el.value = "";
+    } else {
+      el.value = "";
+    }
+  });
+
+  if (typeof atualizarSelectSalaTurmaPresencial === "function") {
+    atualizarSelectSalaTurmaPresencial("", "");
+  }
+
   if (opcoes.focar !== false) {
     var nomeEl = document.getElementById("secNome");
     if (nomeEl) nomeEl.focus();
   }
+}
+
+function concluirCadastroPresencialSemPagamento(form, sessao, mensagemEl, mensagemSucesso) {
+  mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
+  mensagemEl.textContent = mensagemSucesso;
+  if (typeof renderizarVisaoSecretaria === "function") {
+    renderizarVisaoSecretaria();
+  }
+  if (typeof renderizarAlunosSecretaria === "function") {
+    renderizarAlunosSecretaria();
+  }
+  limparFormularioCadastroPresencial(form, sessao);
 }
 
 function configurarUiPagamentoPresencial() {
@@ -465,6 +502,19 @@ function configurarCadastroPresencial(sessao, opcoes) {
     });
   }
 
+  var btnNovoAluno = document.getElementById("secBtnNovoAlunoPresencial");
+  if (btnNovoAluno && btnNovoAluno.dataset.bound !== "1") {
+    btnNovoAluno.dataset.bound = "1";
+    btnNovoAluno.addEventListener("click", function () {
+      var msg = document.getElementById("cadastroPresencialMensagem");
+      if (msg) {
+        msg.className = "form-mensagem";
+        msg.textContent = "";
+      }
+      limparFormularioCadastroPresencial(form, sessao);
+    });
+  }
+
   form.addEventListener("submit", function (evento) {
     evento.preventDefault();
     if (form.dataset.enviando === "1") return;
@@ -518,6 +568,37 @@ function configurarCadastroPresencial(sessao, opcoes) {
         return;
       }
       form.dataset.enviando = "1";
+
+      if (matriculaIdExistente) {
+        var verificacaoEdicao = verificarEmailDisponivelParaMatricula(
+          dados.email,
+          matriculaIdExistente
+        );
+        if (!verificacaoEdicao.ok) {
+          form.dataset.enviando = "0";
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = verificacaoEdicao.erro;
+          return;
+        }
+        var patchEdicao = Object.assign({}, dados, {
+          email: normalizarEmailMatricula(dados.email)
+        });
+        var resultadoEdicao = atualizarDadosMatricula(matriculaIdExistente, patchEdicao);
+        form.dataset.enviando = "0";
+        if (!resultadoEdicao.ok) {
+          mensagemEl.className = "form-mensagem form-mensagem--erro visible";
+          mensagemEl.textContent = resultadoEdicao.erro || "Não foi possível atualizar o cadastro.";
+          return;
+        }
+        concluirCadastroPresencialSemPagamento(
+          form,
+          sessao,
+          mensagemEl,
+          "Cadastro atualizado. Formulário liberado para o próximo aluno."
+        );
+        return;
+      }
+
       var cadastrarSimples =
         typeof cadastrarMatriculaAsync === "function"
           ? cadastrarMatriculaAsync
@@ -532,16 +613,12 @@ function configurarCadastroPresencial(sessao, opcoes) {
             mensagemEl.textContent = resultado.erro || "Não foi possível cadastrar.";
             return;
           }
-          mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
-          mensagemEl.textContent =
-            "Cadastro salvo. Use a Ficha do aluno para mensalidades. Formulário liberado para o próximo aluno.";
-          if (typeof renderizarVisaoSecretaria === "function") {
-            renderizarVisaoSecretaria();
-          }
-          if (typeof renderizarAlunosSecretaria === "function") {
-            renderizarAlunosSecretaria();
-          }
-          limparFormularioCadastroPresencial(form, sessao);
+          concluirCadastroPresencialSemPagamento(
+            form,
+            sessao,
+            mensagemEl,
+            "Cadastro salvo. Use a Ficha do aluno para mensalidades. Formulário liberado para o próximo aluno."
+          );
         })
         .catch(function () {
           form.dataset.enviando = "0";
@@ -846,7 +923,14 @@ function finalizarCadastroPresencialComPagamento(
     return;
   }
 
-  var manterCadastro = opcoesPagamento.manterCadastro || opcoesPagamento.apenasPagamento;
+  var formSemPagamento = form && form.dataset.omitirPagamento === "1";
+  var tipoNovoSalvo =
+    document.getElementById("secTipoAlunoNovo") &&
+    document.getElementById("secTipoAlunoNovo").checked;
+  var manterCadastro =
+    !formSemPagamento &&
+    !tipoNovoSalvo &&
+    (opcoesPagamento.manterCadastro || opcoesPagamento.apenasPagamento);
   matricula =
     obterMatriculas().find(function (m) {
       return m.id === matricula.id;
