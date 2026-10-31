@@ -18,11 +18,12 @@
     THEME_COLOR: "#23406b"
   };
 
-  if (document.documentElement.dataset.setadMobileViewport !== "1") {
-    document.documentElement.dataset.setadMobileViewport = "1";
-    var mv = document.createElement("script");
-    mv.src = "/js/mobile-viewport.js";
-    mv.defer = true;
-    document.head.appendChild(mv);
+  if (document.documentElement.dataset.setadMobileViewportInit === "1") {
+    /* viewport já inicializado no <head> */
+  } else if (!document.querySelector('script[src*="setad-viewport-boot"]')) {
+    var boot = document.createElement("script");
+    boot.src = "/js/setad-viewport-boot.js";
+    boot.async = false;
+    document.head.appendChild(boot);
   }
 })();

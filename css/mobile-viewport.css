@@ -1,4 +1,13 @@
-/* SETAD — layout adaptativo para celular (complementa styles.css) */
+/* SETAD — layout adaptativo por resolução (complementa styles.css e portal.css) */
+
+html {
+  font-size: calc(16px * var(--setad-ui-scale, 1));
+}
+
+html.setad-desktop .painel__main,
+html.setad-desktop .container--wide {
+  max-width: var(--setad-content-max, min(96vw, 1400px));
+}
 
 html.setad-mobile {
   -webkit-text-size-adjust: 100%;
@@ -68,6 +77,48 @@ html[data-setad-viewport="xs"] .section__title {
 html[data-setad-viewport="sm"] .hero__subtitle,
 html[data-setad-viewport="xs"] .hero__subtitle {
   font-size: clamp(0.95rem, 4.2vw, 1.05rem);
+}
+
+html[data-setad-viewport="md"] .painel__main,
+html[data-setad-viewport="sm"] .painel__main,
+html[data-setad-viewport="xs"] .painel__main {
+  padding: 1rem;
+}
+
+html[data-setad-device="phone"] .data-table,
+html[data-setad-viewport="xs"] .data-table,
+html[data-setad-viewport="sm"] .data-table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html[data-setad-device="phone"] .painel__nav {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+html[data-setad-device="tablet"] .painel {
+  flex-direction: column;
+}
+
+html[data-setad-device="tablet"] .painel__sidebar {
+  width: 100%;
+}
+
+html[data-setad-viewport="xl"] .painel__main,
+html[data-setad-viewport="xxl"] .painel__main {
+  padding: 2rem 2.5rem;
+}
+
+html[data-setad-viewport="xxl"] .ficha-aluno-institucional,
+html[data-setad-viewport="xl"] .ficha-aluno-institucional {
+  max-width: 1200px;
+}
+
+html.setad-pwa-standalone body {
+  padding-top: env(safe-area-inset-top, 0);
 }
 
 html.setad-mobile[data-setad-orientacao="landscape"] .header__acoes {

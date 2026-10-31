@@ -2,14 +2,13 @@
 (function () {
   "use strict";
 
-  if (document.documentElement.dataset.setadMobileViewport !== "1") {
-    document.documentElement.dataset.setadMobileViewport = "1";
-    var srcBoot = (document.currentScript && document.currentScript.getAttribute("src")) || "js/contato-setad.js";
-    var baseBoot = (srcBoot.match(/^(\.\.\/)+/) || [""])[0];
-    var mv = document.createElement("script");
-    mv.src = baseBoot + "js/mobile-viewport.js";
-    mv.defer = true;
-    document.head.appendChild(mv);
+  if (document.documentElement.dataset.setadMobileViewportInit !== "1") {
+    if (!document.querySelector('script[src*="setad-viewport-boot"]')) {
+      var boot = document.createElement("script");
+      boot.src = "/js/setad-viewport-boot.js";
+      boot.async = false;
+      document.head.appendChild(boot);
+    }
   }
 
   var script = document.currentScript;
