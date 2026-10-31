@@ -1467,6 +1467,19 @@ body.portal-marca-dagua .wpp-float {
   align-items: center;
 }
 
+.matricula-acoes--grade {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.matricula-acoes__linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 .matricula-acoes .btn--sm {
   white-space: nowrap;
 }

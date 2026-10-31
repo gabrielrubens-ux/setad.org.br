@@ -494,6 +494,10 @@ function renderizarAlunosSecretaria() {
           : '<button type="button" class="btn btn--secondary btn--sm btn-abrir-mensalidades-aluno" data-matricula-id="' +
             escaparHtml(aluno.id) +
             '">Mensalidades</button>';
+        var btnTurma =
+          '<button type="button" class="btn btn--secondary btn--sm btn-abrir-turma-aluno" data-matricula-id="' +
+          escaparHtml(aluno.id) +
+          '">Turma</button>';
 
         return "<tr>" +
           "<td>" + escaparHtml(aluno.nomeCompleto) + "</td>" +
@@ -511,11 +515,12 @@ function renderizarAlunosSecretaria() {
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
           "</td>" +
-          '<td><div class="matricula-acoes">' +
-            btnNotas +
-            btnMensalidades +
+          '<td><div class="matricula-acoes matricula-acoes--grade">' +
+            '<div class="matricula-acoes__linha">' + btnNotas + btnMensalidades + "</div>" +
+            '<div class="matricula-acoes__linha">' +
+            btnTurma +
             renderizarBotaoExcluirMatricula(aluno) +
-            "</div></td>" +
+            "</div></div></td>" +
         "</tr>";
       }).join("") +
       "</tbody></table>";
@@ -536,6 +541,15 @@ function renderizarAlunosSecretaria() {
       var id = btn.getAttribute("data-matricula-id");
       if (id && typeof abrirCadastroAlunoNotasFromLista === "function") {
         abrirCadastroAlunoNotasFromLista(id);
+      }
+    });
+  });
+
+  container.querySelectorAll(".btn-abrir-turma-aluno").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-matricula-id");
+      if (id && typeof abrirCadastroAlunoTurmaFromLista === "function") {
+        abrirCadastroAlunoTurmaFromLista(id);
       }
     });
   });

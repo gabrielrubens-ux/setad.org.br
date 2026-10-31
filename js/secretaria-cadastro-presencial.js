@@ -809,3 +809,27 @@ function finalizarCadastroPresencialComPagamento(
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
 }
+
+function abrirCadastroAlunoTurmaFromLista(matriculaId) {
+  var matricula = obterMatriculas().find(function (m) {
+    return m.id === matriculaId;
+  });
+  if (!matricula) return;
+
+  var tab = document.querySelector('[data-tab="tab-cadastro"]');
+  if (tab) tab.click();
+
+  var tipoNovo = document.getElementById("secTipoAlunoNovo");
+  if (tipoNovo) tipoNovo.checked = true;
+  if (typeof aplicarModoTipoAlunoPresencial === "function") {
+    aplicarModoTipoAlunoPresencial();
+  }
+  if (typeof preencherFormularioComMatricula === "function") {
+    preencherFormularioComMatricula(matricula);
+  }
+
+  var bloco = document.getElementById("secBlocoTurmaCadastro");
+  if (bloco) {
+    bloco.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+}
