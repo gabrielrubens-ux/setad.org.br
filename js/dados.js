@@ -706,7 +706,7 @@ function verificarEmailDisponivelParaMatricula(email, matriculaIdIgnorar) {
       "Este e-mail já possui matrícula registrada para " +
       existente.nomeCompleto + " (" +
       (typeof formatarData === "function" ? formatarData(existente.dataMatricula) : "data não informada") +
-      "). Se necessário, exclua o cadastro anterior em Novos alunos."
+      "). Se necessário, exclua o cadastro anterior em Alunos."
   };
 }
 

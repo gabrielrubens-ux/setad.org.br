@@ -43,11 +43,11 @@ Se ainda houver `setad.db` na pasta do app **antes** de mudar o caminho:
 
 - Logs Node (hPanel ou build Git): **não** deve aparecer o aviso sobre `SETAD_DB_PATH relativo`.
 - `https://setad.org.br/api/health` → `ok: true`
-- Secretaria → **Novos alunos** → total de matrículas esperado.
+- Secretaria → **Alunos** → total de matrículas esperado.
 
 ## Backup operacional (secretaria)
 
-Na aba **Novos alunos**:
+Na aba **Alunos**:
 
 1. **Exportar matrículas (JSON)** — faça semanalmente ou antes de deploy grande.
 2. Guarde o arquivo fora do site (Drive, PC da secretaria).

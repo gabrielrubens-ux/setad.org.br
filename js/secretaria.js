@@ -24,7 +24,7 @@ function inicializarPainelSecretaria() {
       subtitulo: "Resumo de matrículas e atendimentos do seminário."
     },
     "tab-alunos": {
-      titulo: "Novos Alunos",
+      titulo: "Alunos",
       subtitulo: "Inscrições pelo site, WhatsApp e cadastros presenciais."
     },
     "tab-turmas": {
