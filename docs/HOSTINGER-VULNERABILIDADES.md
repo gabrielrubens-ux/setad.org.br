@@ -7,18 +7,20 @@ O painel **Node.js → Vulnerabilities** escaneia o `package-lock.json` instalad
 | `tar` | `@capacitor/cli` / `@capacitor/assets` (dev) | Baixo em produção se **não** extrair tar de usuários |
 | `sharp` | ícones PWA / Capacitor (dev) | Baixo se o servidor **não** processa imagens com sharp |
 | `uuid` | cadeia Capacitor (dev) | Baixo em runtime da API |
-| `nodemailer` | SMTP (produção) | Corrigir versão (≥ 10.0.10) |
+| `nodemailer` | SMTP (produção) | Manter ≥ **10.3.1** (addressparser / SMTP AUTH) |
 
 A Hostinger **não** aplicou patch automático: todos os itens estavam com `is_patchable: false` (correção via PR só quando a plataforma marca como patchável).
 
 ## Correção no repositório (feito no `package.json`)
 
-1. **`nodemailer`** atualizado para `^10.0.10` (dependência de produção).
-2. **Capacitor + `sharp`** movidos para `devDependencies` (app Android / ícones — não necessários no `npm start` da API).
-3. **`overrides`** no `package.json` forçam versões corrigidas nas dependências aninhadas:
-   - `tar` → `^7.5.22` (node-tar ≥ 7.5.21; override em `@capacitor/cli` e raiz)
+1. **`nodemailer`** → `^10.3.1` (produção).
+2. **Express** (transitivo): `body-parser` ≥ 1.20.9, `qs` ≥ 6.16.1 — via `npm audit fix` no lockfile.
+3. **Capacitor + `sharp`** em `devDependencies`; **`@capacitor/assets`** ≥ **4.0.0** (remove cadeia antiga `@capacitor/cli` 5.x dentro do pacote de ícones).
+4. **`overrides`** forçam versões corrigidas nas dependências aninhadas:
+   - `tar` → `^7.5.22`
    - `uuid` → `^11.1.1`
-   - `sharp` → `^0.35.5` (via `@capacitor/assets` no override)
+   - `glob` → `^14.0.3`, `minimatch` → `^11.0.3` (cadeia `@capacitor/cli` / rimraf)
+   - `sharp` → `^0.35.5` (via `@capacitor/assets`)
 
 ## O que você precisa rodar localmente
 
