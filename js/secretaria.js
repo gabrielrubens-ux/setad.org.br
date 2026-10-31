@@ -455,6 +455,103 @@ function formatarCelulaObservacaoListaAluno(observacoes) {
   );
 }
 
+function abreviarModuloListaAlunos(moduloId) {
+  var map = {
+    basico: "Básico",
+    medio: "Médio",
+    avancado: "Avanç.",
+    teologia: "Teol."
+  };
+  return map[moduloId] || moduloId || "—";
+}
+
+function configurarPainelScrollListaAlunos(container) {
+  if (!container) return;
+  var scroll = container.querySelector(".lista-alunos__scroll");
+  var scrollTop = container.querySelector(".lista-alunos__scroll-top");
+  var scrollTopInner = container.querySelector(".lista-alunos__scroll-top-inner");
+  var hint = container.querySelector(".lista-alunos__scroll-hint");
+  if (!scroll) return;
+  scroll.setAttribute("tabindex", "0");
+
+  function precisaScroll() {
+    return (
+      scroll.scrollWidth > scroll.clientWidth + 2 ||
+      scroll.scrollHeight > scroll.clientHeight + 2
+    );
+  }
+
+  function precisaScrollHorizontal() {
+    return scroll.scrollWidth > scroll.clientWidth + 2;
+  }
+
+  function atualizarHintScroll() {
+    if (!hint) return;
+    hint.hidden = !precisaScroll();
+  }
+
+  function sincronizarLarguraScrollTopo() {
+    if (scrollTopInner) {
+      scrollTopInner.style.width = scroll.scrollWidth + "px";
+    }
+    if (scrollTop) {
+      scrollTop.classList.toggle(
+        "lista-alunos__scroll-top--oculto",
+        !precisaScrollHorizontal()
+      );
+      scrollTop.scrollLeft = scroll.scrollLeft;
+    }
+    atualizarHintScroll();
+  }
+
+  sincronizarLarguraScrollTopo();
+
+  if (scrollTop && scrollTopInner) {
+    var bloqueioSync = false;
+    scrollTop.addEventListener("scroll", function () {
+      if (bloqueioSync) return;
+      bloqueioSync = true;
+      scroll.scrollLeft = scrollTop.scrollLeft;
+      bloqueioSync = false;
+    });
+    scroll.addEventListener("scroll", function () {
+      if (bloqueioSync) return;
+      bloqueioSync = true;
+      scrollTop.scrollLeft = scroll.scrollLeft;
+      bloqueioSync = false;
+    });
+  }
+
+  if (!container.dataset.scrollListaResize) {
+    container.dataset.scrollListaResize = "1";
+    window.addEventListener("resize", function () {
+      var painel = document.getElementById("alunosSecretariaContainer");
+      if (!painel) return;
+      var s = painel.querySelector(".lista-alunos__scroll");
+      var top = painel.querySelector(".lista-alunos__scroll-top");
+      var inner = painel.querySelector(".lista-alunos__scroll-top-inner");
+      var h = painel.querySelector(".lista-alunos__scroll-hint");
+      if (!s) return;
+      if (inner) inner.style.width = s.scrollWidth + "px";
+      var horiz = s.scrollWidth > s.clientWidth + 2;
+      if (top) {
+        top.classList.toggle("lista-alunos__scroll-top--oculto", !horiz);
+        top.scrollLeft = s.scrollLeft;
+      }
+      if (h) {
+        h.hidden = !(
+          horiz ||
+          s.scrollHeight > s.clientHeight + 2
+        );
+      }
+    });
+  }
+
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(sincronizarLarguraScrollTopo);
+  }
+}
+
 function renderizarAlunosSecretaria() {
   var container = document.getElementById("alunosSecretariaContainer");
   var filtroEl = document.getElementById("filtroOrigemAlunos");
@@ -494,15 +591,32 @@ function renderizarAlunosSecretaria() {
   }
 
   container.innerHTML =
-    '<table class="data-table">' +
+    '<div class="lista-alunos__painel">' +
+    '<p class="lista-alunos__scroll-hint presencial-bloco__hint">' +
+    "Use a barra no topo ou na base desta área para rolar as colunas. Em telas menores, algumas colunas ficam ocultas (passe o mouse no nome para ver e-mail)." +
+    "</p>" +
+    '<div class="lista-alunos__scroll-wrap">' +
+    '<div class="lista-alunos__scroll-top lista-alunos__scroll-top--oculto" aria-hidden="true">' +
+    '<div class="lista-alunos__scroll-top-inner"></div></div>' +
+    '<div class="lista-alunos__scroll" aria-label="Tabela de alunos com rolagem">' +
+    '<table class="data-table data-table--compact lista-alunos__tabela">' +
       "<thead><tr>" +
-        "<th>Nome</th><th>E-mail</th><th>Telefone</th><th>Módulo</th>" +
-        "<th>Polo / sala</th><th>Origem</th><th>Data</th><th>Status</th><th>Situação</th><th>Observação</th><th>Ações</th>" +
+        '<th class="lista-alunos__col--nome">Nome</th>' +
+        '<th class="lista-alunos__col--email">E-mail</th>' +
+        '<th class="lista-alunos__col--tel">Tel.</th>' +
+        '<th class="lista-alunos__col--modulo">Módulo</th>' +
+        '<th class="lista-alunos__col--polo">Polo</th>' +
+        '<th class="lista-alunos__col--origem">Origem</th>' +
+        '<th class="lista-alunos__col--cadastro">Cadastro</th>' +
+        '<th class="lista-alunos__col--status">Status</th>' +
+        '<th class="lista-alunos__col--situacao">Situação</th>' +
+        '<th class="lista-alunos__col--obs">Obs.</th>' +
+        '<th class="lista-alunos__col--acoes">Ações</th>' +
       "</tr></thead><tbody>" +
       matriculas.map(function (aluno) {
-        var moduloNome = MODULOS_CURSO[aluno.modulo]
-          ? MODULOS_CURSO[aluno.modulo].nome
-          : aluno.modulo;
+        var moduloNome = abreviarModuloListaAlunos(aluno.modulo);
+        var moduloCompleto =
+          MODULOS_CURSO[aluno.modulo] ? MODULOS_CURSO[aluno.modulo].nome : aluno.modulo;
         var direcionamento =
           typeof formatarDirecionamentoAluno === "function"
             ? formatarDirecionamentoAluno(aluno)
@@ -527,30 +641,40 @@ function renderizarAlunosSecretaria() {
           '<button type="button" class="btn btn--secondary btn--sm btn-abrir-turma-aluno" data-matricula-id="' +
           escaparHtml(aluno.id) +
           '">Turma</button>';
+        var titleNomeLista = aluno.nomeCompleto || "";
+        if (aluno.email) titleNomeLista += " · " + aluno.email;
+        if (aluno.telefone) titleNomeLista += " · " + aluno.telefone;
 
         return "<tr>" +
-          "<td>" + escaparHtml(aluno.nomeCompleto) + "</td>" +
-          "<td>" + escaparHtml(aluno.email) + "</td>" +
-          "<td>" + escaparHtml(aluno.telefone) + "</td>" +
-          "<td>" + escaparHtml(moduloNome) + "</td>" +
-          "<td>" + escaparHtml(direcionamento) + "</td>" +
-          '<td><span class="origem-badge origem-badge--' + escaparHtml(aluno.origem || "site") + '">' +
+          '<td class="lista-alunos__col--nome lista-alunos__cel--nome" title="' +
+          escaparHtml(titleNomeLista) + '">' +
+          escaparHtml(aluno.nomeCompleto) + "</td>" +
+          '<td class="lista-alunos__col--email lista-alunos__cel--email" title="' + escaparHtml(aluno.email) + '">' +
+          escaparHtml(aluno.email) + "</td>" +
+          '<td class="lista-alunos__col--tel">' + escaparHtml(aluno.telefone) + "</td>" +
+          '<td class="lista-alunos__col--modulo" title="' + escaparHtml(moduloCompleto || "") + '">' +
+          escaparHtml(moduloNome) + "</td>" +
+          '<td class="lista-alunos__col--polo lista-alunos__cel--polo" title="' + escaparHtml(direcionamento) + '">' +
+          escaparHtml(direcionamento) + "</td>" +
+          '<td class="lista-alunos__col--origem"><span class="origem-badge origem-badge--' +
+          escaparHtml(aluno.origem || "site") + '">' +
             escaparHtml(obterLabelOrigemMatricula(aluno.origem)) + "</span></td>" +
-          "<td>" + formatarData(aluno.dataMatricula) + "</td>" +
-          "<td>" +
+          '<td class="lista-alunos__col--cadastro">' + formatarData(aluno.dataMatricula) + "</td>" +
+          '<td class="lista-alunos__col--status">' +
             (typeof renderizarBadgeSolicitacaoExclusao === "function"
               ? renderizarBadgeSolicitacaoExclusao(aluno.id)
               : "") +
             '<span class="trabalho-item__status status--pendente">' +
               escaparHtml(aluno.status) + "</span>" +
           "</td>" +
-          "<td>" +
+          '<td class="lista-alunos__col--situacao">' +
             (typeof formatarSituacaoCursoListaAluno === "function"
               ? formatarSituacaoCursoListaAluno(aluno)
               : escaparHtml(aluno.situacaoCurso || "Cursando")) +
           "</td>" +
-          "<td>" + formatarCelulaObservacaoListaAluno(aluno.observacoes) + "</td>" +
-          '<td><div class="matricula-acoes matricula-acoes--grade">' +
+          '<td class="lista-alunos__col--obs">' +
+          formatarCelulaObservacaoListaAluno(aluno.observacoes) + "</td>" +
+          '<td class="lista-alunos__col--acoes"><div class="matricula-acoes matricula-acoes--grade">' +
             '<div class="matricula-acoes__linha">' + btnNotas + btnMensalidades + "</div>" +
             '<div class="matricula-acoes__linha">' +
             btnTurma +
@@ -558,8 +682,9 @@ function renderizarAlunosSecretaria() {
             "</div></div></td>" +
         "</tr>";
       }).join("") +
-      "</tbody></table>";
+      "</tbody></table></div></div></div>";
 
+  configurarPainelScrollListaAlunos(container);
   configurarFiltrosListaAlunosSecretaria();
 
   container.querySelectorAll(".btn-abrir-mensalidades-aluno").forEach(function (btn) {
