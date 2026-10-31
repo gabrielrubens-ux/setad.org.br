@@ -312,6 +312,69 @@ function preencherFormularioComMatricula(matricula, opcoes) {
   }
 }
 
+function limparFormularioCadastroPresencial(form, sessao, opcoes) {
+  opcoes = opcoes || {};
+  if (!form) return;
+
+  form.reset();
+  var origemEl = document.getElementById("secOrigem");
+  if (origemEl) origemEl.value = "presencial";
+  var matriculaIdEl = document.getElementById("secMatriculaId");
+  if (matriculaIdEl) matriculaIdEl.value = "";
+
+  var tipoNovo = document.getElementById("secTipoAlunoNovo");
+  if (tipoNovo) tipoNovo.checked = true;
+
+  var quadroInput = document.getElementById("secQuadroIdentificador");
+  if (quadroInput) quadroInput.value = "";
+
+  limparMensagemQuadro();
+  limparMensagemEmailQuadro();
+  ocultarResultadosBuscaQuadro();
+
+  if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
+    reinicializarDirecionamentoPresencialAposReset();
+  }
+  if (typeof aplicarModoTipoAlunoPresencial === "function") {
+    aplicarModoTipoAlunoPresencial();
+  }
+
+  var estadoEl = document.getElementById("secEstado");
+  if (estadoEl) estadoEl.value = "PA";
+
+  var valorEl = document.getElementById("secValorPagamento");
+  if (valorEl) valorEl.dataset.editadoManual = "";
+  if (typeof atualizarValorSugeridoPresencial === "function") {
+    atualizarValorSugeridoPresencial();
+  }
+
+  var blocoAcad = document.getElementById("secBlocoAcademicoAluno");
+  if (blocoAcad) blocoAcad.hidden = true;
+
+  if (
+    document.getElementById("secPainelAcademicoAluno") &&
+    typeof renderizarPainelCadastroAlunoAcademico === "function" &&
+    sessao
+  ) {
+    renderizarPainelCadastroAlunoAcademico("secPainelAcademicoAluno", null, sessao, {
+      abaInicial: "notas"
+    });
+  }
+
+  if (opcoes.manterSucesso !== true) {
+    var sucessoEl = document.getElementById("cadastroPresencialSucesso");
+    if (sucessoEl) {
+      sucessoEl.classList.remove("matricula-sucesso--visivel");
+      sucessoEl.innerHTML = "";
+    }
+  }
+
+  if (opcoes.focar !== false) {
+    var nomeEl = document.getElementById("secNome");
+    if (nomeEl) nomeEl.focus();
+  }
+}
+
 function configurarUiPagamentoPresencial() {
   var tipoCobranca = document.getElementById("secTipoCobranca");
   var situacao = document.getElementById("secSituacaoPagamento");
@@ -469,22 +532,16 @@ function configurarCadastroPresencial(sessao, opcoes) {
             mensagemEl.textContent = resultado.erro || "Não foi possível cadastrar.";
             return;
           }
-          sucessoEl.classList.add("matricula-sucesso--visivel");
-          sucessoEl.innerHTML =
-            "<strong>Cadastro salvo.</strong> Os dados ficam disponíveis para a equipe do seminário.<br>" +
-            "Para mensalidades e pagamentos, abra a <strong>Ficha do aluno</strong> na lista de alunos.";
+          mensagemEl.className = "form-mensagem form-mensagem--sucesso visible";
+          mensagemEl.textContent =
+            "Cadastro salvo. Use a Ficha do aluno para mensalidades. Formulário liberado para o próximo aluno.";
           if (typeof renderizarVisaoSecretaria === "function") {
             renderizarVisaoSecretaria();
           }
           if (typeof renderizarAlunosSecretaria === "function") {
             renderizarAlunosSecretaria();
           }
-          if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
-            reinicializarDirecionamentoPresencialAposReset();
-          }
-          var blocoAcad = document.getElementById("secBlocoAcademicoAluno");
-          if (blocoAcad) blocoAcad.hidden = true;
-          form.reset();
+          limparFormularioCadastroPresencial(form, sessao);
         })
         .catch(function () {
           form.dataset.enviando = "0";
@@ -805,14 +862,7 @@ function finalizarCadastroPresencialComPagamento(
       document.getElementById("secSituacaoPagamento").value = "pago_presencial";
     }
   } else {
-    form.reset();
-    document.getElementById("secOrigem").value = "presencial";
-    document.getElementById("secMatriculaId").value = "";
-    document.getElementById("secTipoAlunoNovo").checked = true;
-    aplicarModoTipoAlunoPresencial();
-    if (typeof reinicializarDirecionamentoPresencialAposReset === "function") {
-      reinicializarDirecionamentoPresencialAposReset();
-    }
+    limparFormularioCadastroPresencial(form, sessao, { manterSucesso: true });
   }
 
   form.dataset.enviando = "0";

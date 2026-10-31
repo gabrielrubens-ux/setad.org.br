@@ -133,16 +133,7 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
     typeof obterPagamentosPorAluno === "function"
       ? obterPagamentosPorAluno(matricula.email)
       : [];
-  var resumo =
-    typeof resumoExtratoAluno === "function"
-      ? resumoExtratoAluno(matricula.email)
-      : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
 
-  var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
-  var naoPagos = parcelas.filter(function (p) {
-    return p.status !== "pago";
-  });
-  var emDia = parcelas.length > 0 && naoPagos.length === 0;
   var podeEditar =
     !(
       typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
@@ -160,53 +151,6 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
     typeof obterClassePagamentoStatus === "function"
       ? obterClassePagamentoStatus
       : function () { return ""; };
-
-  var badgeClasse = emDia
-    ? "status-badge status-badge--pago"
-    : naoPagos.length
-      ? "status-badge status-badge--pendente"
-      : "status-badge";
-  var badgeTexto = emDia
-    ? "Em dia"
-    : naoPagos.length
-      ? "Com pendências"
-      : "Sem lançamentos";
-
-  var listaPendentes = "";
-  if (naoPagos.length) {
-    listaPendentes =
-      '<p class="presencial-bloco__hint"><strong>Ainda falta pagar:</strong></p>' +
-      '<ul class="cadastro-mensalidades__pendentes">' +
-      naoPagos
-        .map(function (p) {
-          var btnLancar = podeEditar
-            ? ' <button type="button" class="btn btn--link btn--sm planilha-turma__btn-cel" ' +
-              'data-planilha-matricula="' +
-              esc(matricula.id) +
-              '" data-planilha-ref="' +
-              esc(p.referencia) +
-              '" data-planilha-pagamento="' +
-              esc(p.id) +
-              '">Editar</button>'
-            : "";
-          return (
-            "<li>" +
-            esc(p.referencia || "—") +
-            " — " +
-            formatar(p.valor) +
-            " (" +
-            esc(labelStatus(p.status)) +
-            ")" +
-            btnLancar +
-            "</li>"
-          );
-        })
-        .join("") +
-      "</ul>";
-  } else if (emDia) {
-    listaPendentes =
-      '<p class="cadastro-mensalidades__ok presencial-bloco__hint">Todas as mensalidades registradas estão quitadas.</p>';
-  }
 
   var linhas = parcelas
     .map(function (p) {
@@ -262,7 +206,7 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
       '<tr><td colspan="' +
       colspan +
       '" class="cadastro-mensalidades__vazio">' +
-      "Nenhum lançamento ainda. Registre pagamentos no bloco acima ou use Editar para ajustar a situação." +
+      "Nenhum lançamento ainda. Use <strong>Editar</strong> em uma linha ou o editor abaixo para registrar pagamentos." +
       "</td></tr>";
   }
 
@@ -272,29 +216,9 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
     '<h3 class="cadastro-mensalidades__titulo">Planilha de mensalidades — ' +
     esc(matricula.nomeCompleto) +
     "</h3>" +
-    '<p class="presencial-bloco__hint">Os lançamentos abaixo aparecem no painel do contador e na visão financeira do diretor.</p>' +
+    '<p class="presencial-bloco__hint">Lançamentos visíveis ao contador e à direção. Clique em <strong>Editar</strong> para alterar valor, situação e forma de pagamento.</p>' +
     "</div>" +
     '<button type="button" class="btn btn--secondary btn--sm" id="secBtnAtualizarPlanilha">Atualizar</button>' +
-    "</div>" +
-    '<div class="cadastro-mensalidades__situacao">' +
-    '<span class="' +
-    badgeClasse +
-    ' cadastro-mensalidades__badge">' +
-    esc(badgeTexto) +
-    "</span>" +
-    listaPendentes +
-    "</div>" +
-    '<div class="cadastro-mensalidades__resumo modulos-resumo">' +
-    '<article class="modulo-card-resumo modulo-card-resumo--avancado">' +
-    '<span class="modulo-card-resumo__numero">' +
-    formatar(resumo.valorPago || 0) +
-    "</span>" +
-    '<span class="modulo-card-resumo__nome">Total pago</span></article>' +
-    '<article class="modulo-card-resumo modulo-card-resumo--basico">' +
-    '<span class="modulo-card-resumo__numero cadastro-mensalidades__debito">' +
-    formatar(emAberto) +
-    "</span>" +
-    '<span class="modulo-card-resumo__nome">Saldo em aberto (déficit do aluno)</span></article>' +
     "</div>" +
     '<div class="cadastro-mensalidades-planilha">' +
     '<table class="data-table data-table--compact cadastro-mensalidades-table">' +
