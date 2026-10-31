@@ -318,51 +318,160 @@ function atualizarSelectSalaTurmaFichaAluno(modulo, valorSelecionado) {
   if (valorSelecionado) salaEl.value = valorSelecionado;
 }
 
+function obterTurmaCatalogoIdDaMatricula(matricula) {
+  if (typeof obterTurmasDoAlunoPorMatricula !== "function" || !matricula) return "";
+  var turmas = obterTurmasDoAlunoPorMatricula(matricula);
+  return turmas.length ? turmas[0].id : "";
+}
+
+function montarOptionsTurmaCatalogoFicha(valorSelecionado) {
+  if (typeof listarTurmasCatalogoSetad !== "function") {
+    return '<option value="">Catálogo de turmas indisponível</option>';
+  }
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var turmas = listarTurmasCatalogoSetad();
+  var porCategoria = {};
+  turmas.forEach(function (t) {
+    var cat = t.categoria || "Turmas";
+    if (!porCategoria[cat]) porCategoria[cat] = [];
+    porCategoria[cat].push(t);
+  });
+
+  var html = '<option value="">— Selecione polo / turma —</option>';
+  Object.keys(porCategoria).forEach(function (cat) {
+    html += '<optgroup label="' + esc(cat) + '">';
+    porCategoria[cat].forEach(function (t) {
+      var sel = valorSelecionado === t.id ? " selected" : "";
+      var detalhe =
+        t.tipo === "setade" && t.modulo
+          ? " (" + (t.modulo === "medio" ? "Médio" : "Avançado") + ")"
+          : t.bairro
+            ? " — " + t.bairro
+            : "";
+      html +=
+        '<option value="' +
+        esc(t.id) +
+        '"' +
+        sel +
+        ">" +
+        esc(t.nome) +
+        esc(detalhe) +
+        "</option>";
+    });
+    html += "</optgroup>";
+  });
+  return html;
+}
+
+function aplicarTurmaCatalogoNaFichaAluno(turmaId) {
+  if (!turmaId || typeof obterTurmaCatalogoPorId !== "function") return;
+  var turma = obterTurmaCatalogoPorId(turmaId);
+  if (!turma) return;
+
+  var poloEl = document.getElementById("fichaTurmaPolo");
+  var nivelEl = document.getElementById("fichaTurmaSetadeNivel");
+
+  if (poloEl) poloEl.value = turma.poloId || "";
+
+  if (turma.tipo === "setade") {
+    if (nivelEl) nivelEl.value = turma.modulo || "";
+    alternarUiPoloSetadeFichaAluno();
+    atualizarSelectSalaTurmaFichaAluno(turma.modulo, turma.salaTurmaId || "");
+  } else {
+    alternarUiPoloSetadeFichaAluno();
+  }
+
+  var resumo = document.getElementById("fichaTurmaResumoAtual");
+  if (resumo) {
+    resumo.innerHTML = montarResumoTurmaAtualFichaAluno(null, turma);
+  }
+}
+
+function montarResumoTurmaAtualFichaAluno(matricula, turmaCatalogo) {
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  matricula = matricula || null;
+
+  if (turmaCatalogo) {
+    return (
+      '<p class="ficha-aluno__turma-atual"><strong>Turma selecionada:</strong> ' +
+      esc(turmaCatalogo.nome) +
+      (turmaCatalogo.poloNome ? " · " + esc(turmaCatalogo.poloNome) : "") +
+      "</p>"
+    );
+  }
+
+  if (!matricula || (!matricula.poloId && !matricula.salaTurmaId)) {
+    return (
+      '<p class="ficha-aluno__turma-atual ficha-aluno__turma-atual--vazio">' +
+      "Nenhum polo ou turma definido. Use o seletor abaixo para vincular o aluno." +
+      "</p>"
+    );
+  }
+
+  var turmas =
+    typeof obterTurmasDoAlunoPorMatricula === "function"
+      ? obterTurmasDoAlunoPorMatricula(matricula)
+      : [];
+  var labelTurma = turmas.length ? turmas[0].nome : "";
+  var direcionamento =
+    typeof formatarDirecionamentoAluno === "function"
+      ? formatarDirecionamentoAluno(matricula)
+      : matricula.poloNome || "—";
+
+  return (
+    '<p class="ficha-aluno__turma-atual"><strong>Vínculo atual:</strong> ' +
+    esc(direcionamento) +
+    (labelTurma && labelTurma !== direcionamento ? " · Turma: " + esc(labelTurma) : "") +
+    "</p>"
+  );
+}
+
 function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
   if (!container) return;
-  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
-
-  var poloLabel =
-    matricula.poloId && typeof obterNomePoloSetad === "function"
-      ? obterNomePoloSetad(matricula.poloId)
-      : matricula.poloNome || "—";
-  var salaLabel = matricula.salaTurmaNome || matricula.salaTurmaId || "—";
 
   if (!perm.turmaEditar) {
     container.innerHTML =
       '<div class="ficha-aluno__turma-resumo presencial-bloco">' +
-      "<p><strong>Polo:</strong> " +
-      esc(poloLabel) +
-      "</p>" +
-      "<p><strong>Sala / turma:</strong> " +
-      esc(salaLabel) +
-      "</p>" +
-      '<p class="presencial-bloco__hint">Alteração de polo e sala é feita pela secretaria ou coordenação com permissão de edição.</p>' +
+      montarResumoTurmaAtualFichaAluno(matricula) +
+      '<p class="presencial-bloco__hint">Alteração de polo e turma é feita pela secretaria ou coordenação.</p>' +
       "</div>";
     return;
   }
 
+  var turmaCatalogoId = obterTurmaCatalogoIdDaMatricula(matricula);
+
   container.innerHTML =
-    '<fieldset class="presencial-bloco presencial-bloco--direcionamento">' +
-    "<legend>Polo e sala (equipe interna)</legend>" +
-    '<p class="presencial-bloco__hint">Direcionamento presencial — sincroniza com turmas e listagens do seminário.</p>' +
+    '<fieldset class="presencial-bloco presencial-bloco--direcionamento ficha-aluno__turma-form">' +
+    "<legend>Polo e turma do aluno</legend>" +
+    '<p class="presencial-bloco__hint">Vincule o aluno ao polo e à turma do catálogo do seminário. A lista inclui o Polo SETADE (salas) e os polos em Belém.</p>' +
+    '<div id="fichaTurmaResumoAtual" class="ficha-aluno__turma-resumo-atual">' +
+    montarResumoTurmaAtualFichaAluno(matricula) +
+    "</div>" +
+    '<div class="form-group form-group--full">' +
+    '<label for="fichaTurmaCatalogo">Turma no catálogo *</label>' +
+    '<select id="fichaTurmaCatalogo">' +
+    montarOptionsTurmaCatalogoFicha(turmaCatalogoId) +
+    "</select>" +
+    '<p class="presencial-bloco__hint presencial-bloco__hint--inline">Escolha a turma; polo e sala são preenchidos automaticamente quando aplicável.</p>' +
+    "</div>" +
+    '<p class="presencial-bloco__titulo ficha-aluno__turma-manual-titulo">Ajuste manual (opcional)</p>' +
     '<div class="matricula-form__grid">' +
     '<div class="form-group form-group--full">' +
-    '<label for="fichaTurmaPolo">Polo do SETAD *</label>' +
+    '<label for="fichaTurmaPolo">Polo do SETAD</label>' +
     '<select id="fichaTurmaPolo"><option value="">Selecione o polo...</option></select>' +
     "</div></div>" +
     '<div id="fichaTurmaBlocoSetade" class="presencial-bloco-setade" hidden>' +
     '<p class="presencial-bloco__titulo">Polo SETADE — nível e sala</p>' +
     '<div class="matricula-form__grid">' +
     '<div class="form-group">' +
-    '<label for="fichaTurmaSetadeNivel">Nível *</label>' +
+    '<label for="fichaTurmaSetadeNivel">Nível</label>' +
     '<select id="fichaTurmaSetadeNivel">' +
     '<option value="">Selecione o nível...</option>' +
     '<option value="medio">Médio — Teologia e Ciências Bíblicas</option>' +
     '<option value="avancado">Avançado — Teologia</option>' +
     "</select></div>" +
     '<div class="form-group">' +
-    '<label for="fichaTurmaSala">Sala / turma *</label>' +
+    '<label for="fichaTurmaSala">Sala / turma</label>' +
     '<select id="fichaTurmaSala" disabled><option value="">Selecione o nível primeiro...</option></select>' +
     '<p id="fichaTurmaSalaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>' +
     "</div></div></div>" +
@@ -386,8 +495,23 @@ function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
     atualizarSelectSalaTurmaFichaAluno(nivelEl.value, matricula.salaTurmaId);
   }
 
+  var catalogoEl = document.getElementById("fichaTurmaCatalogo");
+  if (catalogoEl) {
+    catalogoEl.addEventListener("change", function () {
+      aplicarTurmaCatalogoNaFichaAluno(catalogoEl.value);
+    });
+    if (turmaCatalogoId) {
+      aplicarTurmaCatalogoNaFichaAluno(turmaCatalogoId);
+    }
+  }
+
   if (poloEl) {
-    poloEl.addEventListener("change", alternarUiPoloSetadeFichaAluno);
+    poloEl.addEventListener("change", function () {
+      alternarUiPoloSetadeFichaAluno();
+      if (catalogoEl) catalogoEl.value = "";
+      var resumo = document.getElementById("fichaTurmaResumoAtual");
+      if (resumo) resumo.innerHTML = montarResumoTurmaAtualFichaAluno(matricula);
+    });
   }
   if (nivelEl) {
     nivelEl.addEventListener("change", function () {
@@ -410,9 +534,22 @@ function salvarTurmaFichaAluno(matriculaId, sessao) {
   });
   if (!matricula) return;
 
+  var catalogoEl = document.getElementById("fichaTurmaCatalogo");
+  if (catalogoEl && catalogoEl.value) {
+    aplicarTurmaCatalogoNaFichaAluno(catalogoEl.value);
+  }
+
   var poloEl = document.getElementById("fichaTurmaPolo");
   var salaEl = document.getElementById("fichaTurmaSala");
   var nivelEl = document.getElementById("fichaTurmaSetadeNivel");
+
+  if (!poloEl || !poloEl.value) {
+    if (msg) {
+      msg.className = "form-mensagem form-mensagem--erro visible";
+      msg.textContent = "Selecione a turma no catálogo ou escolha o polo do aluno.";
+    }
+    return;
+  }
 
   var dados = {
     modulo: matricula.modulo,
@@ -455,7 +592,8 @@ function salvarTurmaFichaAluno(matriculaId, sessao) {
     poloNome: dados.poloNome,
     setadeNivel: dados.setadeNivel,
     salaTurmaId: dados.salaTurmaId,
-    salaTurmaNome: dados.salaTurmaNome
+    salaTurmaNome: dados.salaTurmaNome,
+    turmaCatalogoId: catalogoEl && catalogoEl.value ? catalogoEl.value : obterTurmaCatalogoIdDaMatricula(matriculas[idx])
   });
   salvarMatriculas(matriculas);
 

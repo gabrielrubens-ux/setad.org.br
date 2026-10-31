@@ -2570,6 +2570,31 @@ body.portal-marca-dagua .wpp-float {
   font-size: 1.25rem;
 }
 
+.ficha-aluno__turma-resumo-atual {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: var(--cor-fundo-suave, #f6f7f9);
+  border: 1px solid var(--cor-borda, #e2e8f0);
+}
+
+.ficha-aluno__turma-atual {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.ficha-aluno__turma-atual--vazio {
+  color: var(--cor-texto-suave, #666);
+}
+
+.ficha-aluno__turma-manual-titulo {
+  margin-top: 1.25rem;
+}
+
+.ficha-aluno__turma-form select {
+  max-width: 100%;
+}
+
 .presencial-bloco--mensalidades {
   margin-top: 1.25rem;
 }
