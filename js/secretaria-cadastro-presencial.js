@@ -242,7 +242,8 @@ function sincronizarIdentificadorQuadroComMatricula(matricula) {
   }
 }
 
-function preencherFormularioComMatricula(matricula) {
+function preencherFormularioComMatricula(matricula, opcoes) {
+  opcoes = opcoes || {};
   document.getElementById("secMatriculaId").value = matricula.id;
   document.getElementById("secNome").value = matricula.nomeCompleto || "";
   document.getElementById("secEmail").value = matricula.email || "";
@@ -286,8 +287,20 @@ function preencherFormularioComMatricula(matricula) {
     valorEl.dataset.editadoManual = "";
     atualizarValorSugeridoPresencial();
   }
-  if (typeof renderizarPlanilhaMensalidadesCadastroAluno === "function") {
-    renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+  if (!opcoes.omitirPainelAcademico) {
+    if (typeof renderizarPainelCadastroAlunoAcademico === "function") {
+      var sessaoPainel =
+        typeof obterSessaoOperacionalListaAlunos === "function"
+          ? obterSessaoOperacionalListaAlunos()
+          : typeof obterSessaoSecretaria === "function"
+            ? obterSessaoSecretaria()
+            : null;
+      renderizarPainelCadastroAlunoAcademico("secPainelAcademicoAluno", matricula, sessaoPainel, {
+        abaInicial: opcoes.abaInicial || "notas"
+      });
+    } else if (typeof renderizarPlanilhaMensalidadesCadastroAluno === "function") {
+      renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+    }
   }
 }
 
@@ -360,6 +373,13 @@ function configurarCadastroPresencial(sessao, opcoes) {
     typeof configurarPlanilhaMensalidadesCadastro === "function"
   ) {
     configurarPlanilhaMensalidadesCadastro();
+  } else if (
+    document.getElementById("secPainelAcademicoAluno") &&
+    typeof renderizarPainelCadastroAlunoAcademico === "function"
+  ) {
+    renderizarPainelCadastroAlunoAcademico("secPainelAcademicoAluno", null, sessao, {
+      abaInicial: "notas"
+    });
   }
   if (typeof configurarDirecionamentoPresencialInterno === "function") {
     configurarDirecionamentoPresencialInterno();
@@ -811,6 +831,11 @@ function finalizarCadastroPresencialComPagamento(
 }
 
 function abrirCadastroAlunoTurmaFromLista(matriculaId) {
+  if (typeof abrirFichaAlunoTurmaFromLista === "function") {
+    abrirFichaAlunoTurmaFromLista(matriculaId);
+    return;
+  }
+
   var matricula = obterMatriculas().find(function (m) {
     return m.id === matriculaId;
   });

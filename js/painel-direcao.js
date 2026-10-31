@@ -164,6 +164,10 @@ function inicializarPainelContador() {
       titulo: "Pagamentos dos Alunos",
       subtitulo: "Todos os pagamentos realizados e pendentes no site."
     },
+    "tab-ficha-aluno": {
+      titulo: "Ficha do aluno",
+      subtitulo: "Mensalidades e situação financeira do aluno."
+    },
     "tab-folha": {
       titulo: "Folha de Pagamento",
       subtitulo: "Pagamento de funcionários e agendamentos."
@@ -196,6 +200,9 @@ function inicializarPainelContador() {
     }
     if (tabId === "tab-pagamentos-alunos") {
       renderizarPagamentosAlunosContador("pagamentosAlunosContainer");
+    }
+    if (tabId === "tab-ficha-aluno" && typeof renderizarFichaAlunoInstitucionalAtual === "function") {
+      renderizarFichaAlunoInstitucionalAtual(sessao);
     }
     if (tabId === "tab-folha") {
       renderizarFolhaContador("folhaContainer");

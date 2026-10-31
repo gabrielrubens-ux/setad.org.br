@@ -700,6 +700,7 @@ function resumoExtratoAluno(email) {
   let pendente = 0;
   let agendado = 0;
   let qtdPagas = 0;
+  let qtdEmAberto = 0;
 
   parcelas.forEach(function (p) {
     if (p.status === "pago") {
@@ -707,14 +708,17 @@ function resumoExtratoAluno(email) {
       qtdPagas++;
     } else if (p.status === "pendente") {
       pendente += p.valor;
+      qtdEmAberto++;
     } else if (p.status === "agendado") {
       agendado += p.valor;
+      qtdEmAberto++;
     }
   });
 
   return {
     totalParcelas: parcelas.length,
     qtdPagas: qtdPagas,
+    qtdEmAberto: qtdEmAberto,
     valorPago: pago,
     valorPendente: pendente,
     valorAgendado: agendado,
@@ -1735,6 +1739,13 @@ function configurarListaPagamentosAlunosContador(containerId) {
   if (!container) return;
 
   function abrirRelatorio(email) {
+    if (
+      typeof abrirFichaAlunoPorEmailInstitucional === "function" &&
+      document.getElementById("tab-ficha-aluno") &&
+      abrirFichaAlunoPorEmailInstitucional(email, "mensalidades")
+    ) {
+      return;
+    }
     navegarRelatorioAlunoPagamentosContador(email);
   }
 
@@ -1747,6 +1758,13 @@ function configurarListaPagamentosAlunosContador(containerId) {
       if (evento.key !== "Enter" && evento.key !== " ") return;
       evento.preventDefault();
       abrirRelatorio(linha.getAttribute("data-contador-aluno-email"));
+    });
+  });
+
+  container.querySelectorAll(".btn-contador-editar-pagamentos").forEach(function (btn) {
+    btn.addEventListener("click", function (evento) {
+      evento.stopPropagation();
+      abrirRelatorio(btn.getAttribute("data-contador-aluno-email"));
     });
   });
 }
@@ -1876,6 +1894,22 @@ function renderizarPagamentosAlunosContador(containerId) {
         aluno.modulo && MODULOS_CURSO[aluno.modulo]
           ? MODULOS_CURSO[aluno.modulo].nome
           : "";
+      const emAberto = resumo.valorPendente + resumo.valorAgendado;
+      const emDia = resumo.totalParcelas > 0 && emAberto <= 0;
+      const situacaoClasse = emDia
+        ? "status-badge status-badge--pago"
+        : emAberto > 0
+          ? "status-badge status-badge--pendente"
+          : "status-badge";
+      const situacaoTexto = emDia
+        ? "Em dia"
+        : emAberto > 0
+          ? "Pendências"
+          : "Sem lançamentos";
+      const hintPendencias =
+        emAberto > 0 && resumo.qtdEmAberto
+          ? "<br><small>" + resumo.qtdEmAberto + " em aberto</small>"
+          : "";
 
       return (
         '<tr class="contador-aluno-linha" ' +
@@ -1884,20 +1918,23 @@ function renderizarPagamentosAlunosContador(containerId) {
             "<small>" + escaparHtml(aluno.email) + "</small>" +
             (moduloNome ? "<br><small>" + escaparHtml(moduloNome) + "</small>" : "") +
           "</td>" +
+          '<td><span class="' + situacaoClasse + '">' + situacaoTexto + "</span>" + hintPendencias + "</td>" +
           "<td>" + formatarMoeda(resumo.valorPago) + "<br><small>" + resumo.qtdPagas + " quitado(s)</small></td>" +
-          "<td>" + formatarMoeda(resumo.valorPendente + resumo.valorAgendado) + "</td>" +
+          "<td>" + formatarMoeda(emAberto) + "</td>" +
           "<td>" + formatarMoeda(resumo.valorCurso) + "<br><small>" + resumo.totalParcelas + " lançamento(s)</small></td>" +
-          "<td><span class=\"contador-aluno-linha__hint\">Abrir relatório</span></td>" +
+          '<td><button type="button" class="btn btn--secondary btn--sm btn-contador-editar-pagamentos" data-contador-aluno-email="' +
+            escaparHtml(aluno.email) +
+            '">Editar pagamentos</button></td>' +
         "</tr>"
       );
     })
     .join("");
 
   container.innerHTML =
-    '<p class="contador-painel-hint">Resumo por aluno. Clique em uma linha para abrir o relatório em página dedicada (dados da secretaria e edição de pagamentos).</p>' +
+    '<p class="contador-painel-hint">Resumo por aluno. Use <strong>Editar pagamentos</strong> ou clique na linha para ver o extrato, marcar quitado e ajustar mensalidades pendentes.</p>' +
     '<table class="data-table contador-alunos-resumo-table">' +
       "<thead><tr>" +
-        "<th>Aluno</th><th>Recebido</th><th>Em aberto</th><th>Total extrato</th><th></th>" +
+        "<th>Aluno</th><th>Situação</th><th>Recebido</th><th>Em aberto</th><th>Total extrato</th><th>Ações</th>" +
       "</tr></thead><tbody>" +
       linhas +
     "</tbody></table>";

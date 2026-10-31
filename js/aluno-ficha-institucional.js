@@ -1,0 +1,500 @@
+/* Ficha do aluno — aba dedicada no painel (notas, mensalidades, turma por permissão). */
+
+var FICHA_ALUNO_ESTADO = {
+  matriculaId: null,
+  secao: "notas"
+};
+
+function obterPermissoesFichaAluno(sessao) {
+  sessao = sessao || null;
+  var perfil = sessao && sessao.perfil ? sessao.perfil : "";
+  var semFinanceiro =
+    typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+    coordenacaoPedagogicaSemFinanceiro(sessao);
+
+  var perm = {
+    notas: false,
+    mensalidades: false,
+    turma: false,
+    turmaEditar: false
+  };
+
+  if (semFinanceiro || perfil === "coordenacao") {
+    perm.notas = true;
+    perm.turma = true;
+    perm.turmaEditar = true;
+    return perm;
+  }
+
+  if (perfil === "secretaria") {
+    perm.notas = true;
+    perm.mensalidades = true;
+    perm.turma = true;
+    perm.turmaEditar = true;
+    return perm;
+  }
+
+  if (perfil === "contador") {
+    perm.mensalidades = true;
+    return perm;
+  }
+
+  if (perfil === "diretor") {
+    perm.notas = true;
+    perm.mensalidades = true;
+    perm.turma = true;
+    return perm;
+  }
+
+  if (perfil === "professor" || perfil === "autorizado") {
+    perm.notas = true;
+    perm.turma = true;
+    return perm;
+  }
+
+  perm.notas = true;
+  perm.mensalidades = !semFinanceiro;
+  perm.turma = true;
+  perm.turmaEditar = perfil === "secretaria";
+  return perm;
+}
+
+function obterMatriculaFichaAlunoAtual() {
+  if (!FICHA_ALUNO_ESTADO.matriculaId) return null;
+  return obterMatriculas().find(function (m) {
+    return m.id === FICHA_ALUNO_ESTADO.matriculaId;
+  });
+}
+
+function obterSessaoFichaAlunoInstitucional() {
+  if (typeof obterSessaoOperacionalListaAlunos === "function") {
+    var s = obterSessaoOperacionalListaAlunos();
+    if (s) return s;
+  }
+  if (typeof obterSessaoSecretaria === "function") {
+    var sec = obterSessaoSecretaria();
+    if (sec) return sec;
+  }
+  if (typeof obterSessaoDirecao === "function") {
+    return obterSessaoDirecao();
+  }
+  return null;
+}
+
+function ativarNavFichaAlunoInstitucional() {
+  var navItem = document.getElementById("navItemFichaAluno");
+  if (navItem) navItem.hidden = false;
+}
+
+function abrirFichaAlunoInstitucional(matriculaId, secaoInicial) {
+  var matricula = obterMatriculas().find(function (m) {
+    return m.id === matriculaId;
+  });
+  if (!matricula) return;
+
+  var perm = obterPermissoesFichaAluno(obterSessaoFichaAlunoInstitucional());
+  secaoInicial = secaoInicial || "notas";
+  if (secaoInicial === "mensalidades" && !perm.mensalidades) secaoInicial = "notas";
+  if (secaoInicial === "turma" && !perm.turma) secaoInicial = perm.notas ? "notas" : "mensalidades";
+  if (secaoInicial === "notas" && !perm.notas && perm.mensalidades) secaoInicial = "mensalidades";
+
+  FICHA_ALUNO_ESTADO.matriculaId = matriculaId;
+  FICHA_ALUNO_ESTADO.secao = secaoInicial;
+
+  ativarNavFichaAlunoInstitucional();
+
+  var link = document.querySelector('.painel__nav-link[data-tab="tab-ficha-aluno"]');
+  if (link) {
+    link.click();
+    return;
+  }
+
+  var navLinks = document.querySelectorAll(".painel__nav-link[data-tab]");
+  var tabs = document.querySelectorAll(".painel__tab");
+  navLinks.forEach(function (l) {
+    l.classList.toggle("active", l.getAttribute("data-tab") === "tab-ficha-aluno");
+  });
+  tabs.forEach(function (t) {
+    t.classList.toggle("active", t.id === "tab-ficha-aluno");
+  });
+  renderizarFichaAlunoInstitucionalAtual();
+}
+
+function renderizarFichaAlunoInstitucionalAtual(sessao) {
+  sessao = sessao || obterSessaoFichaAlunoInstitucional();
+  var host = document.getElementById("fichaAlunoInstitucionalHost");
+  if (!host) return;
+
+  var matricula = obterMatriculaFichaAlunoAtual();
+  if (!matricula) {
+    host.innerHTML =
+      '<p class="lista-vazia">Nenhum aluno selecionado. Na aba <strong>Alunos</strong>, use Notas, Mensalidades ou Turma.</p>';
+    return;
+  }
+
+  renderizarFichaAlunoInstitucional("fichaAlunoInstitucionalHost", matricula, sessao, {
+    secaoInicial: FICHA_ALUNO_ESTADO.secao
+  });
+
+  var titulo = document.getElementById("painelTitulo");
+  var subtitulo = document.getElementById("painelSubtitulo");
+  if (titulo) titulo.textContent = matricula.nomeCompleto || "Ficha do aluno";
+  if (subtitulo) {
+    subtitulo.textContent =
+      "Ficha institucional — e-mail " +
+      (matricula.email || "—") +
+      ". Conteúdo conforme permissões da sua área.";
+  }
+}
+
+function renderizarFichaAlunoInstitucional(hostId, matricula, sessao, opcoes) {
+  var host = document.getElementById(hostId);
+  if (!host || !matricula) return;
+  opcoes = opcoes || {};
+  sessao = sessao || obterSessaoFichaAlunoInstitucional();
+
+  var perm = obterPermissoesFichaAluno(sessao);
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var moduloNome =
+    matricula.modulo && typeof MODULOS_CURSO !== "undefined" && MODULOS_CURSO[matricula.modulo]
+      ? MODULOS_CURSO[matricula.modulo].nome
+      : matricula.modulo || "—";
+
+  var abas = [];
+  if (perm.notas) abas.push({ id: "notas", rotulo: "Notas e médias" });
+  if (perm.mensalidades) abas.push({ id: "mensalidades", rotulo: "Mensalidades e pagamentos" });
+  if (perm.turma) abas.push({ id: "turma", rotulo: "Polo e turma" });
+
+  var secaoInicial = opcoes.secaoInicial || FICHA_ALUNO_ESTADO.secao || "notas";
+  if (abas.every(function (a) { return a.id !== secaoInicial; })) {
+    secaoInicial = abas.length ? abas[0].id : "notas";
+  }
+  FICHA_ALUNO_ESTADO.secao = secaoInicial;
+
+  var navHtml =
+    abas.length > 1
+      ? '<nav class="turma-painel-academico__abas ficha-aluno__abas" role="tablist" aria-label="Ficha do aluno">' +
+        abas
+          .map(function (aba) {
+            return (
+              '<button type="button" class="turma-painel-academico__aba' +
+              (aba.id === secaoInicial ? " turma-painel-academico__aba--ativa" : "") +
+              '" data-ficha-aba="' +
+              esc(aba.id) +
+              '" role="tab">' +
+              esc(aba.rotulo) +
+              "</button>"
+            );
+          })
+          .join("") +
+        "</nav>"
+      : abas.length === 1
+        ? '<p class="presencial-bloco__hint">' + esc(abas[0].rotulo) + "</p>"
+        : '<p class="lista-vazia">Nenhuma seção disponível para sua área.</p>';
+
+  host.innerHTML =
+    '<div class="ficha-aluno-institucional turma-painel-academico">' +
+    '<header class="ficha-aluno__cabecalho">' +
+    "<div>" +
+    "<h2 class=\"ficha-aluno__nome\">" +
+    esc(matricula.nomeCompleto) +
+    "</h2>" +
+    '<p class="presencial-bloco__hint">' +
+    esc(matricula.email || "") +
+    " · " +
+    esc(moduloNome) +
+    "</p></div>" +
+    '<button type="button" class="btn btn--link btn--sm" id="fichaAlunoBtnVoltarLista">← Voltar à lista de alunos</button>' +
+    "</header>" +
+    navHtml +
+    '<div id="fichaAlunoAbaConteudo" class="turma-painel-academico__conteudo"></div>' +
+    "</div>";
+
+  function pintarSecao(secao) {
+    FICHA_ALUNO_ESTADO.secao = secao;
+    var alvo = document.getElementById("fichaAlunoAbaConteudo");
+    if (!alvo) return;
+
+    host.querySelectorAll("[data-ficha-aba]").forEach(function (btn) {
+      btn.classList.toggle(
+        "turma-painel-academico__aba--ativa",
+        btn.getAttribute("data-ficha-aba") === secao
+      );
+    });
+
+    if (secao === "mensalidades" && perm.mensalidades) {
+      alvo.innerHTML = '<div id="fichaAlunoAbaMensalidades"></div>';
+      if (typeof renderizarPlanilhaMensalidadesCadastroAluno === "function") {
+        renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao);
+      }
+      return;
+    }
+
+    if (secao === "turma" && perm.turma) {
+      alvo.innerHTML = '<div id="fichaAlunoAbaTurma"></div>';
+      renderizarTurmaFichaAluno(document.getElementById("fichaAlunoAbaTurma"), matricula, sessao, perm);
+      return;
+    }
+
+    alvo.innerHTML = '<div id="fichaAlunoAbaNotas"></div>';
+    if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
+      renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
+    }
+  }
+
+  host.querySelectorAll("[data-ficha-aba]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      pintarSecao(btn.getAttribute("data-ficha-aba"));
+    });
+  });
+
+  var btnVoltar = document.getElementById("fichaAlunoBtnVoltarLista");
+  if (btnVoltar) {
+    btnVoltar.addEventListener("click", function () {
+      var tabId = obterTabVoltarFichaAlunoPainel();
+      var link = document.querySelector('.painel__nav-link[data-tab="' + tabId + '"]');
+      if (link) link.click();
+    });
+  }
+
+  pintarSecao(secaoInicial);
+}
+
+function alternarUiPoloSetadeFichaAluno() {
+  var poloEl = document.getElementById("fichaTurmaPolo");
+  var bloco = document.getElementById("fichaTurmaBlocoSetade");
+  var salaEl = document.getElementById("fichaTurmaSala");
+  var nivelEl = document.getElementById("fichaTurmaSetadeNivel");
+  if (!poloEl || !bloco) return;
+
+  var setade = typeof ehPoloSetade === "function" && ehPoloSetade(poloEl.value);
+  bloco.hidden = !setade;
+
+  if (!setade) {
+    if (nivelEl) nivelEl.value = "";
+    if (salaEl) {
+      salaEl.disabled = true;
+      salaEl.innerHTML = '<option value="">Selecione o polo SETADE para nível e sala</option>';
+    }
+    return;
+  }
+
+  atualizarSelectSalaTurmaFichaAluno(nivelEl ? nivelEl.value : "", salaEl ? salaEl.value : "");
+}
+
+function atualizarSelectSalaTurmaFichaAluno(modulo, valorSelecionado) {
+  var salaEl = document.getElementById("fichaTurmaSala");
+  var hintEl = document.getElementById("fichaTurmaSalaHint");
+  if (!salaEl || typeof listarSalasTurmaPorModulo !== "function") return;
+
+  var salas = listarSalasTurmaPorModulo(modulo);
+  if (typeof moduloExigeSalaTurma === "function" && !moduloExigeSalaTurma(modulo)) {
+    salaEl.innerHTML = '<option value="">Não se aplica a este módulo</option>';
+    salaEl.disabled = true;
+    if (hintEl) {
+      hintEl.textContent = "Salas valem para Médio e Avançado no polo SETADE.";
+    }
+    return;
+  }
+
+  salaEl.disabled = !modulo;
+  if (hintEl) hintEl.textContent = "Escolha a sala em que o aluno será acompanhado no polo.";
+  salaEl.innerHTML =
+    '<option value="">Selecione a sala / turma...</option>' +
+    salas
+      .map(function (sala) {
+        var sel = valorSelecionado === sala.id ? " selected" : "";
+        return (
+          '<option value="' +
+          escaparHtml(sala.id) +
+          '"' +
+          sel +
+          ">" +
+          escaparHtml(sala.nome) +
+          "</option>"
+        );
+      })
+      .join("");
+  if (valorSelecionado) salaEl.value = valorSelecionado;
+}
+
+function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
+  if (!container) return;
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+
+  var poloLabel =
+    matricula.poloId && typeof obterNomePoloSetad === "function"
+      ? obterNomePoloSetad(matricula.poloId)
+      : matricula.poloNome || "—";
+  var salaLabel = matricula.salaTurmaNome || matricula.salaTurmaId || "—";
+
+  if (!perm.turmaEditar) {
+    container.innerHTML =
+      '<div class="ficha-aluno__turma-resumo presencial-bloco">' +
+      "<p><strong>Polo:</strong> " +
+      esc(poloLabel) +
+      "</p>" +
+      "<p><strong>Sala / turma:</strong> " +
+      esc(salaLabel) +
+      "</p>" +
+      '<p class="presencial-bloco__hint">Alteração de polo e sala é feita pela secretaria ou coordenação com permissão de edição.</p>' +
+      "</div>";
+    return;
+  }
+
+  container.innerHTML =
+    '<fieldset class="presencial-bloco presencial-bloco--direcionamento">' +
+    "<legend>Polo e sala (equipe interna)</legend>" +
+    '<p class="presencial-bloco__hint">Direcionamento presencial — sincroniza com turmas e listagens do seminário.</p>' +
+    '<div class="matricula-form__grid">' +
+    '<div class="form-group form-group--full">' +
+    '<label for="fichaTurmaPolo">Polo do SETAD *</label>' +
+    '<select id="fichaTurmaPolo"><option value="">Selecione o polo...</option></select>' +
+    "</div></div>" +
+    '<div id="fichaTurmaBlocoSetade" class="presencial-bloco-setade" hidden>' +
+    '<p class="presencial-bloco__titulo">Polo SETADE — nível e sala</p>' +
+    '<div class="matricula-form__grid">' +
+    '<div class="form-group">' +
+    '<label for="fichaTurmaSetadeNivel">Nível *</label>' +
+    '<select id="fichaTurmaSetadeNivel">' +
+    '<option value="">Selecione o nível...</option>' +
+    '<option value="medio">Médio — Teologia e Ciências Bíblicas</option>' +
+    '<option value="avancado">Avançado — Teologia</option>' +
+    "</select></div>" +
+    '<div class="form-group">' +
+    '<label for="fichaTurmaSala">Sala / turma *</label>' +
+    '<select id="fichaTurmaSala" disabled><option value="">Selecione o nível primeiro...</option></select>' +
+    '<p id="fichaTurmaSalaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>' +
+    "</div></div></div>" +
+    '<button type="button" class="btn btn--primary btn--sm" id="fichaTurmaBtnSalvar">Salvar polo e turma</button>' +
+    '<p id="fichaTurmaMsg" class="form-mensagem" role="status"></p>' +
+    "</fieldset>";
+
+  var poloEl = document.getElementById("fichaTurmaPolo");
+  if (poloEl && typeof popularSelectPolosSetad === "function") {
+    popularSelectPolosSetad(poloEl, matricula.poloId || "");
+  }
+  var nivelEl = document.getElementById("fichaTurmaSetadeNivel");
+  if (nivelEl && matricula.setadeNivel) {
+    nivelEl.value = matricula.setadeNivel;
+  } else if (nivelEl && matricula.modulo && (matricula.modulo === "medio" || matricula.modulo === "avancado")) {
+    nivelEl.value = matricula.modulo;
+  }
+
+  alternarUiPoloSetadeFichaAluno();
+  if (matricula.salaTurmaId && nivelEl) {
+    atualizarSelectSalaTurmaFichaAluno(nivelEl.value, matricula.salaTurmaId);
+  }
+
+  if (poloEl) {
+    poloEl.addEventListener("change", alternarUiPoloSetadeFichaAluno);
+  }
+  if (nivelEl) {
+    nivelEl.addEventListener("change", function () {
+      atualizarSelectSalaTurmaFichaAluno(nivelEl.value, "");
+    });
+  }
+
+  var btnSalvar = document.getElementById("fichaTurmaBtnSalvar");
+  if (btnSalvar) {
+    btnSalvar.addEventListener("click", function () {
+      salvarTurmaFichaAluno(matricula.id, sessao);
+    });
+  }
+}
+
+function salvarTurmaFichaAluno(matriculaId, sessao) {
+  var msg = document.getElementById("fichaTurmaMsg");
+  var matricula = obterMatriculas().find(function (m) {
+    return m.id === matriculaId;
+  });
+  if (!matricula) return;
+
+  var poloEl = document.getElementById("fichaTurmaPolo");
+  var salaEl = document.getElementById("fichaTurmaSala");
+  var nivelEl = document.getElementById("fichaTurmaSetadeNivel");
+
+  var dados = {
+    modulo: matricula.modulo,
+    poloId: poloEl ? poloEl.value : "",
+    poloNome: poloEl && poloEl.value && typeof obterNomePoloSetad === "function" ? obterNomePoloSetad(poloEl.value) : "",
+    setadeNivel: nivelEl && poloEl && typeof ehPoloSetade === "function" && ehPoloSetade(poloEl.value) ? nivelEl.value : "",
+    salaTurmaId: salaEl && !salaEl.disabled ? salaEl.value : "",
+    salaTurmaNome:
+      salaEl && salaEl.value && typeof obterLabelSalaTurma === "function"
+        ? obterLabelSalaTurma(salaEl.value)
+        : ""
+  };
+
+  if (typeof ehPoloSetade === "function" && poloEl && !ehPoloSetade(poloEl.value)) {
+    dados.setadeNivel = "";
+    dados.salaTurmaId = "";
+    dados.salaTurmaNome = "";
+  }
+
+  var erro =
+    typeof validarDirecionamentoInternoMatricula === "function"
+      ? validarDirecionamentoInternoMatricula(dados)
+      : null;
+  if (erro) {
+    if (msg) {
+      msg.className = "form-mensagem form-mensagem--erro visible";
+      msg.textContent = erro;
+    }
+    return;
+  }
+
+  var matriculas = obterMatriculas();
+  var idx = matriculas.findIndex(function (m) {
+    return m.id === matriculaId;
+  });
+  if (idx === -1) return;
+
+  matriculas[idx] = Object.assign({}, matriculas[idx], {
+    poloId: dados.poloId,
+    poloNome: dados.poloNome,
+    setadeNivel: dados.setadeNivel,
+    salaTurmaId: dados.salaTurmaId,
+    salaTurmaNome: dados.salaTurmaNome
+  });
+  salvarMatriculas(matriculas);
+
+  if (msg) {
+    msg.className = "form-mensagem form-mensagem--sucesso visible";
+    msg.textContent = "Polo e turma atualizados.";
+  }
+
+  if (typeof renderizarAlunosSecretaria === "function") {
+    renderizarAlunosSecretaria();
+  }
+  renderizarFichaAlunoInstitucionalAtual(sessao);
+}
+
+function obterTabVoltarFichaAlunoPainel() {
+  if (document.querySelector('.painel__nav-link[data-tab="tab-alunos"]')) {
+    return "tab-alunos";
+  }
+  if (document.querySelector('.painel__nav-link[data-tab="tab-pagamentos-alunos"]')) {
+    return "tab-pagamentos-alunos";
+  }
+  return "tab-alunos";
+}
+
+function abrirFichaAlunoPorEmailInstitucional(email, secaoInicial) {
+  if (typeof obterMatriculaPorEmail !== "function") return false;
+  var matricula = obterMatriculaPorEmail(String(email || "").trim());
+  if (!matricula) return false;
+  abrirFichaAlunoInstitucional(matricula.id, secaoInicial || "mensalidades");
+  return true;
+}
+function abrirFichaAlunoNotasFromLista(matriculaId) {
+  abrirFichaAlunoInstitucional(matriculaId, "notas");
+}
+
+function abrirFichaAlunoMensalidadesFromLista(matriculaId) {
+  abrirFichaAlunoInstitucional(matriculaId, "mensalidades");
+}
+
+function abrirFichaAlunoTurmaFromLista(matriculaId) {
+  abrirFichaAlunoInstitucional(matriculaId, "turma");
+}

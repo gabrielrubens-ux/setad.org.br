@@ -39,6 +39,9 @@
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-alunos">Alunos</button>
           </li>
+          <li class="painel__nav-item" id="navItemFichaAluno" hidden>
+            <button class="painel__nav-link" data-tab="tab-ficha-aluno">Ficha do aluno</button>
+          </li>
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-turmas">Turmas</button>
           </li>
@@ -131,6 +134,10 @@
           <p id="restaurarMatriculasMsg" class="form-mensagem" role="status"></p>
         </div>
         <div id="alunosSecretariaContainer"></div>
+      </section>
+
+      <section id="tab-ficha-aluno" class="painel__tab">
+        <div id="fichaAlunoInstitucionalHost"></div>
       </section>
 
       <section id="tab-turmas" class="painel__tab">
@@ -341,12 +348,12 @@
             </div>
           </fieldset>
 
-          <fieldset class="presencial-bloco presencial-bloco--notas" id="secBlocoNotasCadastro">
+          <fieldset class="presencial-bloco presencial-bloco--academico-aluno" id="secBlocoAcademicoAluno">
             <legend>Notas e médias</legend>
             <p class="presencial-bloco__hint">
-              Lançamento pedagógico por disciplina e média. Pagamentos permanecem com a secretaria.
+              Lançamento pedagógico por disciplina e média. Mensalidades ficam com a secretaria.
             </p>
-            <div id="secPlanilhaNotas" class="cadastro-notas"></div>
+            <div id="secPainelAcademicoAluno"></div>
           </fieldset>
 
           <button type="submit" class="btn btn--primary matricula-form__btn">Salvar cadastro e pagamento</button>
@@ -399,6 +406,8 @@
   <script src="js/biblioteca.js"></script>
   <script src="js/matricula.js"></script>
   <script src="js/secretaria-cadastro-presencial.js"></script>
+  <script src="js/cadastro-aluno-academico-painel.js"></script>
+  <script src="js/aluno-ficha-institucional.js"></script>
   <script src="js/secretaria.js"></script>
   <script src="js/areas-institucionais.js"></script>
   <script src="js/coordenacao.js"></script>

@@ -27,6 +27,10 @@ function inicializarPainelSecretaria() {
       titulo: "Alunos",
       subtitulo: "Inscrições pelo site, WhatsApp e cadastros presenciais."
     },
+    "tab-ficha-aluno": {
+      titulo: "Ficha do aluno",
+      subtitulo: "Notas, mensalidades e turma — conforme sua área."
+    },
     "tab-turmas": {
       titulo: "Turmas",
       subtitulo: "Polos em Belém e salas do Médio e do Avançado — vínculo dos alunos."
@@ -127,6 +131,9 @@ function configurarAbasSecretaria(titulosMap, sessao) {
       }
 
       if (tabId === "tab-alunos") renderizarAlunosSecretaria();
+      if (tabId === "tab-ficha-aluno" && typeof renderizarFichaAlunoInstitucionalAtual === "function") {
+        renderizarFichaAlunoInstitucionalAtual(sessao);
+      }
       if (tabId === "tab-turmas" && typeof renderizarPainelTurmasInstitucional === "function") {
         var turmasEl =
           document.getElementById("turmasSecretariaContainer") ||

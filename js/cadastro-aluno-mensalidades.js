@@ -58,10 +58,64 @@ function extrairMesAnoDaReferencia(referencia) {
   return match[1] + "/" + match[2];
 }
 
-function renderizarPlanilhaMensalidadesCadastroAluno(matricula) {
-  var container = document.getElementById("secPlanilhaMensalidades");
+function obterSessaoCadastroMensalidades(sessao) {
+  if (sessao) return sessao;
+  if (typeof obterSessaoOperacionalListaAlunos === "function") {
+    return obterSessaoOperacionalListaAlunos();
+  }
+  if (typeof obterSessaoSecretaria === "function") {
+    return obterSessaoSecretaria();
+  }
+  return null;
+}
+
+function montarHtmlEditorMensalidadesCadastroAluno() {
+  var formas =
+    typeof FORMAS_PAGAMENTO_PRESENCIAL !== "undefined"
+      ? FORMAS_PAGAMENTO_PRESENCIAL
+      : ["PIX", "Dinheiro"];
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+
+  return (
+    '<div id="planilhaTurmaEditor" class="planilha-turma__editor" hidden>' +
+    '<h4 id="planilhaTurmaEditorTitulo">Lançamento</h4>' +
+    '<input type="hidden" id="planilhaTurmaEditorMatriculaId">' +
+    '<input type="hidden" id="planilhaTurmaEditorReferencia">' +
+    '<input type="hidden" id="planilhaTurmaEditorPagamentoId">' +
+    '<div class="matricula-form__grid">' +
+    '<div class="form-group"><label for="planilhaTurmaEditorValor">Valor (R$)</label>' +
+    '<input type="number" id="planilhaTurmaEditorValor" min="0" step="0.01"></div>' +
+    '<div class="form-group"><label for="planilhaTurmaEditorStatus">Situação</label>' +
+    '<select id="planilhaTurmaEditorStatus">' +
+    '<option value="pago">Pago</option>' +
+    '<option value="pendente">Pendente</option>' +
+    '<option value="agendado">Agendado</option>' +
+    "</select></div>" +
+    '<div class="form-group"><label for="planilhaTurmaEditorForma">Forma (se pago)</label>' +
+    '<select id="planilhaTurmaEditorForma"><option value="">—</option>' +
+    formas
+      .map(function (f) {
+        return '<option value="' + esc(f) + '">' + esc(f) + "</option>";
+      })
+      .join("") +
+    "</select></div>" +
+    '<div class="form-group form-group--full"><label for="planilhaTurmaEditorObs">Observações</label>' +
+    '<textarea id="planilhaTurmaEditorObs" rows="2"></textarea></div></div>' +
+    '<button type="button" class="btn btn--primary btn--sm" id="planilhaTurmaEditorSalvar">Salvar lançamento</button> ' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="planilhaTurmaEditorCancelar">Cancelar</button>' +
+    '<p id="planilhaTurmaEditorMsg" class="form-mensagem" role="status"></p>' +
+    "</div>"
+  );
+}
+
+function renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao) {
+  var container =
+    document.getElementById("secCadastroAbaMensalidades") ||
+    document.getElementById("fichaAlunoAbaMensalidades") ||
+    document.getElementById("secPlanilhaMensalidades");
   if (!container) return;
 
+  sessao = obterSessaoCadastroMensalidades(sessao);
   matricula = matricula || obterMatriculaAtivaNoCadastroPresencial();
 
   if (!matricula || !matricula.email) {
@@ -85,6 +139,16 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula) {
       : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
 
   var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
+  var naoPagos = parcelas.filter(function (p) {
+    return p.status !== "pago";
+  });
+  var emDia = parcelas.length > 0 && naoPagos.length === 0;
+  var podeEditar =
+    !(
+      typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
+      coordenacaoPedagogicaSemFinanceiro(sessao)
+    );
+
   var formatar = typeof formatarMoeda === "function" ? formatarMoeda : String;
   var formatarDataFn = typeof formatarData === "function" ? formatarData : String;
   var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
@@ -97,46 +161,134 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula) {
       ? obterClassePagamentoStatus
       : function () { return ""; };
 
+  var badgeClasse = emDia
+    ? "status-badge status-badge--pago"
+    : naoPagos.length
+      ? "status-badge status-badge--pendente"
+      : "status-badge";
+  var badgeTexto = emDia
+    ? "Em dia"
+    : naoPagos.length
+      ? "Com pendências"
+      : "Sem lançamentos";
+
+  var listaPendentes = "";
+  if (naoPagos.length) {
+    listaPendentes =
+      '<p class="presencial-bloco__hint"><strong>Ainda falta pagar:</strong></p>' +
+      '<ul class="cadastro-mensalidades__pendentes">' +
+      naoPagos
+        .map(function (p) {
+          var btnLancar = podeEditar
+            ? ' <button type="button" class="btn btn--link btn--sm planilha-turma__btn-cel" ' +
+              'data-planilha-matricula="' +
+              esc(matricula.id) +
+              '" data-planilha-ref="' +
+              esc(p.referencia) +
+              '" data-planilha-pagamento="' +
+              esc(p.id) +
+              '">Editar</button>'
+            : "";
+          return (
+            "<li>" +
+            esc(p.referencia || "—") +
+            " — " +
+            formatar(p.valor) +
+            " (" +
+            esc(labelStatus(p.status)) +
+            ")" +
+            btnLancar +
+            "</li>"
+          );
+        })
+        .join("") +
+      "</ul>";
+  } else if (emDia) {
+    listaPendentes =
+      '<p class="cadastro-mensalidades__ok presencial-bloco__hint">Todas as mensalidades registradas estão quitadas.</p>';
+  }
+
   var linhas = parcelas
     .map(function (p) {
       var mesRef = extrairMesAnoDaReferencia(p.referencia);
       var dataPg = p.dataPagamento ? formatarDataFn(p.dataPagamento) : "—";
       var venc = p.vencimento ? formatarDataFn(p.vencimento) : "—";
+      var acao = podeEditar
+        ? '<button type="button" class="btn btn--link btn--sm planilha-turma__btn-cel" ' +
+          'data-planilha-pagamento="' +
+          esc(p.id) +
+          '" data-planilha-matricula="' +
+          esc(matricula.id) +
+          '" data-planilha-ref="' +
+          esc(p.referencia) +
+          '">Editar</button>'
+        : "—";
       return (
         "<tr>" +
-        "<td>" + esc(mesRef || "—") + "</td>" +
-        "<td>" + esc(p.referencia || "—") + "</td>" +
-        "<td>" + venc + "</td>" +
-        "<td>" + formatar(p.valor) + "</td>" +
-        '<td><span class="status-badge ' + classeStatus(p.status) + '">' +
-        esc(labelStatus(p.status)) + "</span></td>" +
-        "<td>" + dataPg + "</td>" +
-        "<td>" + esc(p.formaPagamento || "—") + "</td>" +
+        "<td>" +
+        esc(mesRef || "—") +
+        "</td>" +
+        "<td>" +
+        esc(p.referencia || "—") +
+        "</td>" +
+        "<td>" +
+        venc +
+        "</td>" +
+        "<td>" +
+        formatar(p.valor) +
+        "</td>" +
+        '<td><span class="status-badge ' +
+        classeStatus(p.status) +
+        '">' +
+        esc(labelStatus(p.status)) +
+        "</span></td>" +
+        "<td>" +
+        dataPg +
+        "</td>" +
+        "<td>" +
+        esc(p.formaPagamento || "—") +
+        "</td>" +
+        "<td>" +
+        acao +
+        "</td>" +
         "</tr>"
       );
     })
     .join("");
 
+  var colspan = podeEditar ? 8 : 8;
   if (!linhas) {
     linhas =
-      '<tr><td colspan="7" class="cadastro-mensalidades__vazio">' +
-      "Nenhum lançamento ainda. Registre pagamentos no bloco acima." +
+      '<tr><td colspan="' +
+      colspan +
+      '" class="cadastro-mensalidades__vazio">' +
+      "Nenhum lançamento ainda. Registre pagamentos no bloco acima ou use Editar para ajustar a situação." +
       "</td></tr>";
   }
 
   container.innerHTML =
     '<div class="cadastro-mensalidades__cabecalho">' +
     "<div>" +
-    "<h3 class=\"cadastro-mensalidades__titulo\">Planilha de mensalidades — " +
+    '<h3 class="cadastro-mensalidades__titulo">Planilha de mensalidades — ' +
     esc(matricula.nomeCompleto) +
     "</h3>" +
     '<p class="presencial-bloco__hint">Os lançamentos abaixo aparecem no painel do contador e na visão financeira do diretor.</p>' +
     "</div>" +
     '<button type="button" class="btn btn--secondary btn--sm" id="secBtnAtualizarPlanilha">Atualizar</button>' +
     "</div>" +
+    '<div class="cadastro-mensalidades__situacao">' +
+    '<span class="' +
+    badgeClasse +
+    ' cadastro-mensalidades__badge">' +
+    esc(badgeTexto) +
+    "</span>" +
+    listaPendentes +
+    "</div>" +
     '<div class="cadastro-mensalidades__resumo modulos-resumo">' +
     '<article class="modulo-card-resumo modulo-card-resumo--avancado">' +
-    '<span class="modulo-card-resumo__numero">' + formatar(resumo.valorPago || 0) + "</span>" +
+    '<span class="modulo-card-resumo__numero">' +
+    formatar(resumo.valorPago || 0) +
+    "</span>" +
     '<span class="modulo-card-resumo__nome">Total pago</span></article>' +
     '<article class="modulo-card-resumo modulo-card-resumo--basico">' +
     '<span class="modulo-card-resumo__numero cadastro-mensalidades__debito">' +
@@ -149,14 +301,30 @@ function renderizarPlanilhaMensalidadesCadastroAluno(matricula) {
     "<thead><tr>" +
     "<th>Mês ref.</th><th>Referência</th><th>Vencimento</th><th>Valor</th>" +
     "<th>Situação</th><th>Data pagamento</th><th>Forma</th>" +
+    (podeEditar ? "<th>Ações</th>" : "<th>Ações</th>") +
     "</tr></thead><tbody>" +
     linhas +
-    "</tbody></table></div>";
+    "</tbody></table></div>" +
+    (podeEditar ? montarHtmlEditorMensalidadesCadastroAluno() : "");
 
-  var btnAtualizar = document.getElementById("secBtnAtualizarPlanilha");
+  var btnAtualizar = container.querySelector("#secBtnAtualizarPlanilha");
   if (btnAtualizar) {
     btnAtualizar.addEventListener("click", function () {
-      renderizarPlanilhaMensalidadesCadastroAluno(obterMatriculaAtivaNoCadastroPresencial());
+      renderizarPlanilhaMensalidadesCadastroAluno(
+        obterMatriculaAtivaNoCadastroPresencial(),
+        sessao
+      );
+    });
+  }
+
+  if (
+    podeEditar &&
+    typeof configurarEventosPlanilhaMensalidadesTurma === "function"
+  ) {
+    configurarEventosPlanilhaMensalidadesTurma(container, sessao, {
+      onAtualizar: function () {
+        renderizarPlanilhaMensalidadesCadastroAluno(matricula, sessao);
+      }
     });
   }
 }
@@ -191,12 +359,32 @@ function configurarPlanilhaMensalidadesCadastro() {
     el.addEventListener("input", function () {
       window.clearTimeout(timer);
       timer = window.setTimeout(function () {
-        renderizarPlanilhaMensalidadesCadastroAluno();
+        var matriculaAtiva = obterMatriculaAtivaNoCadastroPresencial();
+        if (typeof renderizarPainelCadastroAlunoAcademico === "function") {
+          renderizarPainelCadastroAlunoAcademico(
+            "secPainelAcademicoAluno",
+            matriculaAtiva,
+            obterSessaoCadastroMensalidades(),
+            {}
+          );
+        } else {
+          renderizarPlanilhaMensalidadesCadastroAluno(matriculaAtiva);
+        }
       }, 400);
     });
   });
 
-  renderizarPlanilhaMensalidadesCadastroAluno();
+  var hostPainel = document.getElementById("secPainelAcademicoAluno");
+  if (hostPainel && typeof renderizarPainelCadastroAlunoAcademico === "function") {
+    renderizarPainelCadastroAlunoAcademico(
+      "secPainelAcademicoAluno",
+      null,
+      obterSessaoCadastroMensalidades(),
+      { abaInicial: "notas" }
+    );
+  } else {
+    renderizarPlanilhaMensalidadesCadastroAluno();
+  }
 }
 
 function dadosMatriculaDemonstracaoSetad() {
@@ -350,9 +538,18 @@ function abrirCadastroComAlunoDemonstracao() {
     aplicarModoTipoAlunoPresencial();
   }
   if (typeof preencherFormularioComMatricula === "function") {
-    preencherFormularioComMatricula(matricula);
+    preencherFormularioComMatricula(matricula, { omitirPainelAcademico: true });
   }
-  renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+  if (typeof renderizarPainelCadastroAlunoAcademico === "function") {
+    renderizarPainelCadastroAlunoAcademico(
+      "secPainelAcademicoAluno",
+      matricula,
+      obterSessaoCadastroMensalidades(),
+      { abaInicial: "mensalidades" }
+    );
+  } else {
+    renderizarPlanilhaMensalidadesCadastroAluno(matricula);
+  }
 
   var obs = document.getElementById("secObservacoes");
   if (obs && !obs.value.trim()) {
@@ -369,6 +566,11 @@ function configurarDemonstracaoCadastroAluno() {
 }
 
 function abrirCadastroPresencialComMatricula(matriculaId) {
+  if (typeof abrirFichaAlunoMensalidadesFromLista === "function") {
+    abrirFichaAlunoMensalidadesFromLista(matriculaId);
+    return;
+  }
+
   var matricula = obterMatriculas().find(function (m) {
     return m.id === matriculaId;
   });

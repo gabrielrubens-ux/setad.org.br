@@ -46,6 +46,9 @@
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-pagamentos-alunos">Pag. alunos</button>
           </li>
+          <li class="painel__nav-item" id="navItemFichaAluno" hidden>
+            <button class="painel__nav-link" data-tab="tab-ficha-aluno">Ficha do aluno</button>
+          </li>
           <li class="painel__nav-item">
             <button class="painel__nav-link" data-tab="tab-folha">Folha</button>
           </li>
@@ -91,6 +94,10 @@
         <div id="pagamentosAlunosContainer"></div>
       </section>
 
+      <section id="tab-ficha-aluno" class="painel__tab">
+        <div id="fichaAlunoInstitucionalHost"></div>
+      </section>
+
       <section id="tab-folha" class="painel__tab">
         <div id="folhaContainer"></div>
       </section>
@@ -128,6 +135,8 @@
   <script src="js/financeiro.js"></script>
   <script src="js/contabilidade-relatorios.js"></script>
   <script src="js/turma-mensalidades-planilha.js"></script>
+  <script src="js/cadastro-aluno-mensalidades.js"></script>
+  <script src="js/aluno-ficha-institucional.js"></script>
   <script src="js/notas-academicas.js"></script>
   <script src="js/turma-notas-planilha.js"></script>
   <script src="js/turma-painel-academico.js"></script>

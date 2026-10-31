@@ -23,6 +23,10 @@ function inicializarPainelCoordenacao() {
       titulo: "Alunos",
       subtitulo: "Inscrições e acompanhamento pedagógico."
     },
+    "tab-ficha-aluno": {
+      titulo: "Ficha do aluno",
+      subtitulo: "Notas e turma — sem acesso financeiro."
+    },
     "tab-turmas": {
       titulo: "Turmas",
       subtitulo: "Polos e salas do SETAD — acompanhamento dos vínculos dos alunos."

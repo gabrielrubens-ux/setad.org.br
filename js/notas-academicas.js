@@ -225,7 +225,10 @@ function obterSessaoOperacionalListaAlunos() {
 }
 
 function renderizarPlanilhaNotasCadastroAluno(matricula, sessao) {
-  var container = document.getElementById("secPlanilhaNotas");
+  var container =
+    document.getElementById("secCadastroAbaNotas") ||
+    document.getElementById("fichaAlunoAbaNotas") ||
+    document.getElementById("secPlanilhaNotas");
   if (!container) return;
 
   matricula =
@@ -265,6 +268,11 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao) {
 }
 
 function abrirCadastroAlunoNotasFromLista(matriculaId) {
+  if (typeof abrirFichaAlunoNotasFromLista === "function") {
+    abrirFichaAlunoNotasFromLista(matriculaId);
+    return;
+  }
+
   var matricula = obterMatriculas().find(function (m) {
     return m.id === matriculaId;
   });
@@ -287,7 +295,7 @@ function abrirCadastroAlunoNotasFromLista(matriculaId) {
 
   renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
 
-  var bloco = document.getElementById("secBlocoNotasCadastro");
+  var bloco = document.getElementById("secBlocoAcademicoAluno");
   if (bloco) {
     bloco.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
