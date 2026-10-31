@@ -2595,6 +2595,41 @@ body.portal-marca-dagua .wpp-float {
   max-width: 100%;
 }
 
+.ficha-aluno__quadro-notas,
+.ficha-aluno__quadro-turma {
+  margin-top: 0.5rem;
+}
+
+.ficha-aluno__quadro-notas-cab,
+.ficha-aluno__quadro-turma-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ficha-aluno__quadro-notas-titulo,
+.ficha-aluno__quadro-turma-titulo {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.ficha-aluno__quadro-notas-badge {
+  align-self: center;
+}
+
+.ficha-aluno__quadro-notas-corpo .planilha-notas__btn {
+  white-space: nowrap;
+}
+
+.ficha-aluno__turma-form-wrap {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cor-borda, #e2e8f0);
+}
+
 .presencial-bloco--mensalidades {
   margin-top: 1.25rem;
 }

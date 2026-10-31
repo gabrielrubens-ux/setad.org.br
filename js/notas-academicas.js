@@ -224,7 +224,8 @@ function obterSessaoOperacionalListaAlunos() {
   return null;
 }
 
-function renderizarPlanilhaNotasCadastroAluno(matricula, sessao) {
+function renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta) {
+  meta = meta || {};
   var container =
     document.getElementById("secCadastroAbaNotas") ||
     document.getElementById("fichaAlunoAbaNotas") ||
@@ -261,8 +262,9 @@ function renderizarPlanilhaNotasCadastroAluno(matricula, sessao) {
       obterPeriodoLetivoAtual() +
       ". Alterações aparecem para aluno, professores, coordenação e direção.",
     mostrarAtualizar: true,
+    somenteLeitura: meta.somenteLeitura === true,
     onAtualizar: function () {
-      renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
+      renderizarPlanilhaNotasCadastroAluno(matricula, sessao, meta);
     }
   });
 }

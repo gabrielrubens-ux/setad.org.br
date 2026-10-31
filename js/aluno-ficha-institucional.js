@@ -14,6 +14,7 @@ function obterPermissoesFichaAluno(sessao) {
 
   var perm = {
     notas: false,
+    notasEditar: false,
     mensalidades: false,
     turma: false,
     turmaEditar: false
@@ -21,6 +22,7 @@ function obterPermissoesFichaAluno(sessao) {
 
   if (semFinanceiro || perfil === "coordenacao") {
     perm.notas = true;
+    perm.notasEditar = true;
     perm.turma = true;
     perm.turmaEditar = true;
     return perm;
@@ -28,6 +30,7 @@ function obterPermissoesFichaAluno(sessao) {
 
   if (perfil === "secretaria") {
     perm.notas = true;
+    perm.notasEditar = true;
     perm.mensalidades = true;
     perm.turma = true;
     perm.turmaEditar = true;
@@ -48,11 +51,13 @@ function obterPermissoesFichaAluno(sessao) {
 
   if (perfil === "professor" || perfil === "autorizado") {
     perm.notas = true;
+    perm.notasEditar = true;
     perm.turma = true;
     return perm;
   }
 
   perm.notas = true;
+  perm.notasEditar = true;
   perm.mensalidades = !semFinanceiro;
   perm.turma = true;
   perm.turmaEditar = perfil === "secretaria";
@@ -236,10 +241,7 @@ function renderizarFichaAlunoInstitucional(hostId, matricula, sessao, opcoes) {
       return;
     }
 
-    alvo.innerHTML = '<div id="fichaAlunoAbaNotas"></div>';
-    if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
-      renderizarPlanilhaNotasCadastroAluno(matricula, sessao);
-    }
+    renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm);
   }
 
   host.querySelectorAll("[data-ficha-aba]").forEach(function (btn) {
@@ -258,6 +260,46 @@ function renderizarFichaAlunoInstitucional(hostId, matricula, sessao, opcoes) {
   }
 
   pintarSecao(secaoInicial);
+}
+
+function renderizarQuadroNotasMediasFichaAluno(matricula, sessao, perm) {
+  var alvo = document.getElementById("fichaAlunoAbaConteudo");
+  if (!alvo || !matricula) return;
+  perm = perm || obterPermissoesFichaAluno(sessao);
+
+  var periodo =
+    typeof obterPeriodoLetivoAtual === "function" ? obterPeriodoLetivoAtual() : "";
+  var esc = typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var podeEditar = perm.notasEditar !== false;
+
+  alvo.innerHTML =
+    '<section class="ficha-aluno__quadro-notas presencial-bloco" aria-labelledby="fichaQuadroNotasTitulo">' +
+    '<header class="ficha-aluno__quadro-notas-cab">' +
+    '<div><h3 id="fichaQuadroNotasTitulo" class="ficha-aluno__quadro-notas-titulo">Quadro de notas e médias</h3>' +
+    '<p class="presencial-bloco__hint">' +
+    (podeEditar
+      ? "Período " +
+        esc(periodo) +
+        ". Use <strong>Editar</strong> em cada disciplina ou em <strong>Média</strong> para lançar ou alterar."
+      : "Visualização do período " +
+        esc(periodo) +
+        ". Alterações são feitas pela secretaria ou coordenação pedagógica.") +
+    "</p></div>" +
+    (podeEditar
+      ? '<span class="status-badge status-badge--pago ficha-aluno__quadro-notas-badge">Edição liberada</span>'
+      : "") +
+    "</header>" +
+    '<div id="fichaAlunoAbaNotas" class="ficha-aluno__quadro-notas-corpo"></div>' +
+    "</section>";
+
+  if (typeof renderizarPlanilhaNotasCadastroAluno === "function") {
+    renderizarPlanilhaNotasCadastroAluno(matricula, sessao, {
+      somenteLeitura: !podeEditar
+    });
+  } else {
+    document.getElementById("fichaAlunoAbaNotas").innerHTML =
+      '<p class="lista-vazia">Módulo de notas indisponível.</p>';
+  }
 }
 
 function alternarUiPoloSetadeFichaAluno() {
@@ -439,14 +481,23 @@ function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
   }
 
   var turmaCatalogoId = obterTurmaCatalogoIdDaMatricula(matricula);
+  var semVinculo = !matricula.poloId;
 
   container.innerHTML =
-    '<fieldset class="presencial-bloco presencial-bloco--direcionamento ficha-aluno__turma-form">' +
-    "<legend>Polo e turma do aluno</legend>" +
-    '<p class="presencial-bloco__hint">Vincule o aluno ao polo e à turma do catálogo do seminário. A lista inclui o Polo SETADE (salas) e os polos em Belém.</p>' +
+    '<section class="ficha-aluno__quadro-turma presencial-bloco">' +
+    '<header class="ficha-aluno__quadro-turma-cab">' +
+    "<div><h3 class=\"ficha-aluno__quadro-turma-titulo\">Polo e turma do aluno</h3>" +
+    '<p class="presencial-bloco__hint">Vincule ao catálogo (SETADE ou polos em Belém). Clique em <strong>Editar</strong> para alterar.</p></div>' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="fichaTurmaBtnEditar">Editar polo e turma</button>' +
+    "</header>" +
     '<div id="fichaTurmaResumoAtual" class="ficha-aluno__turma-resumo-atual">' +
     montarResumoTurmaAtualFichaAluno(matricula) +
     "</div>" +
+    '<div id="fichaTurmaFormWrap" class="ficha-aluno__turma-form-wrap"' +
+    (semVinculo ? "" : " hidden") +
+    ">" +
+    '<fieldset class="presencial-bloco presencial-bloco--direcionamento ficha-aluno__turma-form">' +
+    "<legend>Alterar vínculo</legend>" +
     '<div class="form-group form-group--full">' +
     '<label for="fichaTurmaCatalogo">Turma no catálogo *</label>' +
     '<select id="fichaTurmaCatalogo">' +
@@ -475,9 +526,10 @@ function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
     '<select id="fichaTurmaSala" disabled><option value="">Selecione o nível primeiro...</option></select>' +
     '<p id="fichaTurmaSalaHint" class="presencial-bloco__hint presencial-bloco__hint--inline"></p>' +
     "</div></div></div>" +
-    '<button type="button" class="btn btn--primary btn--sm" id="fichaTurmaBtnSalvar">Salvar polo e turma</button>' +
+    '<button type="button" class="btn btn--primary btn--sm" id="fichaTurmaBtnSalvar">Salvar polo e turma</button> ' +
+    '<button type="button" class="btn btn--link btn--sm" id="fichaTurmaBtnCancelarEdicao">Cancelar edição</button>' +
     '<p id="fichaTurmaMsg" class="form-mensagem" role="status"></p>' +
-    "</fieldset>";
+    "</fieldset></div></section>";
 
   var poloEl = document.getElementById("fichaTurmaPolo");
   if (poloEl && typeof popularSelectPolosSetad === "function") {
@@ -524,6 +576,29 @@ function renderizarTurmaFichaAluno(container, matricula, sessao, perm) {
     btnSalvar.addEventListener("click", function () {
       salvarTurmaFichaAluno(matricula.id, sessao);
     });
+  }
+
+  var formWrap = document.getElementById("fichaTurmaFormWrap");
+  var btnEditar = document.getElementById("fichaTurmaBtnEditar");
+  var btnCancelar = document.getElementById("fichaTurmaBtnCancelarEdicao");
+
+  function fecharEdicaoTurmaFicha() {
+    if (formWrap) formWrap.hidden = true;
+    if (btnEditar) btnEditar.hidden = false;
+  }
+
+  function abrirEdicaoTurmaFicha() {
+    if (formWrap) formWrap.hidden = false;
+    if (btnEditar) btnEditar.hidden = true;
+    formWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  if (btnEditar) {
+    btnEditar.addEventListener("click", abrirEdicaoTurmaFicha);
+    if (semVinculo) btnEditar.hidden = true;
+  }
+  if (btnCancelar) {
+    btnCancelar.addEventListener("click", fecharEdicaoTurmaFicha);
   }
 }
 
@@ -606,6 +681,10 @@ function salvarTurmaFichaAluno(matriculaId, sessao) {
     renderizarAlunosSecretaria();
   }
   renderizarFichaAlunoInstitucionalAtual(sessao);
+  var formWrap = document.getElementById("fichaTurmaFormWrap");
+  var btnEditar = document.getElementById("fichaTurmaBtnEditar");
+  if (formWrap) formWrap.hidden = true;
+  if (btnEditar) btnEditar.hidden = false;
 }
 
 function obterTabVoltarFichaAlunoPainel() {
