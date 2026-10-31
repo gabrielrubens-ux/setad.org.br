@@ -2477,6 +2477,93 @@ body.portal-marca-dagua .wpp-float {
   margin-top: 1.25rem;
 }
 
+.planilha-turma__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.planilha-turma__titulo {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.planilha-turma__scroll {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.planilha-turma__tabela .planilha-turma__aluno {
+  min-width: 10rem;
+}
+
+.planilha-turma__cel {
+  text-align: center;
+  vertical-align: middle;
+  min-width: 5.5rem;
+  font-size: 0.85rem;
+}
+
+.planilha-turma__cel--pago {
+  background: rgba(34, 139, 34, 0.08);
+}
+
+.planilha-turma__cel--pendente {
+  background: rgba(180, 83, 9, 0.1);
+}
+
+.planilha-turma__cel--agendado {
+  background: rgba(100, 116, 139, 0.08);
+}
+
+.planilha-turma__cel--vazia {
+  color: var(--cor-texto-suave, #888);
+}
+
+.planilha-turma__valor {
+  display: block;
+  font-weight: 600;
+}
+
+.planilha-turma__sit {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave, #666);
+}
+
+.planilha-turma__debito {
+  color: var(--cor-alerta, #b45309);
+  font-weight: 600;
+}
+
+.planilha-turma__editor {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--cor-borda, #ddd);
+  border-radius: 8px;
+  background: var(--cor-fundo-suave, #f8f9fa);
+}
+
+.polo-contab__planilha {
+  margin: 1rem 0;
+}
+
+.polo-contab__turma-filtro {
+  margin: 1rem 0 0.5rem;
+  max-width: 28rem;
+}
+
+.polo-contab__legado {
+  margin-top: 1.5rem;
+}
+
+.turmas-detalhe__toolbar {
+  margin-bottom: 0.75rem;
+}
+
 .presencial-tipo-aluno {
   display: flex;
   flex-direction: column;

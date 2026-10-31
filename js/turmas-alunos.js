@@ -5,6 +5,7 @@ function renderizarPainelTurmasInstitucional(containerId, opcoes) {
   if (!container || typeof listarTurmasCatalogoSetad !== "function") return;
 
   opcoes = opcoes || {};
+  var sessao = opcoes.sessao || null;
   var turmas = listarTurmasCatalogoSetad();
   var porCategoria = {};
 
@@ -118,36 +119,46 @@ function renderizarPainelTurmasInstitucional(containerId, opcoes) {
     if (!turma) return;
     var alunos = listarAlunosNaTurma(turma);
     detalhe.hidden = false;
+
+    detalhe.innerHTML =
+      '<div class="turmas-detalhe__toolbar">' +
+      '<button type="button" class="btn btn--secondary btn--sm" id="turmasDetalheVoltar">← Voltar às turmas</button>' +
+      "</div>" +
+      '<div id="turmasPlanilhaMensalidades"></div>';
+
+    var voltar = document.getElementById("turmasDetalheVoltar");
+    if (voltar) {
+      voltar.addEventListener("click", function () {
+        detalhe.hidden = true;
+        detalhe.innerHTML = "";
+      });
+    }
+
+    var planilhaEl = document.getElementById("turmasPlanilhaMensalidades");
     if (!alunos.length) {
-      detalhe.innerHTML =
-        '<h3 class="turmas-detalhe__titulo">' +
-        escaparHtml(turma.nome) +
-        '</h3><p class="lista-vazia">Nenhum aluno vinculado a esta turma ainda.</p>';
+      if (planilhaEl) {
+        planilhaEl.innerHTML =
+          '<h3 class="turmas-detalhe__titulo">' +
+          escaparHtml(turma.nome) +
+          '</h3><p class="lista-vazia">Nenhum aluno vinculado a esta turma ainda.</p>';
+      }
+      detalhe.scrollIntoView({ behavior: "smooth", block: "nearest" });
       return;
     }
-    detalhe.innerHTML =
-      '<h3 class="turmas-detalhe__titulo">' +
-      escaparHtml(turma.nome) +
-      " — alunos</h3>" +
-      '<table class="data-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Módulo</th></tr></thead><tbody>' +
-      alunos
-        .map(function (a) {
-          var mod =
-            typeof MODULOS_CURSO !== "undefined" && MODULOS_CURSO[a.modulo]
-              ? MODULOS_CURSO[a.modulo].nome
-              : a.modulo || "—";
-          return (
-            "<tr><td>" +
-            escaparHtml(a.nomeCompleto) +
-            "</td><td>" +
-            escaparHtml(a.email) +
-            "</td><td>" +
-            escaparHtml(mod) +
-            "</td></tr>"
-          );
-        })
-        .join("") +
-      "</tbody></table>";
+
+    if (planilhaEl && typeof renderizarPlanilhaMensalidadesTurma === "function") {
+      renderizarPlanilhaMensalidadesTurma(planilhaEl, alunos, sessao, {
+        titulo: turma.nome + " — mensalidades",
+        subtitulo:
+          "Planilha da turma: pagamentos e pendências de todos os alunos. Edite na hora do recebimento.",
+        onAtualizar: function () {
+          mostrarAlunosDaTurma(turmaId);
+        }
+      });
+    } else if (planilhaEl) {
+      planilhaEl.innerHTML =
+        '<p class="lista-vazia">Carregue o módulo financeiro para ver a planilha de mensalidades.</p>';
+    }
     detalhe.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 

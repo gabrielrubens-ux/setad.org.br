@@ -55,7 +55,8 @@ function inicializarPainelCoordenacao() {
       intro:
         "Polo SETADE em destaque (nível e sala). Demais polos em Belém. Clique para ver alunos vinculados.",
       mostrarFiltro: true,
-      mostrarAlunosAoClicar: true
+      mostrarAlunosAoClicar: true,
+      sessao: sessao
     });
   }
   configurarCadastroPresencial(sessao, { omitirPagamento: true });

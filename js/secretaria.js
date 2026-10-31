@@ -81,7 +81,8 @@ function inicializarPainelSecretaria() {
       intro:
         "O Polo SETADE (sede) concentra as turmas por nível e sala. Os demais polos em Belém aparecem como turmas territoriais.",
       mostrarFiltro: true,
-      mostrarAlunosAoClicar: true
+      mostrarAlunosAoClicar: true,
+      sessao: sessao
     });
   }
   configurarCadastroPresencial(sessao);
@@ -135,7 +136,8 @@ function configurarAbasSecretaria(titulosMap, sessao) {
             intro:
               "O Polo SETADE (sede) concentra as turmas por nível e sala. Os demais polos em Belém aparecem como turmas territoriais.",
             mostrarFiltro: true,
-            mostrarAlunosAoClicar: true
+            mostrarAlunosAoClicar: true,
+            sessao: sessao
           });
         }
       }

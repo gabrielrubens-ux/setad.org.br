@@ -76,6 +76,12 @@ function usuarioPodeAcessarContabilidadePolos(sessao) {
   if (!sessao || !sessao.email) return false;
   var email = normalizarEmailContabPolos(sessao.email);
 
+  if (sessao.perfil === "secretaria" || sessao.perfil === "coordenacao") return true;
+  if (typeof sessaoTemPerfilInstitucional === "function") {
+    if (sessaoTemPerfilInstitucional(sessao, "secretaria")) return true;
+    if (sessaoTemPerfilInstitucional(sessao, "coordenacao")) return true;
+  }
+
   if (contabilidadePolosModoProgramadorIp()) {
     if (CONTAB_POLOS_EMAILS_PROGRAMADOR.indexOf(email) >= 0) return true;
     if (sessaoInstitucionalContabPolos(sessao)) return true;
@@ -515,12 +521,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     container.innerHTML =
       '<div class="polo-contab polo-contab--restrito">' +
       '<h2 class="polo-contab__titulo">Contabilidade dos polos</h2>' +
-      '<p class="section__text">Esta é uma <strong>área restrita</strong>. O menu fica visível para toda a equipe da secretaria, mas os lançamentos financeiros dos polos só podem ser feitos por:</p>' +
-      '<ul class="polo-contab__lista-acesso">' +
-      "<li>Kathlen Santiago — <code>kathlensantiago@gmail.com</code></li>" +
-      "<li>Direção SETAD</li>" +
-      "<li>Contabilidade — <code>rafaeladmtc@gmail.com</code>, <code>rsgestaofinanceirapa@gmail.com</code></li>" +
-      "</ul>" +
+      '<p class="section__text">Esta é uma <strong>área restrita</strong>. A planilha de mensalidades por polo e turma está disponível para secretaria, coordenação, direção e contabilidade autorizada.</p>' +
       '<p class="presencial-bloco__hint">Se você precisa de acesso, procure a direção ou a contabilidade.</p>' +
       "</div>";
     return;
@@ -586,6 +587,13 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
     cardsPolos +
     "</div>" +
+    '<div class="polo-contab__turma-filtro form-group">' +
+    '<label for="contabPolosTurmaSelect">Turma / sala deste polo</label>' +
+    '<select id="contabPolosTurmaSelect" class="polo-contab__turma-select">' +
+    '<option value="">Todos os alunos do polo</option>' +
+    "</select></div>" +
+    '<div id="contabPolosPlanilhaWrap" class="polo-contab__planilha"></div>' +
+    '<details class="polo-contab__legado"><summary>Tabela resumida e modelos rápidos</summary>' +
     '<div class="polo-contab__modelos">' +
     "<h3>Modelos rápidos</h3>" +
     '<div class="polo-contab__modelos-btns" id="contabPolosModelosBtns"></div>' +
@@ -593,10 +601,67 @@ function renderizarContabilidadePolos(containerId, sessao) {
     "</div>" +
     '<div id="contabPolosTabelaWrap"></div>' +
     '<div id="contabPolosPagamento" class="polo-contab__pagamento"></div>' +
+    "</details>" +
     '<div id="contabPolosMsg" class="form-mensagem" role="status"></div>' +
     "</div>";
 
   container.dataset.poloAtivo = poloAtivo;
+
+  function obterListaAlunosPlanilha() {
+    var pid = container.dataset.poloAtivo;
+    var turmaSel = document.getElementById("contabPolosTurmaSelect");
+    var turmaId = turmaSel ? turmaSel.value : "";
+    if (turmaId && typeof obterTurmaCatalogoPorId === "function") {
+      var turma = obterTurmaCatalogoPorId(turmaId);
+      if (turma && typeof listarAlunosNaTurma === "function") {
+        return listarAlunosNaTurma(turma);
+      }
+    }
+    return obterMatriculasDoPolo(pid);
+  }
+
+  function preencherSelectTurmasPolo() {
+    var select = document.getElementById("contabPolosTurmaSelect");
+    if (!select) return;
+    var pid = container.dataset.poloAtivo;
+    var valorAtual = select.value;
+    var turmas = listarTurmasDoPoloContabilidade(pid);
+    select.innerHTML =
+      '<option value="">Todos os alunos do polo</option>' +
+      turmas
+        .map(function (t) {
+          var sel = t.id === valorAtual ? " selected" : "";
+          return (
+            '<option value="' + escaparHtml(t.id) + '"' + sel + ">" + escaparHtml(t.nome) + "</option>"
+          );
+        })
+        .join("");
+  }
+
+  function renderPlanilha() {
+    var wrap = document.getElementById("contabPolosPlanilhaWrap");
+    if (!wrap || typeof renderizarPlanilhaMensalidadesTurma !== "function") return;
+    var pid = container.dataset.poloAtivo;
+    var polo = polos.find(function (p) { return p.id === pid; });
+    var turmaSel = document.getElementById("contabPolosTurmaSelect");
+    var turmaId = turmaSel ? turmaSel.value : "";
+    var turma =
+      turmaId && typeof obterTurmaCatalogoPorId === "function"
+        ? obterTurmaCatalogoPorId(turmaId)
+        : null;
+    var lista = obterListaAlunosPlanilha();
+    renderizarPlanilhaMensalidadesTurma(wrap, lista, sessao, {
+      titulo: turma
+        ? "Planilha — " + turma.nome
+        : "Planilha — " + (polo ? polo.nome : "Polo"),
+      subtitulo:
+        "Mensalidades de todos os alunos. Registre pagamentos presenciais na hora.",
+      onAtualizar: function () {
+        renderPlanilha();
+        renderTabela();
+      }
+    });
+  }
 
   function renderTabela() {
     var wrap = document.getElementById("contabPolosTabelaWrap");
@@ -802,6 +867,15 @@ function renderizarContabilidadePolos(containerId, sessao) {
     });
   });
 
+  var turmaSelect = document.getElementById("contabPolosTurmaSelect");
+  if (turmaSelect) {
+    preencherSelectTurmasPolo();
+    turmaSelect.addEventListener("change", function () {
+      renderPlanilha();
+      renderTabela();
+    });
+  }
+
   document.getElementById("btnContabPolosAtualizar").addEventListener("click", function () {
     renderizarContabilidadePolos(containerId, sessao);
   });
@@ -824,6 +898,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     });
   });
 
+  renderPlanilha();
   renderTabela();
 }
 
