@@ -224,7 +224,7 @@ function makeCollectionRoutes(pathName, table, writePerfis, opcoes) {
         return res.status(409).json({
           ok: false,
           erro:
-            "Operação bloqueada: não é permitido substituir todas as matrículas por uma lista vazia. Use restauração ou exclusão individual."
+            "Operação bloqueada: não é permitido apagar todos os registros desta coleção com uma lista vazia."
         });
       }
     }
@@ -247,6 +247,66 @@ function makeCollectionRoutes(pathName, table, writePerfis, opcoes) {
   });
 }
 
+function mesclarColecaoPorId(table, bruto, opcoes) {
+  opcoes = opcoes || {};
+  const idField = opcoes.idField || "id";
+  const prefixoId = opcoes.prefixoId || "reg";
+
+  const existentes = listJson(table);
+  const porId = {};
+  existentes.forEach(function (item) {
+    if (item && item[idField]) porId[item[idField]] = item;
+  });
+
+  let novos = 0;
+  bruto.forEach(function (item) {
+    if (!item || typeof item !== "object") return;
+    let id = item[idField];
+    if (!id) {
+      id = gerarId(prefixoId);
+      novos += 1;
+    }
+    const patch = {};
+    patch[idField] = id;
+    porId[id] = Object.assign({}, porId[id], item, patch);
+  });
+
+  const merged = Object.values(porId);
+  replaceJsonCollection(table, merged);
+  return {
+    merged: merged,
+    novos: novos,
+    anterior: existentes.length
+  };
+}
+
+function registrarRotaRestaurarMerge(pathName, table, perfis, opcoes) {
+  opcoes = opcoes || {};
+  router.post(
+    "/" + pathName + "/restaurar-merge",
+    authRequired,
+    requirePerfis(...perfis),
+    function (req, res) {
+      const bruto = req.body && req.body.items;
+      if (!Array.isArray(bruto) || bruto.length === 0) {
+        return res.status(400).json({
+          ok: false,
+          erro: "Envie { items: [ ... ] } com ao menos um registro."
+        });
+      }
+
+      const resultado = mesclarColecaoPorId(table, bruto, opcoes);
+      res.json({
+        ok: true,
+        total: resultado.merged.length,
+        recebidos: bruto.length,
+        novos: resultado.novos,
+        anterior: resultado.anterior
+      });
+    }
+  );
+}
+
 makeCollectionRoutes("matriculas", COLLECTIONS.matriculas, ["diretor", "secretaria", "coordenacao", "professor"], {
   blockEmptyReplace: true
 });
@@ -264,45 +324,41 @@ router.post(
       });
     }
 
-    const existentes = listJson(COLLECTIONS.matriculas);
-    const porId = {};
-    existentes.forEach(function (m) {
-      if (m && m.id) porId[m.id] = m;
-    });
-
-    let novos = 0;
-    bruto.forEach(function (item) {
-      if (!item || typeof item !== "object") return;
-      let id = item.id;
-      if (!id) {
-        id = gerarId("mat");
-        novos += 1;
-      }
-      porId[id] = Object.assign({}, porId[id], item, { id: id });
-    });
-
-    const merged = Object.values(porId);
-    replaceJsonCollection(COLLECTIONS.matriculas, merged);
+    const resultado = mesclarColecaoPorId(COLLECTIONS.matriculas, bruto, { prefixoId: "mat" });
 
     res.json({
       ok: true,
-      total: merged.length,
+      total: resultado.merged.length,
       recebidos: bruto.length,
-      novos: novos,
-      anterior: existentes.length
+      novos: resultado.novos,
+      anterior: resultado.anterior
     });
   }
 );
 
 makeCollectionRoutes("livros", COLLECTIONS.livros, ["diretor", "coordenacao"]);
 makeCollectionRoutes("entregas", COLLECTIONS.entregas, STAFF_WRITE.concat(["aluno"]));
-makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"]);
+makeCollectionRoutes("pagamentos", COLLECTIONS.pagamentos, ["diretor", "contador", "secretaria"], {
+  blockEmptyReplace: true
+});
+registrarRotaRestaurarMerge(
+  "pagamentos",
+  COLLECTIONS.pagamentos,
+  ["diretor", "contador", "secretaria"],
+  { prefixoId: "pag" }
+);
 makeCollectionRoutes("notas-academicas", COLLECTIONS.notasAcademicas, [
   "diretor",
   "secretaria",
   "coordenacao",
   "professor"
-]);
+], { blockEmptyReplace: true });
+registrarRotaRestaurarMerge(
+  "notas-academicas",
+  COLLECTIONS.notasAcademicas,
+  ["diretor", "secretaria", "coordenacao", "professor"],
+  { prefixoId: "nota" }
+);
 makeCollectionRoutes("funcionarios", COLLECTIONS.funcionarios, ["diretor", "contador"]);
 makeCollectionRoutes("folha", COLLECTIONS.folha, ["diretor", "contador"]);
 makeCollectionRoutes("instituicoes", COLLECTIONS.instituicoes, ["diretor", "contador"]);

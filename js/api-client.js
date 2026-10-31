@@ -128,6 +128,12 @@
     restaurarMergeMatriculas: function (items) {
       return request("POST", "/matriculas/restaurar-merge", { items: items });
     },
+    restaurarMergePagamentos: function (items) {
+      return request("POST", "/pagamentos/restaurar-merge", { items: items });
+    },
+    restaurarMergeNotasAcademicas: function (items) {
+      return request("POST", "/notas-academicas/restaurar-merge", { items: items });
+    },
     salvarFotoAluno: function (email, dataUrl) {
       return request("PUT", "/fotos/alunos/" + encodeURIComponent(email), { dataUrl: dataUrl });
     },

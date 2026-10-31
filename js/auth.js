@@ -141,7 +141,13 @@ function finalizarLoginApi(resposta, redirect) {
     if (snap.ok && window.SETAD.hydrate) {
       window.SETAD.hydrate(snap.snapshot);
     }
-    window.location.href = redirect;
+    var posHydrate = Promise.resolve();
+    if (typeof window.SETAD.recuperarDadosLocais === "function") {
+      posHydrate = window.SETAD.recuperarDadosLocais();
+    }
+    return posHydrate.then(function () {
+      window.location.href = redirect;
+    });
   });
 }
 
@@ -154,9 +160,15 @@ function finalizarLoginInstitucionalApi(resposta, areaPreferida) {
     if (snap.ok && window.SETAD.hydrate) {
       window.SETAD.hydrate(snap.snapshot);
     }
-    if (typeof redirecionarAposLoginInstitucional === "function") {
-      redirecionarAposLoginInstitucional(resposta.user, areaPreferida);
+    var posHydrate = Promise.resolve();
+    if (typeof window.SETAD.recuperarDadosLocais === "function") {
+      posHydrate = window.SETAD.recuperarDadosLocais();
     }
+    return posHydrate.then(function () {
+      if (typeof redirecionarAposLoginInstitucional === "function") {
+        redirecionarAposLoginInstitucional(resposta.user, areaPreferida);
+      }
+    });
   });
 }
 

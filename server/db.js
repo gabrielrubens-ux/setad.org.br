@@ -254,10 +254,16 @@ module.exports = {
 
 function getStorageInfo() {
   var totalUsuarios = 0;
+  var totalMatriculas = 0;
+  var totalPagamentos = 0;
+  var totalNotas = 0;
   try {
     totalUsuarios = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
+    totalMatriculas = db.prepare("SELECT COUNT(*) AS n FROM matriculas").get().n;
+    totalPagamentos = db.prepare("SELECT COUNT(*) AS n FROM pagamentos").get().n;
+    totalNotas = db.prepare("SELECT COUNT(*) AS n FROM notas_academicas").get().n;
   } catch (_e) {
-    totalUsuarios = 0;
+    /* tabelas ainda não existem */
   }
   return {
     dbPath: path.resolve(DB_PATH),
@@ -265,6 +271,9 @@ function getStorageInfo() {
     dbRelativeToRepo: !armazenamento.dadosForaDoDeploy && !path.isAbsolute(DB_PATH),
     dadosForaDoDeploy: armazenamento.dadosForaDoDeploy,
     estrategiaArmazenamento: armazenamento.estrategia,
-    totalUsuarios: totalUsuarios
+    totalUsuarios: totalUsuarios,
+    totalMatriculas: totalMatriculas,
+    totalPagamentos: totalPagamentos,
+    totalNotas: totalNotas
   };
 }

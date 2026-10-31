@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { seedIfNeeded } = require("./seed");
 const { getStorageInfo } = require("./db");
+const { criarBackupAutomaticoSqlite } = require("./backup-sqlite");
 const { importarAutorizadosIniciais } = require("./staff-ativacao");
 const {
   garantirStaffAcessoTodasAreas,
@@ -24,10 +25,11 @@ const { logStatusSmtpInicializacao, smtpConfigurado } = require("./services/emai
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
-const storage = getStorageInfo();
 
 validarSegredosProducao();
 seedIfNeeded();
+const storage = getStorageInfo();
+criarBackupAutomaticoSqlite(storage.dbPath);
 logStatusSmtpInicializacao();
 
 (function carregarStaffAutorizadosEnv() {
@@ -73,7 +75,10 @@ app.get("/api/health", function (_req, res) {
     emailSmtpConfigurado: smtpConfigurado(),
     armazenamento: {
       dadosForaDoDeploy: storage.dadosForaDoDeploy,
-      usuariosNoBanco: storage.totalUsuarios
+      usuariosNoBanco: storage.totalUsuarios,
+      matriculasNoBanco: storage.totalMatriculas,
+      pagamentosNoBanco: storage.totalPagamentos,
+      notasNoBanco: storage.totalNotas
     }
   });
 });
@@ -109,6 +114,12 @@ app.listen(PORT, "0.0.0.0", function () {
   console.log(
     "[SETAD] Usuários no banco:",
     storage.totalUsuarios,
+    "| Matrículas:",
+    storage.totalMatriculas,
+    "| Pagamentos:",
+    storage.totalPagamentos,
+    "| Notas:",
+    storage.totalNotas,
     "| Persistente fora do deploy:",
     storage.dadosForaDoDeploy ? "sim" : "não"
   );

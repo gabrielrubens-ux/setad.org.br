@@ -41,6 +41,7 @@ Se ainda houver `setad.db` na pasta do app **antes** de mudar o caminho:
 2. Envie/copie para `/home/u378124100/.setad-data/setad.db`.
 3. Salve as variáveis e faça **Redeploy**.
 4. Confira nos logs do build: linhas `[SETAD] SQLite:` e `[SETAD] Uploads:` com os caminhos absolutos.
+5. Backups automáticos ficam em `backups/` ao lado do `.db` (até 20 cópias, a cada 6 h em produção).
 
 ### 4. Conferir após redeploy
 
