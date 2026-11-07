@@ -4058,3 +4058,125 @@ body.portal-marca-dagua .wpp-float {
   border: 1px dashed rgba(35, 64, 107, 0.35);
   color: #23406b;
 }
+
+/* Editor de planilha (importação Excel — contabilidade) */
+.setad-planilha-editor-host {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+}
+
+.setad-planilha-editor-host[hidden] {
+  display: none !important;
+}
+
+html.setad-planilha-editor-aberto {
+  overflow: hidden;
+}
+
+.setad-planilha-editor {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.setad-planilha-editor__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 20, 26, 0.55);
+}
+
+.setad-planilha-editor__painel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 1.5rem);
+  margin: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(13, 20, 26, 0.28);
+  border: 1px solid rgba(35, 64, 107, 0.12);
+}
+
+.setad-planilha-editor__cabecalho {
+  padding: 1rem 1.15rem 0.65rem;
+  border-bottom: 1px solid rgba(35, 64, 107, 0.1);
+}
+
+.setad-planilha-editor__titulo {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  color: #23406b;
+}
+
+.setad-planilha-editor__desc,
+.setad-planilha-editor__meta {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #4a5568;
+  line-height: 1.45;
+}
+
+.setad-planilha-editor__meta {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.setad-planilha-editor__scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 0.65rem 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.setad-planilha-editor__tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.setad-planilha-editor__tabela th,
+.setad-planilha-editor__tabela td {
+  border: 1px solid rgba(35, 64, 107, 0.12);
+  padding: 0.35rem 0.45rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.setad-planilha-editor__th--edit {
+  background: rgba(103, 61, 230, 0.1);
+}
+
+.setad-planilha-editor__td--edit {
+  background: rgba(103, 61, 230, 0.04);
+}
+
+.setad-planilha-editor__input {
+  width: 100%;
+  min-width: 6.5rem;
+  font: inherit;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid rgba(35, 64, 107, 0.2);
+  border-radius: 6px;
+}
+
+.setad-planilha-editor__readonly {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setad-planilha-editor__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid rgba(35, 64, 107, 0.1);
+}
