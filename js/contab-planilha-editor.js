@@ -8,6 +8,7 @@
     "situacao",
     "forma_pagamento",
     "valor_sugerido",
+    "taxa_matricula",
     "observacoes",
     "nota",
     "media_manual"

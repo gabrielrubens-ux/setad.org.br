@@ -5967,29 +5967,6 @@ body.historia-lightbox-aberta {
   }
 }
 
-.setad-inst-nav {
-  background: rgba(35, 64, 107, 0.06);
-  border-bottom: 1px solid rgba(35, 64, 107, 0.12);
-  font-size: 0.82rem;
-}
-
-.setad-inst-nav__inner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem 1.1rem;
-  padding: 0.45rem 1rem;
-}
-
-.setad-inst-nav a {
-  color: #23406b;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.setad-inst-nav a:hover {
-  text-decoration: underline;
-}
-
 .setad-site-footer {
   margin-top: 0;
   padding: 1.25rem 0 1.5rem;

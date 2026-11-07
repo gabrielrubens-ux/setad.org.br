@@ -1,6 +1,11 @@
 /* Planilha de mensalidades por turma / polo — alunos × meses, edição rápida */
 
-var PLANILHA_TURMA_QTD_MESES = 8;
+/** Colunas de mensalidade na contabilidade dos polos — até dez/2026 (2027+ no início do ano letivo). */
+var PLANILHA_POLO_MES_INICIO = 3;
+var PLANILHA_POLO_ANO_INICIO = 2026;
+var PLANILHA_POLO_MES_FIM = 12;
+var PLANILHA_POLO_ANO_FIM = 2026;
+var PLANILHA_REFERENCIA_TAXA_MATRICULA = "__taxa_matricula__";
 
 /** Mantém o editor aberto ao re-renderizar a planilha (sync institucional). */
 var PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
@@ -35,6 +40,9 @@ function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagame
         return p.id === pagamentoId;
       })
     : null;
+  if (!pag && referencia === PLANILHA_REFERENCIA_TAXA_MATRICULA) {
+    pag = obterPagamentoMatriculaMatricula(matricula);
+  }
   var valorDefault =
     pag && pag.valor
       ? pag.valor
@@ -55,10 +63,17 @@ function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagame
   container.querySelector("#planilhaTurmaEditorObs").value =
     (pag && pag.observacoes) || "";
 
+  var inputTipo = container.querySelector("#planilhaTurmaEditorTipo");
+  var tipoLanc =
+    referencia === PLANILHA_REFERENCIA_TAXA_MATRICULA ? "matricula" : "mensalidade";
+  if (inputTipo) inputTipo.value = tipoLanc;
+
   var titulo = container.querySelector("#planilhaTurmaEditorTitulo");
   if (titulo) {
     titulo.textContent =
-      matricula.nomeCompleto + " — " + referencia.replace(/^Mensalidade\s*/, "");
+      referencia === PLANILHA_REFERENCIA_TAXA_MATRICULA
+        ? matricula.nomeCompleto + " — taxa de matrícula"
+        : matricula.nomeCompleto + " — " + referencia.replace(/^Mensalidade\s*/, "");
   }
 
   var msg = container.querySelector("#planilhaTurmaEditorMsg");
@@ -87,12 +102,25 @@ function restaurarEditorPlanilhaTurmaSeAberto(container) {
   });
 }
 
+function colunaMesDentroPeriodoPolo(coluna) {
+  var p = String(coluna || "").split("/");
+  if (p.length !== 2) return false;
+  var mes = Number(p[0]);
+  var ano = Number(p[1]);
+  if (!mes || !ano) return false;
+  if (ano < PLANILHA_POLO_ANO_INICIO) return false;
+  if (ano > PLANILHA_POLO_ANO_FIM) return false;
+  if (ano === PLANILHA_POLO_ANO_INICIO && mes < PLANILHA_POLO_MES_INICIO) return false;
+  if (ano === PLANILHA_POLO_ANO_FIM && mes > PLANILHA_POLO_MES_FIM) return false;
+  return true;
+}
+
 function gerarColunasMensalidadePlanilhaTurma(opcoes) {
   opcoes = opcoes || {};
   var mapa = {};
 
   function incluirMes(coluna, referencia) {
-    if (!coluna) return;
+    if (!coluna || !colunaMesDentroPeriodoPolo(coluna)) return;
     if (!mapa[coluna]) {
       mapa[coluna] = { coluna: coluna, referencia: referencia || "Mensalidade " + coluna };
     }
@@ -104,14 +132,15 @@ function gerarColunasMensalidadePlanilhaTurma(opcoes) {
     if (m) incluirMes(m[1] + "/" + m[2], ref);
   }
 
-  var base = new Date();
-  base.setDate(1);
-  var inicio = -2;
-  for (var i = 0; i < PLANILHA_TURMA_QTD_MESES; i++) {
-    var d = new Date(base.getFullYear(), base.getMonth() + inicio + i, 1);
-    var mes = String(d.getMonth() + 1).padStart(2, "0");
-    var ano = d.getFullYear();
-    incluirMes(mes + "/" + ano);
+  var ano = PLANILHA_POLO_ANO_INICIO;
+  var mes = PLANILHA_POLO_MES_INICIO;
+  while (ano < PLANILHA_POLO_ANO_FIM || (ano === PLANILHA_POLO_ANO_FIM && mes <= PLANILHA_POLO_MES_FIM)) {
+    incluirMes(String(mes).padStart(2, "0") + "/" + ano);
+    mes += 1;
+    if (mes > 12) {
+      mes = 1;
+      ano += 1;
+    }
   }
 
   if (opcoes.colunasExtras && opcoes.colunasExtras.length) {
@@ -120,22 +149,24 @@ function gerarColunasMensalidadePlanilhaTurma(opcoes) {
     });
   }
 
-  var alunos = opcoes.alunos || [];
-  if (alunos.length && typeof obterPagamentosAlunos === "function") {
-    var ids = {};
-    var emails = {};
-    alunos.forEach(function (m) {
-      if (m && m.id) ids[m.id] = true;
-      if (m && m.email) emails[String(m.email).toLowerCase()] = true;
-    });
-    obterPagamentosAlunos().forEach(function (p) {
-      if (!p || p.tipo !== "mensalidade") return;
-      var doAluno =
-        (p.matriculaId && ids[p.matriculaId]) ||
-        (p.alunoEmail && emails[String(p.alunoEmail).toLowerCase()]);
-      if (!doAluno) return;
-      incluirDeReferencia(p.referencia);
-    });
+  if (opcoes.incluirMesesComPagamento !== false) {
+    var alunos = opcoes.alunos || [];
+    if (alunos.length && typeof obterPagamentosAlunos === "function") {
+      var ids = {};
+      var emails = {};
+      alunos.forEach(function (m) {
+        if (m && m.id) ids[m.id] = true;
+        if (m && m.email) emails[String(m.email).toLowerCase()] = true;
+      });
+      obterPagamentosAlunos().forEach(function (p) {
+        if (!p || p.tipo !== "mensalidade") return;
+        var doAluno =
+          (p.matriculaId && ids[p.matriculaId]) ||
+          (p.alunoEmail && emails[String(p.alunoEmail).toLowerCase()]);
+        if (!doAluno) return;
+        incluirDeReferencia(p.referencia);
+      });
+    }
   }
 
   return Object.keys(mapa)
@@ -147,6 +178,15 @@ function gerarColunasMensalidadePlanilhaTurma(opcoes) {
     .map(function (chave) {
       return mapa[chave];
     });
+}
+
+function obterPagamentoMatriculaMatricula(matricula) {
+  if (!matricula || !matricula.id || typeof obterPagamentosAlunos !== "function") return null;
+  return (
+    obterPagamentosAlunos().find(function (p) {
+      return p.matriculaId === matricula.id && (!p.tipo || p.tipo === "matricula");
+    }) || null
+  );
 }
 
 function obterPagamentoMensalidadeReferencia(matriculaOuEmail, referencia) {
@@ -245,6 +285,33 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
   return registro;
 }
 
+function montarCelulaPlanilhaTurmaMatricula(matricula, sessao) {
+  var esc =
+    typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
+  var formatar =
+    typeof formatarMoeda === "function" ? formatarMoeda : String;
+  var pag = obterPagamentoMatriculaMatricula(matricula);
+  if (!pag) {
+    return (
+      '<td class="planilha-turma__cel planilha-turma__cel--vazia planilha-turma__cel--matricula">' +
+      '<button type="button" class="btn btn--link btn--sm planilha-turma__btn-cel" ' +
+      'data-planilha-matricula="' + esc(matricula.id) + '" ' +
+      'data-planilha-ref="' + esc(PLANILHA_REFERENCIA_TAXA_MATRICULA) + '" ' +
+      'data-planilha-tipo="matricula" data-planilha-acao="novo" title="Registrar taxa de matrícula">+</button></td>'
+    );
+  }
+  var cls = pag.status === "pago" ? "pago" : pag.status === "pendente" ? "pendente" : "agendado";
+  return (
+    '<td class="planilha-turma__cel planilha-turma__cel--' + cls + ' planilha-turma__cel--matricula">' +
+    "<span class=\"planilha-turma__valor\">" + formatar(pag.valor) + "</span>" +
+    '<button type="button" class="btn btn--link btn--sm planilha-turma__btn-cel" ' +
+    'data-planilha-pagamento="' + esc(pag.id) + '" ' +
+    'data-planilha-matricula="' + esc(matricula.id) + '" ' +
+    'data-planilha-ref="' + esc(PLANILHA_REFERENCIA_TAXA_MATRICULA) + '" ' +
+    'data-planilha-tipo="matricula" data-planilha-acao="editar">Editar</button></td>'
+  );
+}
+
 function montarCelulaPlanilhaTurmaMensalidade(matricula, coluna, sessao) {
   var esc =
     typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
@@ -320,11 +387,14 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
     meta.subtitulo ||
     "Clique em + ou Editar para lançar pagamentos. Os dados vão para contador e direção.";
 
-  var cabMeses = colunas
-    .map(function (c) {
-      return "<th>" + esc(c.coluna) + "</th>";
-    })
-    .join("");
+  var mostrarMatricula = meta.planilhaColunaMatricula !== false;
+  var cabMeses =
+    (mostrarMatricula ? "<th>Matrícula (R$)</th>" : "") +
+    colunas
+      .map(function (c) {
+        return "<th>" + esc(c.coluna) + "</th>";
+      })
+      .join("");
 
   var linhas = alunos
     .map(function (m) {
@@ -335,6 +405,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
             ? resumoExtratoAluno(m.email)
             : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
       var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
+      var celulaMat = mostrarMatricula ? montarCelulaPlanilhaTurmaMatricula(m, sessao) : "";
       var celulas = colunas
         .map(function (col) {
           return montarCelulaPlanilhaTurmaMensalidade(m, col, sessao);
@@ -344,6 +415,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
         "<tr data-matricula-id=\"" + esc(m.id) + "\">" +
         "<td class=\"planilha-turma__aluno\"><strong>" + esc(m.nomeCompleto) + "</strong><br>" +
         "<small>" + esc(m.email || "—") + "</small></td>" +
+        celulaMat +
         celulas +
         "<td>" + formatar(resumo.valorPago || 0) + "</td>" +
         '<td class="planilha-turma__debito">' + formatar(emAberto) + "</td>" +
@@ -375,6 +447,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
     "<h4 id=\"planilhaTurmaEditorTitulo\">Lançamento</h4>" +
     '<input type="hidden" id="planilhaTurmaEditorMatriculaId">' +
     '<input type="hidden" id="planilhaTurmaEditorReferencia">' +
+    '<input type="hidden" id="planilhaTurmaEditorTipo">' +
     '<input type="hidden" id="planilhaTurmaEditorPagamentoId">' +
     '<div class="matricula-form__grid">' +
     '<div class="form-group"><label for="planilhaTurmaEditorValor">Valor (R$)</label>' +
@@ -471,17 +544,33 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
         return;
       }
 
-      var resultado = registrarOuAtualizarMensalidadeTurma(
-        matricula,
-        referencia,
-        {
-          valor: valor,
-          status: status,
-          formaPagamento: forma,
-          observacoes: obs
-        },
-        sessao
-      );
+      var tipoLancamento = (container.querySelector("#planilhaTurmaEditorTipo") || {}).value;
+      var resultado;
+      if (tipoLancamento === "matricula" && typeof aplicarPagamentoAlunoPolo === "function") {
+        resultado = aplicarPagamentoAlunoPolo(
+          matricula,
+          {
+            tipoCobranca: "matricula",
+            situacaoPagamento: status === "pago" ? "pago_presencial" : "pendente",
+            formaPagamento: forma || "PIX",
+            valor: valor,
+            observacoes: obs
+          },
+          sessao
+        );
+      } else {
+        resultado = registrarOuAtualizarMensalidadeTurma(
+          matricula,
+          referencia,
+          {
+            valor: valor,
+            status: status,
+            formaPagamento: forma,
+            observacoes: obs
+          },
+          sessao
+        );
+      }
 
       if (msg) {
         msg.className = resultado.ok
@@ -530,6 +619,12 @@ function abrirEditorPlanilhaTurma(container, btn, sessao) {
       editor.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+if (typeof global !== "undefined") {
+  global.colunaMesDentroPeriodoPolo = colunaMesDentroPeriodoPolo;
+  global.gerarColunasMensalidadePlanilhaTurma = gerarColunasMensalidadePlanilhaTurma;
+  global.obterPagamentoMatriculaMatricula = obterPagamentoMatriculaMatricula;
 }
 
 function listarTurmasDoPoloContabilidade(poloId) {

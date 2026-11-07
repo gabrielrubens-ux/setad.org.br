@@ -113,7 +113,13 @@
       return { headers: [], body: [] };
     }
     var linhas = obterMatriculasDoPolo(poloId);
-    var colunas = gerarColunasMensalidadePlanilhaTurma({ alunos: linhas });
+    var colunas =
+      typeof gerarColunasMensalidadePlanilhaTurma === "function"
+        ? gerarColunasMensalidadePlanilhaTurma({
+            alunos: linhas,
+            incluirMesesComPagamento: false
+          })
+        : [];
     var headers = ["matricula_id", "nome", "email", "polo_id", "taxa_matricula"];
     colunas.forEach(function (c) {
       headers.push(c.coluna);
@@ -122,6 +128,13 @@
 
     var body = linhas.map(function (m) {
       var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || "", ""];
+      var pagMat =
+        typeof obterPagamentoMatriculaMatricula === "function"
+          ? obterPagamentoMatriculaMatricula(m)
+          : null;
+      row[4] = pagMat
+        ? String(pagMat.valor || "") + "|" + (pagMat.status || "pago")
+        : "";
       colunas.forEach(function (col) {
         var pag =
           typeof obterPagamentoMensalidadeReferencia === "function"
@@ -255,7 +268,11 @@
         return String(h || "").trim();
       })
       .filter(function (h) {
-        return /^\d{2}\/\d{4}$/.test(h);
+        if (!/^\d{2}\/\d{4}$/.test(h)) return false;
+        if (typeof global.colunaMesDentroPeriodoPolo === "function") {
+          return global.colunaMesDentroPeriodoPolo(h);
+        }
+        return true;
       });
   }
 

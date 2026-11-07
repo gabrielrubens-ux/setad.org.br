@@ -1307,7 +1307,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
     '<button type="button" class="btn btn--primary btn--sm" id="btnContabPolosAbrirPlanilha">Abrir planilha no site</button>' +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosColar">Colar do Excel</button>' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosModelo">Modelo Excel (3 abas)</button>' +
     '<label class="btn btn--secondary btn--sm polo-contab__import-label">' +
     "Importar Excel<input type=\"file\" id=\"contabPolosImport\" accept=\".xlsx,.xls,.xlt,.xltx,.xlsm,.xlsb,.xla,.ods,.csv,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet\" hidden></label>" +
@@ -1326,7 +1325,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? " SETAD geral: use planilha com polo_id em cada linha."
         : " Conversão automática para cadastro, mensalidades por mês e pagamentos dos alunos deste polo.";
       return (
-        '<div class="polo-contab__import-duplo">' +
         '<div class="polo-contab__dropzone" id="contabPolosDropZone" tabindex="0" role="button" aria-label="Arrastar planilha Excel do polo selecionado">' +
         '<p class="polo-contab__dropzone-icone" aria-hidden="true">📥</p>' +
         '<p class="polo-contab__dropzone-titulo"><strong>Arrastar arquivo</strong> ou clique para escolher</p>' +
@@ -1335,15 +1333,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
         "</p>" +
         '<p class="polo-contab__dropzone-hint">Formato SETAD (3 abas) ou planilha manual (ALUNOS + meses).' +
         escaparHtml(dicaGeral) +
-        "</p></div>" +
-        '<div class="polo-contab__pastezone" id="contabPolosPasteZone" tabindex="0" role="textbox" aria-label="Colar planilha copiada do Excel">' +
-        '<p class="polo-contab__pastezone-icone" aria-hidden="true">📋</p>' +
-        '<p class="polo-contab__dropzone-titulo"><strong>Copiar e colar</strong></p>' +
-        '<p class="polo-contab__dropzone-polo" id="contabPolosPastePoloNome">Polo: ' +
-        escaparHtml(nomePolo) +
-        "</p>" +
-        '<p class="polo-contab__dropzone-hint">Selecione as células no Excel, <kbd>Ctrl+C</kbd>, clique aqui e <kbd>Ctrl+V</kbd>. Uma aba por colagem; use «Salvar alterações no site» após conferir. O suporte a Excel carrega automaticamente pela internet (SheetJS) — não precisa instalar plugin no navegador.</p>' +
-        "</div></div>"
+        "</p></div>"
       );
     })() +
     '<div class="polo-contab__turma-filtro form-group">' +
@@ -1362,7 +1352,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div id="contabPolosPagamento" class="polo-contab__pagamento"></div>' +
     "</details>" +
     '<div id="contabPolosMsg" class="form-mensagem" role="status"></div>' +
-    '<p class="presencial-bloco__hint">Selecione o polo (incluindo SETAD geral), arraste o .xlsx ou cole do Excel, revise no editor e use «Salvar alterações no site» para atualizar pagamentos e a lista editável de cada polo.</p>' +
+    '<p class="presencial-bloco__hint">Selecione o polo (incluindo SETAD geral), arraste o .xlsx, revise no editor e use «Salvar alterações no site». A grade abaixo traz matrícula editável e mensalidades de mar/2026 a dez/2026 (2027 no início do ano letivo).</p>' +
     "</div>";
 
   container.dataset.poloAtivo = poloAtivo;
@@ -1417,8 +1407,9 @@ function renderizarContabilidadePolos(containerId, sessao) {
           ? "SETAD geral — visão consolidada"
           : "Planilha — " + (polo ? polo.nome : "Polo"),
       subtitulo: ehPoloRecepcaoSetadGeral(pid)
-        ? "Todos os alunos por polo. Use Importar Excel com destino SETAD geral para desmembrar automaticamente."
-        : "Mensalidades e notas do polo/turma. Contadores autorizados podem editar e salvar; alterações sincronizam com o servidor.",
+        ? "Todos os alunos por polo. Coluna Matrícula (R$) editável; mensalidades de 03/2026 a 12/2026 — use + para lançar valores."
+        : "Matrícula (R$) e mensalidades (03/2026–12/2026) editáveis na grade. Clique em + ou Editar em cada célula vazia.",
+      planilhaColunaMatricula: true,
       turmaId: turma ? turma.id : null,
       permissoesFicha: {
         notasEditar:
@@ -1740,16 +1731,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
     },
     function (r) {
       aoFeedbackImportacaoPlanilha(r, document.getElementById("contabPolosImport"));
-    }
-  );
-
-  configurarColarPlanilhaContabPolos(
-    sessao,
-    function () {
-      return container.dataset.poloAtivo;
-    },
-    function (r) {
-      aoFeedbackImportacaoPlanilha(r, null);
     }
   );
 
