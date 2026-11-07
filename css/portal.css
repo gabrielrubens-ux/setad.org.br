@@ -4216,3 +4216,87 @@ html.setad-planilha-editor-aberto {
   background: rgba(35, 64, 107, 0.12);
   border-color: #23406b;
 }
+
+.polo-contab__polo-card--geral {
+  border-color: rgba(196, 143, 18, 0.45);
+  background: linear-gradient(135deg, rgba(255, 248, 230, 0.95), rgba(255, 255, 255, 0.85));
+}
+
+.polo-contab__polo-card--geral.polo-contab__polo-card--ativo,
+.polo-contab__polo-card--geral:hover {
+  border-color: #b8860b;
+  box-shadow: 0 4px 16px rgba(184, 134, 11, 0.18);
+}
+
+.setad-planilha-editor__checkin {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(35, 64, 107, 0.16);
+  background: rgba(247, 249, 252, 0.95);
+}
+
+.setad-planilha-editor__checkin-titulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #23406b;
+}
+
+.setad-planilha-editor__checkin-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.75rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+}
+
+.setad-planilha-editor__checkin-dl dt {
+  font-weight: 600;
+  color: #5a6578;
+}
+
+.setad-planilha-editor__checkin-dl dd {
+  margin: 0;
+  color: #1a2538;
+}
+
+.setad-planilha-editor__checkin-sub {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #23406b;
+}
+
+.setad-planilha-editor__checkin-lista {
+  margin: 0 0 0.5rem;
+  padding-left: 1.15rem;
+  font-size: 0.8rem;
+  color: #3d4656;
+}
+
+.setad-planilha-editor__checkin-aviso {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.78rem;
+  color: #8b1a2e;
+}
+
+.setad-planilha-editor__checkin-conf {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #23406b;
+  cursor: pointer;
+}
+
+.setad-planilha-editor__polo-fixo {
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: #23406b;
+}
+
+#setadPlanilhaBtnAplicar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

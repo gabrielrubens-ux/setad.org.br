@@ -80,6 +80,37 @@
     return el.innerHTML;
   }
 
+  function resumoCheckinImportacao(sheets, polos) {
+    var totalLinhas = 0;
+    var polosIds = {};
+    var semPolo = 0;
+    sheets.forEach(function (sh) {
+      var cab = (sh.headers || []).map(normalizarNomeColuna);
+      var idxPolo = cab.indexOf("polo_id");
+      totalLinhas += (sh.body || []).length;
+      if (idxPolo >= 0) {
+        (sh.body || []).forEach(function (row) {
+          var pid = String(row[idxPolo] || "").trim();
+          if (!pid) semPolo++;
+          else polosIds[pid] = (polosIds[pid] || 0) + 1;
+        });
+      }
+    });
+    var detalhes = [];
+    Object.keys(polosIds).forEach(function (id) {
+      var p = (polos || []).find(function (x) {
+        return x.id === id;
+      });
+      detalhes.push((p ? p.nome : id) + " (" + polosIds[id] + " linha(s))");
+    });
+    return {
+      totalLinhas: totalLinhas,
+      totalAbas: sheets.length,
+      detalhesPolos: detalhes,
+      semPolo: semPolo
+    };
+  }
+
   function montarTabelaHtml(headers, body, editMap) {
     var thead =
       "<tr>" +
@@ -170,11 +201,17 @@
       }
     ];
 
-    var estado = { sheetAtiva: 0, sheets: sheets, poloId: poloId };
+    var modoCheckin = !!opts.modoCheckin;
+    var idGeral = global.POLO_SETAD_GERAL_ID || "setad-geral";
+    if (modoCheckin) {
+      poloId = idGeral;
+    }
+    var estado = { sheetAtiva: 0, sheets: sheets, poloId: poloId, checkinOk: false };
     var titulo = opts.titulo || "Revisar planilha";
     var descricao =
       opts.descricao ||
       "Selecione o polo de destino. Revise cada aba (cadastro, mensalidades, notas) e aplique para salvar.";
+    var resumoCheckin = modoCheckin ? resumoCheckinImportacao(sheets, polos) : null;
 
     host.hidden = false;
     document.documentElement.classList.add("setad-planilha-editor-aberto");
@@ -204,6 +241,63 @@
       })
       .join("");
 
+    var checkinHtml = "";
+    if (modoCheckin && resumoCheckin) {
+      var listaPolos =
+        resumoCheckin.detalhesPolos.length > 0
+          ? "<ul class=\"setad-planilha-editor__checkin-lista\">" +
+            resumoCheckin.detalhesPolos
+              .map(function (item) {
+                return "<li>" + escaparTexto(item) + "</li>";
+              })
+              .join("") +
+            "</ul>"
+          : '<p class="setad-planilha-editor__checkin-aviso">Nenhum polo_id identificado nas linhas. Inclua a coluna polo_id para desmembrar nos polos.</p>';
+      if (resumoCheckin.semPolo > 0) {
+        listaPolos +=
+          '<p class="setad-planilha-editor__checkin-aviso">' +
+          resumoCheckin.semPolo +
+          " linha(s) sem polo_id — conferir antes de enviar.</p>";
+      }
+      checkinHtml =
+        '<section class="setad-planilha-editor__checkin" aria-labelledby="setadPlanilhaCheckinTitulo">' +
+        '<h3 id="setadPlanilhaCheckinTitulo" class="setad-planilha-editor__checkin-titulo">Check-in de entrada</h3>' +
+        '<dl class="setad-planilha-editor__checkin-dl">' +
+        "<dt>Arquivo</dt><dd>" +
+        escaparTexto(opts.nomeArquivo || "Planilha") +
+        "</dd>" +
+        "<dt>Abas</dt><dd>" +
+        resumoCheckin.totalAbas +
+        "</dd>" +
+        "<dt>Linhas (todas as abas)</dt><dd>" +
+        resumoCheckin.totalLinhas +
+        "</dd>" +
+        "<dt>Destino</dt><dd>SETAD geral → desmembramento por polo_id</dd>" +
+        "</dl>" +
+        "<p class=\"setad-planilha-editor__checkin-sub\">Polos detectados na planilha:</p>" +
+        listaPolos +
+        '<label class="setad-planilha-editor__checkin-conf">' +
+        '<input type="checkbox" id="setadPlanilhaCheckinConferi" />' +
+        " Conferi os dados e autorizo o envio desta planilha ao site.</label>" +
+        "</section>";
+    }
+
+    var poloSelectHtml = modoCheckin
+      ? '<p class="setad-planilha-editor__polo-fixo"><strong>Polo de destino:</strong> SETAD geral (recepção central)</p>' +
+        '<input type="hidden" id="setadPlanilhaPoloSelect" value="' +
+        escaparTexto(idGeral) +
+        '" />'
+      : '<div class="setad-planilha-editor__polo form-group">' +
+        '<label for="setadPlanilhaPoloSelect">Polo de destino</label>' +
+        '<select id="setadPlanilhaPoloSelect" class="setad-planilha-editor__polo-select">' +
+        opcoesPolo +
+        "</select></div>";
+
+    var rotuloAplicar = modoCheckin
+      ? "Confirmar envio da planilha ao site"
+      : "Salvar no polo selecionado";
+    var btnAplicarDisabled = modoCheckin ? " disabled" : "";
+
     host.innerHTML =
       '<div class="setad-planilha-editor" role="dialog" aria-modal="true" aria-labelledby="setadPlanilhaEditorTitulo">' +
       '<div class="setad-planilha-editor__backdrop" data-setad-planilha-fechar></div>' +
@@ -215,11 +309,8 @@
       '<p class="setad-planilha-editor__desc">' +
       escaparTexto(descricao) +
       "</p>" +
-      '<div class="setad-planilha-editor__polo form-group">' +
-      '<label for="setadPlanilhaPoloSelect">Polo de destino</label>' +
-      '<select id="setadPlanilhaPoloSelect" class="setad-planilha-editor__polo-select">' +
-      opcoesPolo +
-      "</select></div>" +
+      checkinHtml +
+      poloSelectHtml +
       '<nav class="setad-planilha-editor__abas" id="setadPlanilhaAbas" role="tablist">' +
       abasHtml +
       "</nav>" +
@@ -231,7 +322,11 @@
       '<footer class="setad-planilha-editor__rodape">' +
       '<button type="button" class="btn btn--secondary" id="setadPlanilhaBtnCancelar">Cancelar</button>' +
       '<button type="button" class="btn btn--secondary" id="setadPlanilhaBtnBaixar">Baixar Excel editado</button>' +
-      '<button type="button" class="btn btn--primary" id="setadPlanilhaBtnAplicar">Salvar no polo selecionado</button>' +
+      '<button type="button" class="btn btn--primary" id="setadPlanilhaBtnAplicar"' +
+      btnAplicarDisabled +
+      ">" +
+      escaparTexto(rotuloAplicar) +
+      "</button>" +
       "</footer></div></div>";
 
     function sheetAtual() {
@@ -273,9 +368,23 @@
       }
     }
 
-    host.querySelector("#setadPlanilhaPoloSelect").addEventListener("change", function (e) {
-      estado.poloId = e.target.value;
-    });
+    var elPolo = host.querySelector("#setadPlanilhaPoloSelect");
+    if (elPolo && elPolo.tagName === "SELECT") {
+      elPolo.addEventListener("change", function (e) {
+        estado.poloId = e.target.value;
+      });
+    }
+
+    var btnAplicar = host.querySelector("#setadPlanilhaBtnAplicar");
+    if (modoCheckin) {
+      var chk = host.querySelector("#setadPlanilhaCheckinConferi");
+      if (chk && btnAplicar) {
+        chk.addEventListener("change", function () {
+          estado.checkinOk = !!chk.checked;
+          btnAplicar.disabled = !estado.checkinOk;
+        });
+      }
+    }
 
     host.querySelectorAll(".setad-planilha-editor__aba").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -306,9 +415,14 @@
       }
     });
 
-    host.querySelector("#setadPlanilhaBtnAplicar").addEventListener("click", function () {
+    btnAplicar.addEventListener("click", function () {
       persistirAbaVisivel();
-      estado.poloId = host.querySelector("#setadPlanilhaPoloSelect").value;
+      var sel = host.querySelector("#setadPlanilhaPoloSelect");
+      estado.poloId = sel ? sel.value : idGeral;
+      if (modoCheckin && !estado.checkinOk) {
+        alert("Marque a confirmação do check-in antes de enviar a planilha.");
+        return;
+      }
       if (!estado.poloId) {
         alert("Selecione o polo de destino.");
         return;

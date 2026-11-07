@@ -5,6 +5,28 @@ var CONTAB_POLOS_KEYS = {
   unlock: "setad_contab_polos_unlock"
 };
 
+/** Recepção central — importação desmembra por coluna polo_id da planilha. */
+var POLO_SETAD_GERAL_ID = "setad-geral";
+
+function obterPoloSetadGeral() {
+  return {
+    id: POLO_SETAD_GERAL_ID,
+    nome: "SETAD geral",
+    bairro: "Recepção de planilhas",
+    endereco: "Importação centralizada — desmembra nos polos",
+    contato: "",
+    virtual: true
+  };
+}
+
+function ehPoloRecepcaoSetadGeral(poloId) {
+  return poloId === POLO_SETAD_GERAL_ID;
+}
+
+if (typeof window !== "undefined") {
+  window.POLO_SETAD_GERAL_ID = POLO_SETAD_GERAL_ID;
+}
+
 var CONTAB_POLOS_EMAILS_AUTORIZADOS = ["kathlensantiago@gmail.com"];
 
 /** Equipe de contabilidade — painel do contador e contabilidade dos polos. */
@@ -115,10 +137,14 @@ function usuarioPodeAcessarContabilidadePolos(sessao) {
 }
 
 function obterPolosParaContabilidade() {
+  var lista = [];
   if (typeof POLOS_SETAD !== "undefined" && POLOS_SETAD.length) {
-    return POLOS_SETAD.slice();
+    lista = POLOS_SETAD.slice();
   }
-  return [];
+  if (!lista.some(function (p) { return p.id === POLO_SETAD_GERAL_ID; })) {
+    lista.unshift(obterPoloSetadGeral());
+  }
+  return lista;
 }
 
 function obterExtrasContabPolos() {
@@ -224,6 +250,11 @@ function verificarSenhaContabilidadePolos(sessao, senha) {
 }
 
 function obterMatriculasDoPolo(poloId) {
+  if (ehPoloRecepcaoSetadGeral(poloId)) {
+    return obterMatriculas().filter(function (m) {
+      return !!m.poloId;
+    });
+  }
   return obterMatriculas().filter(function (m) {
     if (!poloId) return !m.poloId;
     return m.poloId === poloId;
@@ -409,11 +440,11 @@ var CONTAB_POLOS_COLUNAS_MODELO = [
 
 function montarCorpoExportacaoContabPolos(poloId) {
   var polos = obterPolosParaContabilidade();
-  var polo = polos.find(function (p) {
-    return p.id === poloId;
-  });
   var linhas = obterMatriculasDoPolo(poloId);
   return linhas.map(function (m) {
+    var polo = polos.find(function (p) {
+      return p.id === (m.poloId || poloId);
+    });
     var extra = obterExtraAlunoPolo(m.id) || {};
     var sit = inferirSituacaoFinanceiraPolo(m.id);
     var valor =
@@ -611,12 +642,14 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
       var polos = obterPolosParaContabilidade();
 
       window.SETADContabPlanilhaEditor.abrirEditorPlanilhaImportacao(host, {
-        titulo: "Importar planilha — contabilidade dos polos",
+        titulo: "Check-in de entrada — planilha",
         descricao:
-          "Todas as abas do Excel são reconhecidas (cadastro, mensalidades, notas). Escolha o polo, edite e salve.",
+          "Revise cada aba. A planilha entra pelo SETAD geral e é desmembrada nos polos conforme a coluna polo_id de cada linha.",
         workbook: workbook,
         polos: polos,
-        poloIdDefault: poloIdDefault || "",
+        poloIdDefault: POLO_SETAD_GERAL_ID,
+        modoCheckin: true,
+        nomeArquivo: arquivo.name || "",
         editarCompleto: usuarioEhContadorPlanilhaAutorizado(sessao),
         onAplicar: function (payload) {
           var r;
@@ -707,9 +740,12 @@ function renderizarContabilidadePolos(containerId, sessao) {
     .map(function (polo) {
       var res = resumoPoloContabilidade(polo.id);
       var ativo = polo.id === poloAtivo ? " polo-contab__polo-card--ativo" : "";
+      var geral =
+        polo.id === POLO_SETAD_GERAL_ID ? " polo-contab__polo-card--geral" : "";
       return (
         '<button type="button" class="polo-contab__polo-card' +
         ativo +
+        geral +
         '" data-polo-id="' +
         escaparHtml(polo.id) +
         '">' +
@@ -820,9 +856,12 @@ function renderizarContabilidadePolos(containerId, sessao) {
     var meta = {
       titulo: turma
         ? "Planilha — " + turma.nome
-        : "Planilha — " + (polo ? polo.nome : "Polo"),
-      subtitulo:
-        "Mensalidades e notas do polo/turma. Contadores autorizados podem editar e salvar; alterações sincronizam com o servidor.",
+        : ehPoloRecepcaoSetadGeral(pid)
+          ? "SETAD geral — visão consolidada"
+          : "Planilha — " + (polo ? polo.nome : "Polo"),
+      subtitulo: ehPoloRecepcaoSetadGeral(pid)
+        ? "Todos os alunos por polo. Use Importar Excel com destino SETAD geral para desmembrar automaticamente."
+        : "Mensalidades e notas do polo/turma. Contadores autorizados podem editar e salvar; alterações sincronizam com o servidor.",
       turmaId: turma ? turma.id : null,
       permissoesFicha: {
         notasEditar:

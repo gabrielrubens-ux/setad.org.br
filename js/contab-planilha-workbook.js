@@ -4,12 +4,41 @@
 (function (global) {
   "use strict";
 
+  function idPoloRecepcaoGeral() {
+    return global.POLO_SETAD_GERAL_ID || "setad-geral";
+  }
+
+  function modoRecepcaoGeral(poloId) {
+    return poloId === idPoloRecepcaoGeral();
+  }
+
   function normCab(n) {
     return String(n || "")
       .trim()
       .toLowerCase()
       .replace(/\s+/g, "_")
       .replace(/"/g, "");
+  }
+
+  function poloIdDaLinha(grade, row) {
+    var cab = (grade.headers || []).map(normCab);
+    var idx = cab.indexOf("polo_id");
+    if (idx < 0) return "";
+    return String(row[idx] || "").trim();
+  }
+
+  function matriculaCompativelLinhaPolo(matricula, grade, row, poloDestino) {
+    if (!matricula) return false;
+    if (modoRecepcaoGeral(poloDestino)) {
+      var pid = poloIdDaLinha(grade, row);
+      if (!pid) return true;
+      if (matricula.poloId && matricula.poloId !== pid) return false;
+      return true;
+    }
+    if (poloDestino && matricula.poloId && matricula.poloId !== poloDestino) {
+      return false;
+    }
+    return true;
   }
 
   function classificarAba(nomeAba, headers) {
@@ -188,7 +217,7 @@
     if (typeof aplicarGradePlanilhaContabPolos !== "function") {
       return { ok: false, erro: "Módulo de cadastro indisponível.", count: 0 };
     }
-    if (poloId) {
+    if (poloId && !modoRecepcaoGeral(poloId)) {
       var cab = grade.headers.map(normCab);
       var idxPolo = cab.indexOf("polo_id");
       if (idxPolo >= 0) {
@@ -196,6 +225,15 @@
           var pid = String(row[idxPolo] || "").trim();
           return !pid || pid === poloId;
         });
+      }
+    } else if (modoRecepcaoGeral(poloId)) {
+      var cabG = grade.headers.map(normCab);
+      if (cabG.indexOf("polo_id") < 0) {
+        return {
+          ok: false,
+          erro: "SETAD geral: inclua a coluna polo_id em cada linha para desmembrar.",
+          count: 0
+        };
       }
     }
     var r = aplicarGradePlanilhaContabPolos(grade, sessao);
@@ -249,7 +287,7 @@
             : null;
       }
       if (!matricula) return;
-      if (poloId && matricula.poloId && matricula.poloId !== poloId) return;
+      if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
 
       meses.forEach(function (mes) {
         var parsed = parseCelulaMensalidade(row[mes.ix]);
@@ -294,7 +332,7 @@
             : null;
       }
       if (!matricula) return;
-      if (poloId && matricula.poloId && matricula.poloId !== poloId) return;
+      if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
 
       var periodo =
         idxPeriodo >= 0 && row[idxPeriodo]
@@ -356,6 +394,9 @@
 
     var resumo = [];
     var erros = [];
+    if (modoRecepcaoGeral(poloId)) {
+      resumo.push("Recepção SETAD geral — desmembrando por polo_id");
+    }
 
     workbook.sheets.forEach(function (sheet) {
       var tipo = classificarAba(sheet.name, sheet.headers);
