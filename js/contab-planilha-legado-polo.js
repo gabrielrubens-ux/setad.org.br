@@ -28,6 +28,28 @@
     );
   }
 
+  var MESES_ABREV_LEGADO = {
+    jan: 1,
+    feb: 2,
+    fev: 2,
+    mar: 3,
+    apr: 4,
+    abr: 4,
+    may: 5,
+    mai: 5,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    ago: 8,
+    sep: 9,
+    set: 9,
+    oct: 10,
+    out: 10,
+    nov: 11,
+    dec: 12,
+    dez: 12
+  };
+
   /** Data colada do Excel (texto) → MM/AAAA */
   function rotuloMesTextoLegado(valor) {
     var s = String(valor != null ? valor : "").trim();
@@ -39,6 +61,19 @@
     if (m) return String(m[2]).padStart(2, "0") + "/" + m[3];
     m = s.match(/^(\d{4})[\/\-.](\d{1,2})/);
     if (m) return String(m[2]).padStart(2, "0") + "/" + m[1];
+    m = s.match(/^([A-Za-z\u00C0-\u024F]{3})[-/](\d{2})$/);
+    if (m) {
+      var chave = m[1]
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      var mesNum = MESES_ABREV_LEGADO[chave];
+      if (mesNum) {
+        var anoCurto = Number(m[2]);
+        var ano = anoCurto >= 50 ? 1900 + anoCurto : 2000 + anoCurto;
+        return String(mesNum).padStart(2, "0") + "/" + ano;
+      }
+    }
     return "";
   }
 
@@ -251,6 +286,7 @@
   global.SETADContabPlanilhaLegadoPolo = {
     detectarPlanilhaLegadaPoloMedio: detectarPlanilhaLegadaPoloMedio,
     converterPlanilhaLegadaPoloMedio: converterPlanilhaLegadaPoloMedio,
-    normalizarWorkbookImportadoLegadoPolo: normalizarWorkbookImportadoLegadoPolo
+    normalizarWorkbookImportadoLegadoPolo: normalizarWorkbookImportadoLegadoPolo,
+    rotuloMesTextoLegado: rotuloMesTextoLegado
   };
 })(window);

@@ -983,7 +983,11 @@ function processarWorkbookImportacaoContabPolos(workbook, sessao, cb, hostEditor
     return;
   }
   if (!workbook || !workbook.sheets || !workbook.sheets.length) {
-    cb({ ok: false, erro: "Nenhuma linha reconhecida na planilha." });
+    cb({
+      ok: false,
+      erro:
+        "Nenhuma aba com dados reconhecida. Confira se a planilha tem a coluna ALUNOS (modelo de polo) ou use o modelo SETAD (3 abas)."
+    });
     return;
   }
 

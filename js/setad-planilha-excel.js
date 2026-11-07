@@ -5,8 +5,11 @@
 (function (global) {
   "use strict";
 
-  var CDN =
-    "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+  var FONTES_BIBLIOTECA_XLSX = [
+    "js/vendor/xlsx.full.min.js",
+    "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js",
+    "https://unpkg.com/xlsx@0.20.3/dist/xlsx.full.min.js"
+  ];
 
   var EXTENSOES_PERMITIDAS =
     /\.(xlsx|xls|xlsm|xlsb|xlt|xltx|xla|ods|csv|txt|xml)$/i;
@@ -35,18 +38,38 @@
     if (global.__setadSheetJsPromise) return global.__setadSheetJsPromise;
 
     global.__setadSheetJsPromise = new Promise(function (resolve, reject) {
-      var s = document.createElement("script");
-      s.src = CDN;
-      s.async = true;
-      s.onload = function () {
-        if (global.XLSX) resolve(global.XLSX);
-        else reject(new Error("Biblioteca de planilha indisponível."));
-      };
-      s.onerror = function () {
-        global.__setadSheetJsPromise = null;
-        reject(new Error("Não foi possível carregar o suporte a Excel."));
-      };
-      document.head.appendChild(s);
+      var indice = 0;
+
+      function tentarProximaFonte(erroAnterior) {
+        if (indice >= FONTES_BIBLIOTECA_XLSX.length) {
+          global.__setadSheetJsPromise = null;
+          reject(
+            erroAnterior ||
+              new Error(
+                "Não foi possível carregar o leitor de Excel. Verifique sua conexão ou tente colar (Ctrl+V) a tabela."
+              )
+          );
+          return;
+        }
+        var url = FONTES_BIBLIOTECA_XLSX[indice];
+        indice += 1;
+        var s = document.createElement("script");
+        s.src = url;
+        s.async = true;
+        s.onload = function () {
+          if (global.XLSX) resolve(global.XLSX);
+          else tentarProximaFonte(new Error("Biblioteca de planilha indisponível."));
+        };
+        s.onerror = function () {
+          s.remove();
+          tentarProximaFonte(
+            new Error("Falha ao carregar leitor Excel de " + url)
+          );
+        };
+        document.head.appendChild(s);
+      }
+
+      tentarProximaFonte(null);
     });
 
     return global.__setadSheetJsPromise;
@@ -144,13 +167,25 @@
       var aoa = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {
         header: 1,
         defval: "",
-        raw: false
+        raw: true
       });
+      var temDados = (aoa || []).some(function (row) {
+        return (
+          row &&
+          row.some(function (c) {
+            return String(c != null ? c : "").trim() !== "";
+          })
+        );
+      });
+      if (!temDados) return;
       var grade = linhasParaGrade(aoa);
-      if (!grade.headers.length) return;
-      grade.sheetName = sheetName;
-      grade.name = sheetName;
-      sheets.push(grade);
+      sheets.push({
+        name: sheetName,
+        sheetName: sheetName,
+        headers: grade.headers,
+        body: grade.body,
+        aoaRaw: aoa
+      });
     });
     return { sheets: sheets, sheetNames: wb.SheetNames || [] };
   }

@@ -23,7 +23,8 @@
     "cap:assets:ios": "npm run assets:cap && npx capacitor-assets generate --ios --assetPath resources",
     "serve": "node server/index.js",
     "pwa:setup": "npm run icons",
-    "verify:dns-email": "node scripts/verificar-dns-email.mjs"
+    "verify:dns-email": "node scripts/verificar-dns-email.mjs",
+    "vendor:sheetjs": "node -e \"const fs=require('fs');const p=require('path');const src=p.join('node_modules','xlsx','dist','xlsx.full.min.js');const dest=p.join('js','vendor','xlsx.full.min.js');fs.mkdirSync(p.dirname(dest),{recursive:true});fs.copyFileSync(src,dest);console.log('Atualizado',dest);\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

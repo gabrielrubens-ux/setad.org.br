@@ -62,6 +62,17 @@
   }
 
   function rotuloMesCabecalhoPlanilha(raw) {
+    if (global.SETADContabPlanilhaLegadoPolo && global.SETADContabPlanilhaLegadoPolo.rotuloMesTextoLegado) {
+      var rotLegado = global.SETADContabPlanilhaLegadoPolo.rotuloMesTextoLegado(raw);
+      if (rotLegado) return rotLegado;
+    }
+    var n = Number(raw);
+    if (!Number.isNaN(n) && n >= 1000 && global.XLSX && global.XLSX.SSF) {
+      var d = global.XLSX.SSF.parse_date_code(n);
+      if (d && d.y && d.m) {
+        return String(d.m).padStart(2, "0") + "/" + d.y;
+      }
+    }
     var s = String(raw || "").trim();
     if (/^\d{2}\/\d{4}$/.test(s)) return s;
     var m = s.match(/^(\d{1,2})\/(\d{4})$/);
