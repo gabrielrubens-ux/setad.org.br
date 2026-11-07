@@ -26,6 +26,10 @@
   <!-- description aparece nos resultados do Google e ao compartilhar o link -->
   <link rel="canonical" href="https://setad.org.br/">
   <link rel="alternate" type="text/markdown" href="https://setad.org.br/index.md" title="SETAD (Markdown)">
+  <link rel="author" href="https://setad.org.br/sobre.html" title="About SETAD">
+  <link rel="help" href="https://setad.org.br/contato.html" title="Contact SETAD">
+  <link rel="license" href="https://setad.org.br/termos.html" title="Terms of use">
+  <link rel="privacy-policy" href="https://setad.org.br/privacidade.html">
 
   <meta name="theme-color" content="#23406b">
   <meta name="mobile-web-app-capable" content="yes">
@@ -117,7 +121,29 @@
         "url": "https://setad.org.br/",
         "name": "SETAD — Seminário Teológico",
         "publisher": { "@id": "https://setad.org.br/#organization" },
-        "inLanguage": "pt-BR"
+        "inLanguage": "pt-BR",
+        "hasPart": [
+          {
+            "@type": "WebPage",
+            "name": "About — Sobre o SETAD",
+            "url": "https://setad.org.br/sobre.html"
+          },
+          {
+            "@type": "WebPage",
+            "name": "Contact",
+            "url": "https://setad.org.br/contato.html"
+          },
+          {
+            "@type": "WebPage",
+            "name": "Terms of use",
+            "url": "https://setad.org.br/termos.html"
+          },
+          {
+            "@type": "WebPage",
+            "name": "Privacy policy",
+            "url": "https://setad.org.br/privacidade.html"
+          }
+        ]
       },
       {
         "@type": "WebPage",
@@ -167,6 +193,8 @@
         <ul class="nav__list">
           <li><a href="/sobre.html" class="nav__link">Sobre</a></li>
           <li><a href="/contato.html" class="nav__link">Contato</a></li>
+          <li><a href="/termos.html" class="nav__link">Termos</a></li>
+          <li><a href="/privacidade.html" class="nav__link">Privacidade</a></li>
           <li><a href="polos/" class="nav__link">Polos</a></li>
           <li><a href="#programa" class="nav__link">Programa</a></li>
           <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
@@ -186,12 +214,12 @@
     </div>
   </header>
 
-  <nav class="setad-inst-nav" id="institucional" aria-label="Sobre, contato e termos legais">
+  <nav class="setad-inst-nav" id="institucional" aria-label="About, contact and legal — institucional SETAD">
     <div class="container container--wide setad-inst-nav__inner">
-      <a href="/sobre.html">Sobre o SETAD</a>
-      <a href="/contato.html">Contato</a>
-      <a href="/privacidade.html">Política de privacidade</a>
-      <a href="/termos.html">Termos de uso</a>
+      <a href="/sobre.html">About — Sobre o SETAD</a>
+      <a href="/contato.html">Contact — Contato</a>
+      <a href="/termos.html">Terms — Termos de uso</a>
+      <a href="/privacidade.html">Privacy — Política de privacidade</a>
     </div>
   </nav>
 
@@ -678,22 +706,25 @@
       </div>
     </section>
 
-    <footer class="setad-agent-footer section" id="setad-agent-footer" aria-label="Institucional e contato">
-      <div class="container container--wide">
-        <p class="section__text">
-          <a href="/sobre.html">Sobre o SETAD</a> ·
-          <a href="/contato.html">Contato</a> ·
-          <a href="/privacidade.html">Política de privacidade</a> ·
-          <a href="/termos.html">Termos de uso</a>
-        </p>
-        <p class="section__text">
-          E-mail: <a href="mailto:recepcao@setad.org.br">recepcao@setad.org.br</a> ·
-          Telefone: <a href="tel:+5591980852801">(91) 98085-2801</a>
-        </p>
-      </div>
-    </footer>
-
   </main>
+
+  <footer class="setad-site-footer" id="site-footer" role="contentinfo">
+    <div class="container container--wide setad-site-footer__inner">
+      <nav class="setad-site-footer__nav" aria-label="About, contact, terms and privacy">
+        <ul class="setad-site-footer__list">
+          <li><a href="https://setad.org.br/sobre.html">About — Sobre o SETAD</a></li>
+          <li><a href="https://setad.org.br/contato.html">Contact — Contato</a></li>
+          <li><a href="https://setad.org.br/termos.html">Terms — Termos de uso</a></li>
+          <li><a href="https://setad.org.br/privacidade.html">Privacy — Política de privacidade</a></li>
+        </ul>
+      </nav>
+      <p class="setad-site-footer__contato">
+        <a href="mailto:recepcao@setad.org.br">recepcao@setad.org.br</a> ·
+        <a href="tel:+5591980852801">(91) 98085-2801</a>
+      </p>
+      <p class="setad-site-footer__copy">&copy; SETAD — Seminário Teológico</p>
+    </div>
+  </footer>
 
   <!--
     <script src="..."> carrega um arquivo JavaScript externo.
