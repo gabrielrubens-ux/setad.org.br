@@ -469,7 +469,7 @@ function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
     return { ok: false, erro: "Matrícula inválida para o pagamento." };
   }
   if (!sessao || !sessao.email) {
-    return { ok: false, erro: "Sessão da secretaria inválida." };
+    return { ok: false, erro: "Sessão inválida. Faça login novamente no painel." };
   }
 
   inicializarDadosFinanceiros();
@@ -613,14 +613,66 @@ function registrarPagamentoPresencialSecretaria(matricula, opcoes, sessao) {
 }
 
 function obterPagamentosPorAluno(email) {
-  const emailNorm = email.trim().toLowerCase();
+  if (!email || !String(email).trim()) return [];
+  const emailNorm = String(email).trim().toLowerCase();
   return obterPagamentosAlunos()
-    .filter(function (p) { return p.alunoEmail.toLowerCase() === emailNorm; })
+    .filter(function (p) {
+      return p.alunoEmail && String(p.alunoEmail).toLowerCase() === emailNorm;
+    })
     .sort(function (a, b) {
       const va = a.vencimento || a.criadoEm || "";
       const vb = b.vencimento || b.criadoEm || "";
       return va.localeCompare(vb);
     });
+}
+
+function obterPagamentosPorMatriculaId(matriculaId) {
+  if (!matriculaId) return [];
+  return obterPagamentosAlunos()
+    .filter(function (p) {
+      return p.matriculaId === matriculaId;
+    })
+    .sort(function (a, b) {
+      const va = a.vencimento || a.criadoEm || "";
+      const vb = b.vencimento || b.criadoEm || "";
+      return va.localeCompare(vb);
+    });
+}
+
+function resumoExtratoMatricula(matricula) {
+  const parcelas =
+    matricula && matricula.email
+      ? obterPagamentosPorAluno(matricula.email)
+      : matricula && matricula.id
+        ? obterPagamentosPorMatriculaId(matricula.id)
+        : [];
+  let pago = 0;
+  let pendente = 0;
+  let agendado = 0;
+  let qtdPagas = 0;
+  let qtdEmAberto = 0;
+
+  parcelas.forEach(function (p) {
+    if (p.status === "pago") {
+      pago += p.valor;
+      qtdPagas++;
+    } else if (p.status === "pendente") {
+      pendente += p.valor;
+      qtdEmAberto++;
+    } else if (p.status === "agendado") {
+      agendado += p.valor;
+      qtdEmAberto++;
+    }
+  });
+
+  return {
+    totalParcelas: parcelas.length,
+    qtdPagas: qtdPagas,
+    qtdEmAberto: qtdEmAberto,
+    valorPago: pago,
+    valorPendente: pendente,
+    valorAgendado: agendado
+  };
 }
 
 function garantirExtratoAluno(sessao) {

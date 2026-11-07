@@ -61,6 +61,16 @@
     return true;
   }
 
+  function rotuloMesCabecalhoPlanilha(raw) {
+    var s = String(raw || "").trim();
+    if (/^\d{2}\/\d{4}$/.test(s)) return s;
+    var m = s.match(/^(\d{1,2})\/(\d{4})$/);
+    if (m) return String(m[1]).padStart(2, "0") + "/" + m[2];
+    m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (m) return String(m[2]).padStart(2, "0") + "/" + m[3];
+    return "";
+  }
+
   function classificarAba(nomeAba, headers) {
     var cab = (headers || []).map(normCab);
     var cabRaw = (headers || []).map(function (h) {
@@ -68,7 +78,7 @@
     });
     var nome = normCab(nomeAba);
     var mesCol = cabRaw.some(function (c) {
-      return /^\d{2}\/\d{4}$/.test(c);
+      return !!rotuloMesCabecalhoPlanilha(c);
     });
     if (cab.indexOf("matricula_id") >= 0 && cab.indexOf("disciplina") < 0) {
       if (mesCol) return "mensalidades";
@@ -91,21 +101,20 @@
     ) {
       return { headers: [], body: [] };
     }
-    var colunas = gerarColunasMensalidadePlanilhaTurma();
-    var headers = ["matricula_id", "nome", "email", "polo_id"];
+    var linhas = obterMatriculasDoPolo(poloId);
+    var colunas = gerarColunasMensalidadePlanilhaTurma({ alunos: linhas });
+    var headers = ["matricula_id", "nome", "email", "polo_id", "taxa_matricula"];
     colunas.forEach(function (c) {
       headers.push(c.coluna);
     });
     headers.push("total_pago", "em_aberto");
 
-    var linhas = obterMatriculasDoPolo(poloId);
-
     var body = linhas.map(function (m) {
-      var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || ""];
+      var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || "", ""];
       colunas.forEach(function (col) {
         var pag =
           typeof obterPagamentoMensalidadeReferencia === "function"
-            ? obterPagamentoMensalidadeReferencia(m.email, col.referencia)
+            ? obterPagamentoMensalidadeReferencia(m, col.referencia)
             : null;
         if (!pag) {
           row.push("");
@@ -114,9 +123,11 @@
         row.push(String(pag.valor || "") + "|" + (pag.status || "pago"));
       });
       var resumo =
-        typeof resumoExtratoAluno === "function"
-          ? resumoExtratoAluno(m.email)
-          : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
+        typeof resumoExtratoMatricula === "function"
+          ? resumoExtratoMatricula(m)
+          : typeof resumoExtratoAluno === "function"
+            ? resumoExtratoAluno(m.email)
+            : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
       var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
       row.push(resumo.valorPago || 0, emAberto);
       return row;
@@ -519,9 +530,9 @@
     }
     var meses = [];
     (grade.headers || []).forEach(function (c, i) {
-      var raw = String(c || "").trim();
-      if (/^\d{2}\/\d{4}$/.test(raw)) {
-        meses.push({ ix: i, referencia: "Mensalidade " + raw });
+      var rotulo = rotuloMesCabecalhoPlanilha(c);
+      if (rotulo) {
+        meses.push({ ix: i, referencia: "Mensalidade " + rotulo });
       }
     });
     if (!meses.length) {

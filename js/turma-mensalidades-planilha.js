@@ -87,8 +87,23 @@ function restaurarEditorPlanilhaTurmaSeAberto(container) {
   });
 }
 
-function gerarColunasMensalidadePlanilhaTurma() {
-  var colunas = [];
+function gerarColunasMensalidadePlanilhaTurma(opcoes) {
+  opcoes = opcoes || {};
+  var mapa = {};
+
+  function incluirMes(coluna, referencia) {
+    if (!coluna) return;
+    if (!mapa[coluna]) {
+      mapa[coluna] = { coluna: coluna, referencia: referencia || "Mensalidade " + coluna };
+    }
+  }
+
+  function incluirDeReferencia(ref) {
+    if (!ref) return;
+    var m = String(ref).match(/(\d{2})\/(\d{4})/);
+    if (m) incluirMes(m[1] + "/" + m[2], ref);
+  }
+
   var base = new Date();
   base.setDate(1);
   var inicio = -2;
@@ -96,21 +111,68 @@ function gerarColunasMensalidadePlanilhaTurma() {
     var d = new Date(base.getFullYear(), base.getMonth() + inicio + i, 1);
     var mes = String(d.getMonth() + 1).padStart(2, "0");
     var ano = d.getFullYear();
-    colunas.push({
-      coluna: mes + "/" + ano,
-      referencia: "Mensalidade " + mes + "/" + ano
+    incluirMes(mes + "/" + ano);
+  }
+
+  if (opcoes.colunasExtras && opcoes.colunasExtras.length) {
+    opcoes.colunasExtras.forEach(function (col) {
+      incluirMes(col);
     });
   }
-  return colunas;
+
+  var alunos = opcoes.alunos || [];
+  if (alunos.length && typeof obterPagamentosAlunos === "function") {
+    var ids = {};
+    var emails = {};
+    alunos.forEach(function (m) {
+      if (m && m.id) ids[m.id] = true;
+      if (m && m.email) emails[String(m.email).toLowerCase()] = true;
+    });
+    obterPagamentosAlunos().forEach(function (p) {
+      if (!p || p.tipo !== "mensalidade") return;
+      var doAluno =
+        (p.matriculaId && ids[p.matriculaId]) ||
+        (p.alunoEmail && emails[String(p.alunoEmail).toLowerCase()]);
+      if (!doAluno) return;
+      incluirDeReferencia(p.referencia);
+    });
+  }
+
+  return Object.keys(mapa)
+    .sort(function (a, b) {
+      var pa = a.split("/");
+      var pb = b.split("/");
+      return Number(pa[1] + pa[0]) - Number(pb[1] + pb[0]);
+    })
+    .map(function (chave) {
+      return mapa[chave];
+    });
 }
 
-function obterPagamentoMensalidadeReferencia(email, referencia) {
-  if (typeof obterPagamentosPorAluno !== "function") return null;
-  return (
-    obterPagamentosPorAluno(email).find(function (p) {
-      return p.tipo === "mensalidade" && p.referencia === referencia;
-    }) || null
-  );
+function obterPagamentoMensalidadeReferencia(matriculaOuEmail, referencia) {
+  if (typeof obterPagamentosAlunos !== "function") return null;
+  var lista = obterPagamentosAlunos();
+  if (matriculaOuEmail && typeof matriculaOuEmail === "object") {
+    var mat = matriculaOuEmail;
+    return (
+      lista.find(function (p) {
+        if (p.tipo !== "mensalidade" || p.referencia !== referencia) return false;
+        if (mat.id && p.matriculaId === mat.id) return true;
+        if (mat.email && p.alunoEmail) {
+          return String(p.alunoEmail).toLowerCase() === String(mat.email).toLowerCase();
+        }
+        return false;
+      }) || null
+    );
+  }
+  if (typeof obterPagamentosPorAluno === "function" && matriculaOuEmail) {
+    return (
+      obterPagamentosPorAluno(matriculaOuEmail).find(function (p) {
+        return p.tipo === "mensalidade" && p.referencia === referencia;
+      }) || null
+    );
+  }
+  return null;
 }
 
 function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, sessao) {
@@ -121,7 +183,7 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
     inicializarDadosFinanceiros();
   }
 
-  var existente = obterPagamentoMensalidadeReferencia(matricula.email, referencia);
+  var existente = obterPagamentoMensalidadeReferencia(matricula, referencia);
   var valor =
     opcoes.valor !== undefined && opcoes.valor !== null
       ? Number(opcoes.valor)
@@ -186,7 +248,7 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
 function montarCelulaPlanilhaTurmaMensalidade(matricula, coluna, sessao) {
   var esc =
     typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
-  var pag = obterPagamentoMensalidadeReferencia(matricula.email, coluna.referencia);
+  var pag = obterPagamentoMensalidadeReferencia(matricula, coluna.referencia);
   var formatar =
     typeof formatarMoeda === "function" ? formatarMoeda : String;
   var labelStatus =
@@ -252,7 +314,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
     typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
   var formatar =
     typeof formatarMoeda === "function" ? formatarMoeda : String;
-  var colunas = gerarColunasMensalidadePlanilhaTurma();
+  var colunas = gerarColunasMensalidadePlanilhaTurma({ alunos: alunos });
   var titulo = meta.titulo || "Planilha de mensalidades";
   var subtitulo =
     meta.subtitulo ||
@@ -267,9 +329,11 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
   var linhas = alunos
     .map(function (m) {
       var resumo =
-        typeof resumoExtratoAluno === "function"
-          ? resumoExtratoAluno(m.email)
-          : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
+        typeof resumoExtratoMatricula === "function"
+          ? resumoExtratoMatricula(m)
+          : typeof resumoExtratoAluno === "function"
+            ? resumoExtratoAluno(m.email)
+            : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
       var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
       var celulas = colunas
         .map(function (col) {

@@ -14,7 +14,7 @@
 
   function excelSerialParaMesAno(valor) {
     var n = Number(valor);
-    if (!n || Number.isNaN(n) || n < 1000) return "";
+    if (!n || Number.isNaN(n) || n < 1000) return rotuloMesTextoLegado(valor);
     if (global.XLSX && global.XLSX.SSF && global.XLSX.SSF.parse_date_code) {
       var d = global.XLSX.SSF.parse_date_code(n);
       if (d && d.y && d.m) {
@@ -26,6 +26,20 @@
     return (
       String(dt.getUTCMonth() + 1).padStart(2, "0") + "/" + dt.getUTCFullYear()
     );
+  }
+
+  /** Data colada do Excel (texto) → MM/AAAA */
+  function rotuloMesTextoLegado(valor) {
+    var s = String(valor != null ? valor : "").trim();
+    if (!s) return "";
+    if (/^\d{2}\/\d{4}$/.test(s)) return s;
+    var m = s.match(/^(\d{1,2})\/(\d{4})$/);
+    if (m) return String(m[1]).padStart(2, "0") + "/" + m[2];
+    m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (m) return String(m[2]).padStart(2, "0") + "/" + m[3];
+    m = s.match(/^(\d{4})[\/\-.](\d{1,2})/);
+    if (m) return String(m[2]).padStart(2, "0") + "/" + m[1];
+    return "";
   }
 
   function aoaDaAba(sheet) {
@@ -92,7 +106,7 @@
     var colunasMes = [];
     for (var c = 0; c < cab.length; c++) {
       if (c <= idxTaxaMat) continue;
-      var rotuloMes = excelSerialParaMesAno(cab[c]);
+      var rotuloMes = excelSerialParaMesAno(cab[c]) || rotuloMesTextoLegado(cab[c]);
       if (rotuloMes) colunasMes.push({ ix: c, rotulo: rotuloMes });
     }
 

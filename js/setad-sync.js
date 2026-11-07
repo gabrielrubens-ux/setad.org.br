@@ -311,6 +311,22 @@
       });
   }
 
+  function sincronizarColecaoAgora(collection) {
+    if (!window.SETAD || !SETAD.apiAtivo) return Promise.resolve(false);
+    if (syncTimers[collection]) {
+      clearTimeout(syncTimers[collection]);
+      syncTimers[collection] = null;
+    }
+    var listaLocal = cache[collection] || [];
+    var mergePath = MERGE_BEFORE_PUT[collection];
+    if (mergePath) {
+      return enviarColecaoComMerge(collection, mergePath, listaLocal).then(function () {
+        return true;
+      });
+    }
+    return Promise.resolve(false);
+  }
+
   function scheduleSync(collection, apiPath) {
     if (!window.SETAD || !SETAD.apiAtivo) return;
 
@@ -408,6 +424,7 @@
     init: init,
     hydrate: hydrate,
     scheduleSync: scheduleSync,
+    sincronizarColecaoAgora: sincronizarColecaoAgora,
     recuperarDadosLocais: recuperarDadosLocaisParaServidor,
     pullColecoesInstitucionais: pullColecoesInstitucionaisDoServidor,
     iniciarSincronizacaoTempoReal: iniciarSincronizacaoTempoReal,

@@ -847,13 +847,22 @@ function montarOpcoesEditorPlanilhaContab(sessao, optsBase) {
         }
       }
 
-      if (r.ok && window.SETAD && SETAD.pullColecoesInstitucionais) {
-        SETAD.pullColecoesInstitucionais({ notificar: true })
-          .then(encerrarSalvar)
-          .catch(encerrarSalvar);
-      } else {
-        encerrarSalvar();
+      function finalizarComSync() {
+        var etapas = Promise.resolve();
+        if (r.ok && window.SETAD && SETAD.sincronizarColecaoAgora) {
+          etapas = etapas.then(function () {
+            return SETAD.sincronizarColecaoAgora("pagamentos");
+          });
+        }
+        if (r.ok && window.SETAD && SETAD.pullColecoesInstitucionais) {
+          etapas = etapas.then(function () {
+            return SETAD.pullColecoesInstitucionais({ notificar: true, forcar: true });
+          });
+        }
+        etapas.then(encerrarSalvar).catch(encerrarSalvar);
       }
+
+      finalizarComSync();
     },
     onSalvo: optsBase.onSalvo,
     onCancelar: optsBase.onCancelar
@@ -899,11 +908,14 @@ function configurarArrastarSoltarPlanilhaContabPolos(container, sessao, obterPol
   if (!zona) return;
 
   function ehArquivoPlanilha(file) {
-    if (!file || !file.name) return false;
-    if (window.SETADPlanilhaExcel && window.SETADPlanilhaExcel.arquivoPlanilhaPermitido) {
-      return window.SETADPlanilhaExcel.arquivoPlanilhaPermitido(file);
+    if (!file) return false;
+    if (window.SETADPlanilhaExcel && window.SETADPlanilhaExcel.arquivoPlanilhaPermitido(file)) {
+      return true;
     }
-    return /\.(xlsx|xls|xlsm|ods|csv)$/i.test(file.name);
+    var nome = file.name || "";
+    if (/\.(xlsx|xls|xlsm|xlsb|xlt|xltx|ods|csv|txt)$/i.test(nome)) return true;
+    if (file.type && /spreadsheet|excel|csv|ods/i.test(file.type)) return true;
+    return false;
   }
 
   function aplicarClasseAtiva(ativo) {
@@ -1326,7 +1338,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
         '<p class="polo-contab__dropzone-polo" id="contabPolosPastePoloNome">Polo: ' +
         escaparHtml(nomePolo) +
         "</p>" +
-        '<p class="polo-contab__dropzone-hint">Selecione as células no Excel, <kbd>Ctrl+C</kbd>, clique aqui e <kbd>Ctrl+V</kbd>. Uma aba por colagem; use «Salvar alterações no site» após conferir.</p>' +
+        '<p class="polo-contab__dropzone-hint">Selecione as células no Excel, <kbd>Ctrl+C</kbd>, clique aqui e <kbd>Ctrl+V</kbd>. Uma aba por colagem; use «Salvar alterações no site» após conferir. O suporte a Excel carrega automaticamente pela internet (SheetJS) — não precisa instalar plugin no navegador.</p>' +
         "</div></div>"
       );
     })() +
@@ -1695,7 +1707,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
           " Lista de pagamentos atualizada.";
       }
     }
-    if (r.ok && !r.abertoEditor) {
+    if (r.ok && (r.atualizados || r.resumo || !r.abertoEditor)) {
       atualizarDadosPainelAposPlanilhaContab();
       renderPlanilha();
       renderTabela();
