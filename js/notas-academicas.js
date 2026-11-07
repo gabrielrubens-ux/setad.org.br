@@ -500,8 +500,20 @@ function obterClasseNotaBadge(valor) {
 }
 
 function usuarioContadorAutorizadoNotasPlanilha(sessao) {
+  if (
+    typeof usuarioPlanilhaContabPolosCompleto === "function" &&
+    usuarioPlanilhaContabPolosCompleto(sessao)
+  ) {
+    return true;
+  }
   if (!sessao || !sessao.email) return false;
   var email = String(sessao.email).trim().toLowerCase();
+  if (
+    typeof CONTAB_POLOS_EMAILS_AUTORIZADOS !== "undefined" &&
+    CONTAB_POLOS_EMAILS_AUTORIZADOS.indexOf(email) >= 0
+  ) {
+    return true;
+  }
   if (
     typeof CONTAB_POLOS_EMAILS_CONTABILIDADE !== "undefined" &&
     CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0

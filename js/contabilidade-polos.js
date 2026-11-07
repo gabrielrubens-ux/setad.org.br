@@ -13,6 +13,19 @@ var CONTAB_POLOS_EMAILS_CONTABILIDADE = [
   "rsgestaofinanceirapa@gmail.com"
 ];
 
+/** Excel completo, importação multi-aba, lançamentos e notas na contabilidade dos polos. */
+function emailPlanilhaContabPolosCompleto(email) {
+  var e = normalizarEmailContabPolos(email);
+  if (CONTAB_POLOS_EMAILS_AUTORIZADOS.indexOf(e) >= 0) return true;
+  if (CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(e) >= 0) return true;
+  return false;
+}
+
+function usuarioPlanilhaContabPolosCompleto(sessao) {
+  if (!sessao || !sessao.email) return false;
+  return emailPlanilhaContabPolosCompleto(sessao.email);
+}
+
 /** Rede local / IP — visualização e edição para o programador (localhost, LAN). */
 var CONTAB_POLOS_EMAILS_PROGRAMADOR = [
   "gabrielrubens0@gmail.com",
@@ -358,6 +371,7 @@ function usuarioPodeImportarExportarPlanilhaContab(sessao) {
 }
 
 function usuarioEhContadorPlanilhaAutorizado(sessao) {
+  if (usuarioPlanilhaContabPolosCompleto(sessao)) return true;
   if (!sessao || !sessao.email) return false;
   var email = normalizarEmailContabPolos(sessao.email);
   if (CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0) return true;
@@ -371,6 +385,7 @@ function usuarioEhContadorPlanilhaAutorizado(sessao) {
 /** Contadores autorizados e direção podem persistir importações completas. */
 function usuarioPodeSalvarPlanilhaContabPolos(sessao) {
   if (!estaDesbloqueadaContabilidadePolos(sessao)) return false;
+  if (usuarioPlanilhaContabPolosCompleto(sessao)) return true;
   if (usuarioEhContadorPlanilhaAutorizado(sessao)) return true;
   if (sessao.perfil === "diretor") return true;
   if (typeof sessaoTemPerfilInstitucional === "function" && sessaoTemPerfilInstitucional(sessao, "diretor")) {
@@ -638,7 +653,7 @@ function renderizarTelaSenhaContabPolos(container, sessao) {
     '<div class="polo-contab polo-contab--gate">' +
     '<h2 class="polo-contab__titulo">Contabilidade dos Polos</h2>' +
     '<p class="section__text">Área restrita. Confirme com a <strong>mesma senha do login</strong> institucional.</p>' +
-    '<p class="presencial-bloco__hint">Acesso autorizado: Kathlen (secretaria), direção e contabilidade (rafaeladmtc@gmail.com, rsgestaofinanceirapa@gmail.com).</p>' +
+    '<p class="presencial-bloco__hint">Acesso e planilha Excel completa: Kathlen (kathlensantiago@gmail.com), contabilidade (rafaeladmtc@gmail.com, rsgestaofinanceirapa@gmail.com) e direção.</p>' +
     '<form id="formSenhaContabPolos" class="polo-contab__gate-form">' +
     '<div class="form-group"><label for="contabPolosSenha">Senha</label>' +
     '<input type="password" id="contabPolosSenha" autocomplete="current-password" required></div>' +
