@@ -897,6 +897,12 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
     .then(function (workbook) {
       var host = hostEditor || obterHostEditorPlanilhaContab();
       var poloDestino = poloIdDefault || POLO_SETAD_GERAL_ID;
+      if (window.SETADContabPlanilhaLegadoPolo) {
+        workbook = window.SETADContabPlanilhaLegadoPolo.normalizarWorkbookImportadoLegadoPolo(
+          workbook,
+          poloDestino
+        );
+      }
       var reconhecido = reconhecerAlunosWorkbookContabPolos(workbook, poloDestino);
       var mesclado = window.SETADContabPlanilhaWorkbook
         ? window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
@@ -905,11 +911,18 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
           )
         : reconhecido.sheets;
 
+      var legadoAviso =
+        workbook && workbook.origemLegadoPolo
+          ? " Planilha legada de polo convertida (" + (workbook.alunosLegado || 0) + " alunos)."
+          : "";
       var descricao = ehPoloRecepcaoSetadGeral(poloDestino)
-        ? "Arquivo mesclado com o cadastro do site. Destino SETAD geral — desmembra por polo_id em cada linha."
+        ? "Arquivo mesclado com o cadastro do site. Destino SETAD geral — desmembra por polo_id em cada linha." +
+          legadoAviso
         : "Arquivo mesclado com pagamentos e valores já lançados neste polo. Alunos reconhecidos por nome/e-mail do cadastro (" +
           reconhecido.reconhecidos +
-          " linha(s)). Escolha o polo e edite antes de salvar.";
+          " linha(s))." +
+          legadoAviso +
+          " Revise e salve.";
 
       var opts = montarOpcoesEditorPlanilhaContab(sessao, {
         titulo: ehPoloRecepcaoSetadGeral(poloDestino)
