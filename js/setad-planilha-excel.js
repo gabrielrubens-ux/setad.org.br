@@ -242,6 +242,122 @@
     });
   }
 
+  function normalizarCelulaClipboard(txt) {
+    return String(txt != null ? txt : "")
+      .replace(/\u00a0/g, " ")
+      .trim();
+  }
+
+  function parseLinhaTsv(linha, sep) {
+    sep = sep || "\t";
+    var out = [];
+    var cur = "";
+    var emAspas = false;
+    for (var i = 0; i < linha.length; i++) {
+      var ch = linha[i];
+      if (ch === '"') {
+        if (emAspas && linha[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          emAspas = !emAspas;
+        }
+        continue;
+      }
+      if (!emAspas && ch === sep) {
+        out.push(normalizarCelulaClipboard(cur));
+        cur = "";
+        continue;
+      }
+      cur += ch;
+    }
+    out.push(normalizarCelulaClipboard(cur));
+    return out;
+  }
+
+  function textoParaAoa(texto) {
+    var t = String(texto || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    if (!t.trim()) return [];
+    var linhas = t.split("\n").filter(function (ln) {
+      return String(ln || "").trim() !== "";
+    });
+    if (!linhas.length) return [];
+    var sep = "\t";
+    if (linhas[0].indexOf("\t") < 0 && linhas[0].indexOf(";") >= 0) {
+      sep = ";";
+    } else if (linhas[0].indexOf("\t") < 0 && linhas[0].indexOf(",") >= 0) {
+      sep = ",";
+    }
+    return linhas.map(function (ln) {
+      return parseLinhaTsv(ln, sep);
+    });
+  }
+
+  function htmlClipboardParaAoa(html) {
+    if (!html || String(html).indexOf("<table") < 0) return [];
+    try {
+      var doc = new DOMParser().parseFromString(String(html), "text/html");
+      var table = doc.querySelector("table");
+      if (!table) return [];
+      var rows = [];
+      table.querySelectorAll("tr").forEach(function (tr) {
+        var cells = [];
+        tr.querySelectorAll("th, td").forEach(function (td) {
+          cells.push(normalizarCelulaClipboard(td.textContent || ""));
+        });
+        if (cells.some(function (c) {
+          return c !== "";
+        })) {
+          rows.push(cells);
+        }
+      });
+      return rows;
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  function aoaParaSheetColado(aoa, nome) {
+    nome = nome || "Colado";
+    if (!aoa || !aoa.length) {
+      return { name: nome, headers: [], body: [], aoaRaw: [] };
+    }
+    var grade = linhasParaGrade(aoa);
+    return {
+      name: nome,
+      headers: grade.headers,
+      body: grade.body,
+      aoaRaw: aoa
+    };
+  }
+
+  /**
+   * Converte Ctrl+V do Excel (HTML ou TSV) em workbook { sheets: [...] }.
+   */
+  function workbookDaAreaTransferencia(clipboardData) {
+    if (!clipboardData) {
+      return { ok: false, erro: "Área de transferência vazia." };
+    }
+    var html = clipboardData.getData ? clipboardData.getData("text/html") : "";
+    var plain = clipboardData.getData ? clipboardData.getData("text/plain") : "";
+    var aoa = htmlClipboardParaAoa(html);
+    if (!aoa.length) {
+      aoa = textoParaAoa(plain);
+    }
+    if (!aoa.length) {
+      return {
+        ok: false,
+        erro: "Não foi possível ler a tabela colada. Copie as células no Excel (Ctrl+C) e cole aqui."
+      };
+    }
+    return {
+      ok: true,
+      sheets: [aoaParaSheetColado(aoa, "Colado")],
+      sheetNames: ["Colado"],
+      origemColar: true
+    };
+  }
+
   function exportarCsv(headers, body, nomeArquivo, separador) {
     var sep = separador || ";";
     var linhas = [headers.join(sep)];
@@ -277,6 +393,8 @@
     exportarXlsx: exportarXlsx,
     exportarWorkbookXlsx: exportarWorkbookXlsx,
     exportarCsv: exportarCsv,
-    linhasParaGrade: linhasParaGrade
+    linhasParaGrade: linhasParaGrade,
+    workbookDaAreaTransferencia: workbookDaAreaTransferencia,
+    textoParaAoa: textoParaAoa
   };
 })(window);

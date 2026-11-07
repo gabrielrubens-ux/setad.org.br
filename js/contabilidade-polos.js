@@ -960,16 +960,120 @@ function configurarArrastarSoltarPlanilhaContabPolos(container, sessao, obterPol
   });
 }
 
+function processarWorkbookImportacaoContabPolos(workbook, sessao, cb, hostEditor, poloIdDefault, meta) {
+  meta = meta || {};
+  if (!usuarioPodeImportarExportarPlanilhaContab(sessao)) {
+    cb({ ok: false, erro: "Confirme a senha da contabilidade para importar planilhas." });
+    return;
+  }
+  if (!window.SETADContabPlanilhaEditor) {
+    cb({ ok: false, erro: "Módulos de planilha não carregados. Atualize a página." });
+    return;
+  }
+  if (!workbook || !workbook.sheets || !workbook.sheets.length) {
+    cb({ ok: false, erro: "Nenhuma linha reconhecida na planilha." });
+    return;
+  }
+
+  var host = hostEditor || obterHostEditorPlanilhaContab();
+  var poloDestino = poloIdDefault || POLO_SETAD_GERAL_ID;
+  var rotuloOrigem = meta.nomeArquivo || meta.rotuloOrigem || "planilha";
+
+  if (window.SETADContabPlanilhaLegadoPolo) {
+    workbook = window.SETADContabPlanilhaLegadoPolo.normalizarWorkbookImportadoLegadoPolo(
+      workbook,
+      poloDestino
+    );
+  }
+  if (workbook.origemLegadoPolo && ehPoloRecepcaoSetadGeral(poloDestino)) {
+    cb({
+      ok: false,
+      erro:
+        "Esta planilha é de um polo específico (coluna ALUNOS). Selecione o polo no card acima — por exemplo Guamá II — e importe de novo."
+    });
+    return;
+  }
+
+  var reconhecido = reconhecerAlunosWorkbookContabPolos(workbook, poloDestino);
+  var mesclado;
+  if (workbook.origemLegadoPolo) {
+    mesclado = reconhecido.sheets;
+  } else if (window.SETADContabPlanilhaWorkbook) {
+    mesclado = window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
+      { sheets: reconhecido.sheets },
+      poloDestino
+    );
+  } else {
+    mesclado = reconhecido.sheets;
+  }
+
+  var legadoAviso =
+    workbook && workbook.origemLegadoPolo
+      ? " Planilha legada de polo convertida (" + (workbook.alunosLegado || 0) + " alunos)."
+      : "";
+  var descricaoColar =
+    meta.origemColar
+      ? " Dados colados do Excel — confira alunos, mensalidades e matrículas antes de salvar."
+      : "";
+  var descricao = ehPoloRecepcaoSetadGeral(poloDestino)
+    ? "Mesclado com o cadastro do site. Destino SETAD geral — desmembra por polo_id em cada linha." +
+      legadoAviso +
+      descricaoColar
+    : "Mesclado com pagamentos e valores já lançados neste polo. Alunos reconhecidos por nome/e-mail do cadastro (" +
+      reconhecido.reconhecidos +
+      " linha(s))." +
+      legadoAviso +
+      descricaoColar +
+      " Revise e salve.";
+
+  var poloLabel = (function () {
+    var p = obterPolosParaContabilidade().find(function (x) {
+      return x.id === poloDestino;
+    });
+    return p ? p.nome : poloDestino;
+  })();
+
+  var opts = montarOpcoesEditorPlanilhaContab(sessao, {
+    titulo: ehPoloRecepcaoSetadGeral(poloDestino)
+      ? "Check-in de entrada — planilha"
+      : "Planilha — " + poloLabel,
+    descricao: descricao,
+    poloIdDefault: poloDestino,
+    modoCheckin: ehPoloRecepcaoSetadGeral(poloDestino),
+    nomeArquivo: rotuloOrigem,
+    onSalvo: function (r) {
+      cb(r);
+    },
+    onCancelar: function () {
+      cb({ ok: false, erro: "Importação cancelada.", cancelado: true });
+    }
+  });
+  opts.workbook = { sheets: mesclado };
+  opts.origemLegadoPolo = !!workbook.origemLegadoPolo;
+
+  window.SETADContabPlanilhaEditor.abrirEditorPlanilhaImportacao(host, opts);
+  cb({
+    ok: true,
+    abertoEditor: true,
+    mensagemAbertura:
+      "«" +
+      rotuloOrigem +
+      "» convertido para " +
+      poloLabel +
+      " — " +
+      mesclado.length +
+      " aba(s), " +
+      reconhecido.reconhecidos +
+      " aluno(s) reconhecidos."
+  });
+}
+
 function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefault) {
   if (!arquivo) {
     cb({ ok: false, erro: "Selecione um arquivo Excel (.xlsx, .xls, .xlsm…), ODS ou CSV." });
     return;
   }
-  if (!usuarioPodeImportarExportarPlanilhaContab(sessao)) {
-    cb({ ok: false, erro: "Confirme a senha da contabilidade para importar planilhas." });
-    return;
-  }
-  if (!window.SETADPlanilhaExcel || !window.SETADContabPlanilhaEditor) {
+  if (!window.SETADPlanilhaExcel) {
     cb({ ok: false, erro: "Módulos de planilha não carregados. Atualize a página." });
     return;
   }
@@ -984,87 +1088,8 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
 
   ler(arquivo)
     .then(function (workbook) {
-      var host = hostEditor || obterHostEditorPlanilhaContab();
-      var poloDestino = poloIdDefault || POLO_SETAD_GERAL_ID;
-      if (window.SETADContabPlanilhaLegadoPolo) {
-        workbook = window.SETADContabPlanilhaLegadoPolo.normalizarWorkbookImportadoLegadoPolo(
-          workbook,
-          poloDestino
-        );
-      }
-      if (workbook.origemLegadoPolo && ehPoloRecepcaoSetadGeral(poloDestino)) {
-        cb({
-          ok: false,
-          erro:
-            "Esta planilha é de um polo específico (coluna ALUNOS). Selecione o polo no card acima — por exemplo Guamá II — e arraste o Excel de novo."
-        });
-        return;
-      }
-      var reconhecido = reconhecerAlunosWorkbookContabPolos(workbook, poloDestino);
-      var mesclado;
-      if (workbook.origemLegadoPolo) {
-        mesclado = reconhecido.sheets;
-      } else if (window.SETADContabPlanilhaWorkbook) {
-        mesclado = window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
-          { sheets: reconhecido.sheets },
-          poloDestino
-        );
-      } else {
-        mesclado = reconhecido.sheets;
-      }
-
-      var legadoAviso =
-        workbook && workbook.origemLegadoPolo
-          ? " Planilha legada de polo convertida (" + (workbook.alunosLegado || 0) + " alunos)."
-          : "";
-      var descricao = ehPoloRecepcaoSetadGeral(poloDestino)
-        ? "Arquivo mesclado com o cadastro do site. Destino SETAD geral — desmembra por polo_id em cada linha." +
-          legadoAviso
-        : "Arquivo mesclado com pagamentos e valores já lançados neste polo. Alunos reconhecidos por nome/e-mail do cadastro (" +
-          reconhecido.reconhecidos +
-          " linha(s))." +
-          legadoAviso +
-          " Revise e salve.";
-
-      var poloLabel = (function () {
-        var p = obterPolosParaContabilidade().find(function (x) {
-          return x.id === poloDestino;
-        });
-        return p ? p.nome : poloDestino;
-      })();
-
-      var opts = montarOpcoesEditorPlanilhaContab(sessao, {
-        titulo: ehPoloRecepcaoSetadGeral(poloDestino)
-          ? "Check-in de entrada — planilha"
-          : "Planilha — " + poloLabel,
-        descricao: descricao,
-        poloIdDefault: poloDestino,
-        modoCheckin: ehPoloRecepcaoSetadGeral(poloDestino),
-        nomeArquivo: arquivo.name || "",
-        onSalvo: function (r) {
-          cb(r);
-        },
-        onCancelar: function () {
-          cb({ ok: false, erro: "Importação cancelada.", cancelado: true });
-        }
-      });
-      opts.workbook = { sheets: mesclado };
-      opts.origemLegadoPolo = !!workbook.origemLegadoPolo;
-
-      window.SETADContabPlanilhaEditor.abrirEditorPlanilhaImportacao(host, opts);
-      cb({
-        ok: true,
-        abertoEditor: true,
-        mensagemAbertura:
-          "Arquivo «" +
-          (arquivo.name || "planilha") +
-          "» convertido para " +
-          poloLabel +
-          " — " +
-          mesclado.length +
-          " aba(s), " +
-          reconhecido.reconhecidos +
-          " aluno(s) reconhecidos."
+      processarWorkbookImportacaoContabPolos(workbook, sessao, cb, hostEditor, poloIdDefault, {
+        nomeArquivo: arquivo.name || "arquivo"
       });
     })
     .catch(function (err) {
@@ -1073,6 +1098,97 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
         erro: (err && err.message) || "Não foi possível ler a planilha."
       });
     });
+}
+
+/** Cola tabela copiada do Excel (Ctrl+C) na área de contabilidade do polo selecionado. */
+function importarColarPlanilhaContabPolos(clipboardData, sessao, cb, hostEditor, poloIdDefault) {
+  if (!window.SETADPlanilhaExcel || !window.SETADPlanilhaExcel.workbookDaAreaTransferencia) {
+    cb({ ok: false, erro: "Módulo de área de transferência não carregado. Atualize a página." });
+    return;
+  }
+  var wb = window.SETADPlanilhaExcel.workbookDaAreaTransferencia(clipboardData);
+  if (!wb.ok) {
+    cb({ ok: false, erro: wb.erro || "Não foi possível interpretar o conteúdo colado." });
+    return;
+  }
+  processarWorkbookImportacaoContabPolos(wb, sessao, cb, hostEditor, poloIdDefault, {
+    rotuloOrigem: "Colado do Excel",
+    origemColar: true
+  });
+}
+
+function configurarColarPlanilhaContabPolos(sessao, obterPoloAtivoId, cbImportacao) {
+  var zona = document.getElementById("contabPolosPasteZone");
+  if (!zona) return;
+
+  function processarClipboard(data) {
+    if (!data) return;
+    zona.classList.remove("polo-contab__pastezone--ok");
+    importarColarPlanilhaContabPolos(data, sessao, cbImportacao, null, obterPoloAtivoId());
+  }
+
+  zona.addEventListener("paste", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    processarClipboard(e.clipboardData);
+  });
+
+  zona.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      zona.focus();
+    }
+  });
+
+  zona.addEventListener("focus", function () {
+    zona.classList.add("polo-contab__pastezone--foco");
+  });
+  zona.addEventListener("blur", function () {
+    zona.classList.remove("polo-contab__pastezone--foco");
+  });
+
+  var btnColar = document.getElementById("btnContabPolosColar");
+  if (btnColar) {
+    btnColar.addEventListener("click", function () {
+      zona.focus();
+      var msg = document.getElementById("contabPolosMsg");
+      if (msg) {
+        msg.className = "form-mensagem form-mensagem--sucesso visible";
+        msg.textContent =
+          "Área de colar ativa — selecione as células no Excel, copie (Ctrl+C) e cole aqui (Ctrl+V).";
+      }
+      if (navigator.clipboard && navigator.clipboard.read) {
+        navigator.clipboard
+          .read()
+          .then(function (items) {
+            var htmlItem = items.find(function (it) {
+              return it.types.indexOf("text/html") >= 0;
+            });
+            if (htmlItem) {
+              return htmlItem.getType("text/html");
+            }
+            return null;
+          })
+          .then(function (blob) {
+            if (!blob) return;
+            return blob.text();
+          })
+          .then(function (html) {
+            if (!html) return;
+            var fake = {
+              getData: function (type) {
+                if (type === "text/html") return html;
+                return "";
+              }
+            };
+            processarClipboard(fake);
+          })
+          .catch(function () {
+            /* aguarda Ctrl+V na zona */
+          });
+      }
+    });
+  }
 }
 
 function renderizarTelaSenhaContabPolos(container, sessao) {
@@ -1175,6 +1291,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
     '<button type="button" class="btn btn--primary btn--sm" id="btnContabPolosAbrirPlanilha">Abrir planilha no site</button>' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosColar">Colar do Excel</button>' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosModelo">Modelo Excel (3 abas)</button>' +
     '<label class="btn btn--secondary btn--sm polo-contab__import-label">' +
     "Importar Excel<input type=\"file\" id=\"contabPolosImport\" accept=\".xlsx,.xls,.xlt,.xltx,.xlsm,.xlsb,.xla,.ods,.csv,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet\" hidden></label>" +
@@ -1193,15 +1310,24 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? " SETAD geral: use planilha com polo_id em cada linha."
         : " Conversão automática para cadastro, mensalidades por mês e pagamentos dos alunos deste polo.";
       return (
+        '<div class="polo-contab__import-duplo">' +
         '<div class="polo-contab__dropzone" id="contabPolosDropZone" tabindex="0" role="button" aria-label="Arrastar planilha Excel do polo selecionado">' +
         '<p class="polo-contab__dropzone-icone" aria-hidden="true">📥</p>' +
-        '<p class="polo-contab__dropzone-titulo"><strong>Arraste o Excel aqui</strong> ou clique para escolher</p>' +
+        '<p class="polo-contab__dropzone-titulo"><strong>Arrastar arquivo</strong> ou clique para escolher</p>' +
         '<p class="polo-contab__dropzone-polo" id="contabPolosDropPoloNome">Polo: ' +
         escaparHtml(nomePolo) +
         "</p>" +
-        '<p class="polo-contab__dropzone-hint">Reconhece formato SETAD ou planilha manual (ALUNOS + meses).' +
+        '<p class="polo-contab__dropzone-hint">Formato SETAD (3 abas) ou planilha manual (ALUNOS + meses).' +
         escaparHtml(dicaGeral) +
-        "</p></div>"
+        "</p></div>" +
+        '<div class="polo-contab__pastezone" id="contabPolosPasteZone" tabindex="0" role="textbox" aria-label="Colar planilha copiada do Excel">' +
+        '<p class="polo-contab__pastezone-icone" aria-hidden="true">📋</p>' +
+        '<p class="polo-contab__dropzone-titulo"><strong>Copiar e colar</strong></p>' +
+        '<p class="polo-contab__dropzone-polo" id="contabPolosPastePoloNome">Polo: ' +
+        escaparHtml(nomePolo) +
+        "</p>" +
+        '<p class="polo-contab__dropzone-hint">Selecione as células no Excel, <kbd>Ctrl+C</kbd>, clique aqui e <kbd>Ctrl+V</kbd>. Uma aba por colagem; use «Salvar alterações no site» após conferir.</p>' +
+        "</div></div>"
       );
     })() +
     '<div class="polo-contab__turma-filtro form-group">' +
@@ -1220,7 +1346,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div id="contabPolosPagamento" class="polo-contab__pagamento"></div>' +
     "</details>" +
     '<div id="contabPolosMsg" class="form-mensagem" role="status"></div>' +
-    '<p class="presencial-bloco__hint">Selecione o polo, arraste o .xlsx na área azul e revise a planilha no site (alunos, pagamentos e cada mês). «Salvar alterações no site» atualiza a lista.</p>' +
+    '<p class="presencial-bloco__hint">Selecione o polo (incluindo SETAD geral), arraste o .xlsx ou cole do Excel, revise no editor e use «Salvar alterações no site» para atualizar pagamentos e a lista editável de cada polo.</p>' +
     "</div>";
 
   container.dataset.poloAtivo = poloAtivo;
@@ -1598,6 +1724,16 @@ function renderizarContabilidadePolos(containerId, sessao) {
     },
     function (r) {
       aoFeedbackImportacaoPlanilha(r, document.getElementById("contabPolosImport"));
+    }
+  );
+
+  configurarColarPlanilhaContabPolos(
+    sessao,
+    function () {
+      return container.dataset.poloAtivo;
+    },
+    function (r) {
+      aoFeedbackImportacaoPlanilha(r, null);
     }
   );
 

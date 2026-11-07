@@ -30,6 +30,7 @@
 
   function aoaDaAba(sheet) {
     if (!sheet) return [];
+    if (sheet.aoaRaw && sheet.aoaRaw.length) return sheet.aoaRaw;
     if (global.XLSX && sheet["!ref"]) {
       return global.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
     }
