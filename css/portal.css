@@ -4180,3 +4180,39 @@ html.setad-planilha-editor-aberto {
   padding: 0.75rem 1rem 1rem;
   border-top: 1px solid rgba(35, 64, 107, 0.1);
 }
+
+.setad-planilha-editor__polo {
+  margin: 0.65rem 0 0.35rem;
+  max-width: 22rem;
+}
+
+.setad-planilha-editor__polo-select {
+  width: 100%;
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(35, 64, 107, 0.2);
+}
+
+.setad-planilha-editor__abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.setad-planilha-editor__aba {
+  border: 1px solid rgba(35, 64, 107, 0.18);
+  background: #f7f9fc;
+  color: #23406b;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.setad-planilha-editor__aba--ativa {
+  background: rgba(35, 64, 107, 0.12);
+  border-color: #23406b;
+}

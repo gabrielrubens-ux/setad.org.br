@@ -1,0 +1,394 @@
+/**
+ * Exportação/importação completa — cadastro, mensalidades e notas por polo.
+ */
+(function (global) {
+  "use strict";
+
+  function normCab(n) {
+    return String(n || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/"/g, "");
+  }
+
+  function classificarAba(nomeAba, headers) {
+    var cab = (headers || []).map(normCab);
+    var cabRaw = (headers || []).map(function (h) {
+      return String(h || "").trim();
+    });
+    var nome = normCab(nomeAba);
+    var mesCol = cabRaw.some(function (c) {
+      return /^\d{2}\/\d{4}$/.test(c);
+    });
+    if (cab.indexOf("matricula_id") >= 0 && cab.indexOf("disciplina") < 0) {
+      if (mesCol) return "mensalidades";
+      if (cab.indexOf("situacao") >= 0 || cab.indexOf("forma_pagamento") >= 0) {
+        return "cadastro";
+      }
+    }
+    if (cab.indexOf("disciplina") >= 0 && cab.indexOf("nota") >= 0) return "notas";
+    if (nome.indexOf("mensal") >= 0) return "mensalidades";
+    if (nome.indexOf("nota") >= 0 || nome.indexOf("media") >= 0) return "notas";
+    if (nome.indexOf("cadastro") >= 0) return "cadastro";
+    if (cab.indexOf("matricula_id") >= 0) return "cadastro";
+    return "desconhecido";
+  }
+
+  function montarCorpoMensalidadesExportPolo(poloId) {
+    if (
+      typeof obterMatriculasDoPolo !== "function" ||
+      typeof gerarColunasMensalidadePlanilhaTurma !== "function"
+    ) {
+      return { headers: [], body: [] };
+    }
+    var colunas = gerarColunasMensalidadePlanilhaTurma();
+    var headers = ["matricula_id", "nome", "email", "polo_id"];
+    colunas.forEach(function (c) {
+      headers.push(c.coluna);
+    });
+    headers.push("total_pago", "em_aberto");
+
+    var linhas = obterMatriculasDoPolo(poloId);
+
+    var body = linhas.map(function (m) {
+      var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || ""];
+      colunas.forEach(function (col) {
+        var pag =
+          typeof obterPagamentoMensalidadeReferencia === "function"
+            ? obterPagamentoMensalidadeReferencia(m.email, col.referencia)
+            : null;
+        if (!pag) {
+          row.push("");
+          return;
+        }
+        row.push(String(pag.valor || "") + "|" + (pag.status || "pago"));
+      });
+      var resumo =
+        typeof resumoExtratoAluno === "function"
+          ? resumoExtratoAluno(m.email)
+          : { valorPago: 0, valorPendente: 0, valorAgendado: 0 };
+      var emAberto = (resumo.valorPendente || 0) + (resumo.valorAgendado || 0);
+      row.push(resumo.valorPago || 0, emAberto);
+      return row;
+    });
+
+    return { headers: headers, body: body };
+  }
+
+  function montarCorpoNotasExportPolo(poloId) {
+    if (typeof obterMatriculasDoPolo !== "function") {
+      return { headers: [], body: [] };
+    }
+    var periodo =
+      typeof obterPeriodoLetivoAtual === "function"
+        ? obterPeriodoLetivoAtual()
+        : new Date().getFullYear() + "-1";
+    var headers = [
+      "matricula_id",
+      "nome",
+      "email",
+      "polo_id",
+      "periodo",
+      "disciplina",
+      "nota",
+      "media_manual"
+    ];
+    var disciplinas =
+      typeof DISCIPLINAS_SETAD !== "undefined" ? DISCIPLINAS_SETAD.slice() : [];
+    var linhas = obterMatriculasDoPolo(poloId);
+    var body = [];
+
+    linhas.forEach(function (m) {
+      var media =
+        typeof obterMediaExibicaoAluno === "function"
+          ? obterMediaExibicaoAluno(m.email, periodo)
+          : "";
+      disciplinas.forEach(function (disc) {
+        var nota =
+          typeof obterNotaLancamento === "function"
+            ? obterNotaLancamento(m.email, disc, periodo, "prova", "Prova 1")
+            : null;
+        body.push([
+          m.id,
+          m.nomeCompleto || "",
+          m.email || "",
+          m.poloId || "",
+          periodo,
+          disc,
+          nota && nota.valor != null ? nota.valor : "",
+          media !== null && media !== undefined ? media : ""
+        ]);
+      });
+    });
+
+    return { headers: headers, body: body };
+  }
+
+  function montarWorkbookExportacaoPolo(poloId) {
+    var colunasCadastro =
+      typeof CONTAB_POLOS_COLUNAS_MODELO !== "undefined"
+        ? CONTAB_POLOS_COLUNAS_MODELO
+        : [
+            "matricula_id",
+            "nome",
+            "email",
+            "polo_id",
+            "polo_nome",
+            "modulo",
+            "situacao",
+            "forma_pagamento",
+            "valor_sugerido",
+            "observacoes"
+          ];
+    var cadastro =
+      typeof montarCorpoExportacaoContabPolos === "function"
+        ? {
+            headers: colunasCadastro,
+            body: montarCorpoExportacaoContabPolos(poloId)
+          }
+        : { headers: [], body: [] };
+    var mens = montarCorpoMensalidadesExportPolo(poloId);
+    var notas = montarCorpoNotasExportPolo(poloId);
+    var polo =
+      typeof obterPolosParaContabilidade === "function"
+        ? obterPolosParaContabilidade().find(function (p) {
+            return p.id === poloId;
+          })
+        : null;
+    var meta = [
+      "SETAD — polo: " + (polo ? polo.nome : poloId) + " · gerado em " + new Date().toISOString()
+    ];
+    return [
+      {
+        name: "Cadastro_contabil",
+        headers: cadastro.headers,
+        body: cadastro.body,
+        metaRow: meta
+      },
+      { name: "Mensalidades", headers: mens.headers, body: mens.body },
+      { name: "Notas_medias", headers: notas.headers, body: notas.body }
+    ];
+  }
+
+  function exportarWorkbookPolo(poloId) {
+    if (!global.SETADPlanilhaExcel || !global.SETADPlanilhaExcel.exportarWorkbookXlsx) {
+      if (typeof exportarPlanilhaContabPolosXlsx === "function") {
+        exportarPlanilhaContabPolosXlsx(poloId);
+      }
+      return;
+    }
+    var abas = montarWorkbookExportacaoPolo(poloId);
+    var nome =
+      "setad-polo-completo-" + (poloId || "todos") + "-" + new Date().toISOString().slice(0, 10) + ".xlsx";
+    global.SETADPlanilhaExcel.exportarWorkbookXlsx(abas, nome);
+  }
+
+  function aplicarAbaCadastro(grade, poloId, sessao) {
+    if (typeof aplicarGradePlanilhaContabPolos !== "function") {
+      return { ok: false, erro: "Módulo de cadastro indisponível.", count: 0 };
+    }
+    if (poloId) {
+      var cab = grade.headers.map(normCab);
+      var idxPolo = cab.indexOf("polo_id");
+      if (idxPolo >= 0) {
+        grade.body = grade.body.filter(function (row) {
+          var pid = String(row[idxPolo] || "").trim();
+          return !pid || pid === poloId;
+        });
+      }
+    }
+    var r = aplicarGradePlanilhaContabPolos(grade, sessao);
+    return { ok: r.ok, erro: r.erro, count: r.atualizados || 0, tipo: "cadastro" };
+  }
+
+  function parseCelulaMensalidade(valor) {
+    var s = String(valor || "").trim();
+    if (!s) return null;
+    var partes = s.split("|");
+    var valorNum = Number(String(partes[0]).replace(",", "."));
+    var status = (partes[1] || "pago").trim().toLowerCase();
+    if (status === "pago_presencial") status = "pago";
+    if (!status) status = "pago";
+    return { valor: valorNum, status: status };
+  }
+
+  function aplicarAbaMensalidades(grade, poloId, sessao) {
+    if (typeof registrarOuAtualizarMensalidadeTurma !== "function") {
+      return { ok: false, erro: "Módulo de mensalidades indisponível.", count: 0 };
+    }
+    var cab = grade.headers.map(normCab);
+    var idxId = cab.indexOf("matricula_id");
+    var idxEmail = cab.indexOf("email");
+    if (idxId < 0 && idxEmail < 0) {
+      return { ok: false, erro: 'Aba Mensalidades: informe coluna "matricula_id" ou "email".', count: 0 };
+    }
+    var meses = [];
+    (grade.headers || []).forEach(function (c, i) {
+      var raw = String(c || "").trim();
+      if (/^\d{2}\/\d{4}$/.test(raw)) {
+        meses.push({ ix: i, referencia: "Mensalidade " + raw });
+      }
+    });
+    if (!meses.length) {
+      return { ok: false, erro: "Aba Mensalidades: nenhuma coluna de mês (ex.: 03/2026).", count: 0 };
+    }
+    var count = 0;
+    grade.body.forEach(function (row) {
+      var matricula = null;
+      if (idxId >= 0 && row[idxId]) {
+        matricula =
+          typeof obterMatriculaPorId === "function"
+            ? obterMatriculaPorId(String(row[idxId]).trim())
+            : null;
+      }
+      if (!matricula && idxEmail >= 0 && row[idxEmail]) {
+        matricula =
+          typeof obterMatriculaPorEmail === "function"
+            ? obterMatriculaPorEmail(String(row[idxEmail]).trim())
+            : null;
+      }
+      if (!matricula) return;
+      if (poloId && matricula.poloId && matricula.poloId !== poloId) return;
+
+      meses.forEach(function (mes) {
+        var parsed = parseCelulaMensalidade(row[mes.ix]);
+        if (!parsed || !parsed.valor) return;
+        var reg = registrarOuAtualizarMensalidadeTurma(
+          matricula,
+          mes.referencia,
+          {
+            valor: parsed.valor,
+            status: parsed.status,
+            formaPagamento: "PIX",
+            observacoes: "Importação Excel — mensalidades"
+          },
+          sessao
+        );
+        if (reg && reg.ok) count++;
+      });
+    });
+    return { ok: true, count: count, tipo: "mensalidades" };
+  }
+
+  function aplicarAbaNotas(grade, poloId, sessao) {
+    if (typeof salvarNotaAcademica !== "function") {
+      return { ok: false, erro: "Módulo de notas indisponível.", count: 0 };
+    }
+    var cab = grade.headers.map(normCab);
+    var idxId = cab.indexOf("matricula_id");
+    var idxDisc = cab.indexOf("disciplina");
+    var idxNota = cab.indexOf("nota");
+    var idxPeriodo = cab.indexOf("periodo");
+    var idxMedia = cab.indexOf("media_manual");
+    if (idxDisc < 0 || idxNota < 0) {
+      return { ok: false, erro: 'Aba Notas: colunas "disciplina" e "nota" são obrigatórias.', count: 0 };
+    }
+    var count = 0;
+    grade.body.forEach(function (row) {
+      var matricula = null;
+      if (idxId >= 0 && row[idxId]) {
+        matricula =
+          typeof obterMatriculaPorId === "function"
+            ? obterMatriculaPorId(String(row[idxId]).trim())
+            : null;
+      }
+      if (!matricula) return;
+      if (poloId && matricula.poloId && matricula.poloId !== poloId) return;
+
+      var periodo =
+        idxPeriodo >= 0 && row[idxPeriodo]
+          ? String(row[idxPeriodo]).trim()
+          : typeof obterPeriodoLetivoAtual === "function"
+            ? obterPeriodoLetivoAtual()
+            : "";
+
+      var notaVal = String(row[idxNota] || "").trim();
+      if (notaVal) {
+        var r = salvarNotaAcademica(
+          {
+            matriculaId: matricula.id,
+            alunoEmail: matricula.email,
+            periodo: periodo,
+            disciplina: String(row[idxDisc]).trim(),
+            tipo: "prova",
+            avaliacao: "Prova 1",
+            valor: notaVal
+          },
+          sessao
+        );
+        if (r && r.ok) count++;
+      }
+
+      if (idxMedia >= 0 && row[idxMedia] !== "" && row[idxMedia] != null) {
+        var rm = salvarNotaAcademica(
+          {
+            matriculaId: matricula.id,
+            alunoEmail: matricula.email,
+            periodo: periodo,
+            tipo: "media_manual",
+            valor: String(row[idxMedia]).trim()
+          },
+          sessao
+        );
+        if (rm && rm.ok) count++;
+      }
+    });
+    return { ok: true, count: count, tipo: "notas" };
+  }
+
+  function aplicarWorkbookContabPolos(workbook, poloId, sessao) {
+    if (!workbook || !workbook.sheets || !workbook.sheets.length) {
+      return { ok: false, erro: "Arquivo sem abas reconhecidas." };
+    }
+    if (
+      typeof usuarioPodeSalvarPlanilhaContabPolos === "function" &&
+      !usuarioPodeSalvarPlanilhaContabPolos(sessao)
+    ) {
+      return {
+        ok: false,
+        erro: "Somente a contabilidade autorizada pode salvar alterações importadas."
+      };
+    }
+    if (!poloId) {
+      return { ok: false, erro: "Selecione o polo de destino antes de aplicar." };
+    }
+
+    var resumo = [];
+    var erros = [];
+
+    workbook.sheets.forEach(function (sheet) {
+      var tipo = classificarAba(sheet.name, sheet.headers);
+      var grade = { headers: sheet.headers, body: sheet.body };
+      var r;
+      if (tipo === "cadastro") r = aplicarAbaCadastro(grade, poloId, sessao);
+      else if (tipo === "mensalidades") r = aplicarAbaMensalidades(grade, poloId, sessao);
+      else if (tipo === "notas") r = aplicarAbaNotas(grade, poloId, sessao);
+      else return;
+
+      if (r.ok) {
+        resumo.push((sheet.name || tipo) + ": " + (r.count || 0) + " lançamento(s)");
+      } else if (r.erro) {
+        erros.push(r.erro);
+      }
+    });
+
+    if (!resumo.length && erros.length) {
+      return { ok: false, erro: erros.join(" ") };
+    }
+
+    return {
+      ok: true,
+      atualizados: resumo.join(" · "),
+      resumo: resumo,
+      avisos: erros
+    };
+  }
+
+  global.SETADContabPlanilhaWorkbook = {
+    classificarAba: classificarAba,
+    montarWorkbookExportacaoPolo: montarWorkbookExportacaoPolo,
+    exportarWorkbookPolo: exportarWorkbookPolo,
+    aplicarWorkbookContabPolos: aplicarWorkbookContabPolos
+  };
+})(window);

@@ -357,6 +357,28 @@ function usuarioPodeImportarExportarPlanilhaContab(sessao) {
   );
 }
 
+function usuarioEhContadorPlanilhaAutorizado(sessao) {
+  if (!sessao || !sessao.email) return false;
+  var email = normalizarEmailContabPolos(sessao.email);
+  if (CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0) return true;
+  if (sessao.perfil === "contador" || (typeof sessaoTemPerfilInstitucional === "function" &&
+      sessaoTemPerfilInstitucional(sessao, "contador"))) {
+    return CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0;
+  }
+  return false;
+}
+
+/** Contadores autorizados e direção podem persistir importações completas. */
+function usuarioPodeSalvarPlanilhaContabPolos(sessao) {
+  if (!estaDesbloqueadaContabilidadePolos(sessao)) return false;
+  if (usuarioEhContadorPlanilhaAutorizado(sessao)) return true;
+  if (sessao.perfil === "diretor") return true;
+  if (typeof sessaoTemPerfilInstitucional === "function" && sessaoTemPerfilInstitucional(sessao, "diretor")) {
+    return true;
+  }
+  return false;
+}
+
 var CONTAB_POLOS_COLUNAS_MODELO = [
   "matricula_id",
   "nome",
@@ -490,6 +512,10 @@ function exportarPlanilhaContabPolos(poloId) {
 }
 
 function exportarPlanilhaContabPolosXlsx(poloId) {
+  if (window.SETADContabPlanilhaWorkbook) {
+    window.SETADContabPlanilhaWorkbook.exportarWorkbookPolo(poloId);
+    return;
+  }
   if (!window.SETADPlanilhaExcel) {
     exportarPlanilhaContabPolos(poloId);
     return;
@@ -506,35 +532,35 @@ function exportarModeloPlanilhaContabPolos() {
   var poloId = obterPolosParaContabilidade()[0]
     ? obterPolosParaContabilidade()[0].id
     : "modelo";
-  if (window.SETADPlanilhaExcel) {
-    var exemplo = [
-      "exemplo-matricula",
-      "Aluno Exemplo",
-      "aluno@exemplo.com",
-      poloId,
-      "Nome do polo",
-      "medio",
-      "em_dia",
-      "PIX",
-      "100",
-      "Linha de exemplo — apague antes de importar"
-    ];
-    window.SETADPlanilhaExcel.exportarXlsx(
-      CONTAB_POLOS_COLUNAS_MODELO,
-      [exemplo],
-      "setad-modelo-contab-polos.xlsx",
-      [
-        "Modelo SETAD — contabilidade dos polos. Não altere os nomes das colunas."
-      ]
-    );
+  if (window.SETADContabPlanilhaWorkbook && window.SETADPlanilhaExcel) {
+    var abas = window.SETADContabPlanilhaWorkbook.montarWorkbookExportacaoPolo(poloId);
+    abas.forEach(function (aba) {
+      if (aba.name === "Cadastro_contabil" && (!aba.body || !aba.body.length)) {
+        aba.body = [
+          [
+            "exemplo-matricula",
+            "Aluno Exemplo",
+            "aluno@exemplo.com",
+            poloId,
+            "Nome do polo",
+            "medio",
+            "em_dia",
+            "PIX",
+            "100",
+            "Apague esta linha antes de importar"
+          ]
+        ];
+      }
+    });
+    window.SETADPlanilhaExcel.exportarWorkbookXlsx(abas, "setad-modelo-contab-polos-completo.xlsx");
     return;
   }
   exportarPlanilhaContabPolos(poloId);
 }
 
-function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor) {
+function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefault) {
   if (!arquivo) {
-    cb({ ok: false, erro: "Selecione um arquivo Excel (.xlsx), ODS ou CSV." });
+    cb({ ok: false, erro: "Selecione um arquivo Excel (.xlsx, .xls, .xlsm…), ODS ou CSV." });
     return;
   }
   if (!usuarioPodeImportarExportarPlanilhaContab(sessao)) {
@@ -546,8 +572,16 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor) {
     return;
   }
 
-  window.SETADPlanilhaExcel.lerArquivo(arquivo)
-    .then(function (grade) {
+  var ler =
+    window.SETADPlanilhaExcel.lerArquivoCompleto ||
+    function (f) {
+      return window.SETADPlanilhaExcel.lerArquivo(f).then(function (g) {
+        return { sheets: [g] };
+      });
+    };
+
+  ler(arquivo)
+    .then(function (workbook) {
       var host =
         hostEditor ||
         document.getElementById("contabPlanilhaEditorHost") ||
@@ -559,14 +593,31 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor) {
           return el;
         })();
 
+      var polos = obterPolosParaContabilidade();
+
       window.SETADContabPlanilhaEditor.abrirEditorPlanilhaImportacao(host, {
         titulo: "Importar planilha — contabilidade dos polos",
         descricao:
-          "Revise os dados do arquivo. Ajuste situação, forma de pagamento, valores e observações antes de aplicar.",
-        headers: grade.headers,
-        body: grade.body,
-        onAplicar: function (editada) {
-          var r = aplicarGradePlanilhaContabPolos(editada, sessao);
+          "Todas as abas do Excel são reconhecidas (cadastro, mensalidades, notas). Escolha o polo, edite e salve.",
+        workbook: workbook,
+        polos: polos,
+        poloIdDefault: poloIdDefault || "",
+        editarCompleto: usuarioEhContadorPlanilhaAutorizado(sessao),
+        onAplicar: function (payload) {
+          var r;
+          if (window.SETADContabPlanilhaWorkbook) {
+            r = window.SETADContabPlanilhaWorkbook.aplicarWorkbookContabPolos(
+              { sheets: payload.sheets },
+              payload.poloId,
+              sessao
+            );
+          } else {
+            var primeira = payload.sheets[0];
+            r = aplicarGradePlanilhaContabPolos(primeira, sessao);
+          }
+          if (r.ok && window.SETAD && SETAD.pullColecoesInstitucionais) {
+            SETAD.pullColecoesInstitucionais({ notificar: true });
+          }
           cb(r);
         },
         onCancelar: function () {
@@ -675,13 +726,13 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab">' +
     avisoDev +
     '<div class="polo-contab__toolbar">' +
-    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Alunos do site aparecem conforme o polo vinculado na matrícula.</p>' +
+    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Excel completo: cadastro, mensalidades e notas/médias. Contabilidade autorizada pode editar e salvar.</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosModelo">Modelo Excel (.xlsx)</button>' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosModelo">Modelo Excel (3 abas)</button>' +
     '<label class="btn btn--secondary btn--sm polo-contab__import-label">' +
-    "Importar Excel/CSV<input type=\"file\" id=\"contabPolosImport\" accept=\".xlsx,.xls,.xlsm,.xlsb,.ods,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv\" hidden></label>" +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExportXlsx">Exportar Excel</button>' +
+    "Importar Excel<input type=\"file\" id=\"contabPolosImport\" accept=\".xlsx,.xls,.xlt,.xltx,.xlsm,.xlsb,.xla,.ods,.csv,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet\" hidden></label>" +
+    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExportXlsx">Exportar Excel completo</button>' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExport">Exportar CSV</button>' +
     "</div></div>" +
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
@@ -756,8 +807,14 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? "Planilha — " + turma.nome
         : "Planilha — " + (polo ? polo.nome : "Polo"),
       subtitulo:
-        "Mensalidades e notas do polo/turma. Lançamentos visíveis em secretaria, professor, aluno e direção.",
+        "Mensalidades e notas do polo/turma. Contadores autorizados podem editar e salvar; alterações sincronizam com o servidor.",
       turmaId: turma ? turma.id : null,
+      permissoesFicha: {
+        notasEditar:
+          usuarioEhContadorPlanilhaAutorizado(sessao) ||
+          sessao.perfil === "secretaria" ||
+          sessao.perfil === "diretor"
+      },
       onAtualizar: function () {
         renderPlanilha();
         renderTabela();
@@ -999,21 +1056,27 @@ function renderizarContabilidadePolos(containerId, sessao) {
   document.getElementById("contabPolosImport").addEventListener("change", function (e) {
     var file = e.target.files && e.target.files[0];
     var hostEd = document.getElementById("contabPlanilhaEditorHost");
-    importarPlanilhaContabPolos(file, sessao, function (r) {
-      if (r.cancelado) {
+    importarPlanilhaContabPolos(
+      file,
+      sessao,
+      function (r) {
+        if (r.cancelado) {
+          e.target.value = "";
+          return;
+        }
+        var msg = document.getElementById("contabPolosMsg");
+        msg.className = r.ok
+          ? "form-mensagem form-mensagem--sucesso visible"
+          : "form-mensagem form-mensagem--erro visible";
+        msg.textContent = r.ok
+          ? "Alterações salvas — " + (r.atualizados || r.resumo || "concluído.")
+          : r.erro;
+        if (r.ok) renderizarContabilidadePolos(containerId, sessao);
         e.target.value = "";
-        return;
-      }
-      var msg = document.getElementById("contabPolosMsg");
-      msg.className = r.ok
-        ? "form-mensagem form-mensagem--sucesso visible"
-        : "form-mensagem form-mensagem--erro visible";
-      msg.textContent = r.ok
-        ? "Planilha aplicada — " + r.atualizados + " linha(s) processada(s)."
-        : r.erro;
-      if (r.ok) renderizarContabilidadePolos(containerId, sessao);
-      e.target.value = "";
-    }, hostEd);
+      },
+      hostEd,
+      container.dataset.poloAtivo
+    );
   });
 
   renderPlanilha();

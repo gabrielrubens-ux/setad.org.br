@@ -499,8 +499,28 @@ function obterClasseNotaBadge(valor) {
   return "nota-badge--baixa";
 }
 
+function usuarioContadorAutorizadoNotasPlanilha(sessao) {
+  if (!sessao || !sessao.email) return false;
+  var email = String(sessao.email).trim().toLowerCase();
+  if (
+    typeof CONTAB_POLOS_EMAILS_CONTABILIDADE !== "undefined" &&
+    CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0
+  ) {
+    return true;
+  }
+  if (sessao.perfil === "contador") {
+    if (typeof sessaoTemPerfilInstitucional === "function") {
+      if (sessaoTemPerfilInstitucional(sessao, "contador")) return true;
+    }
+    return typeof CONTAB_POLOS_EMAILS_CONTABILIDADE !== "undefined" &&
+      CONTAB_POLOS_EMAILS_CONTABILIDADE.indexOf(email) >= 0;
+  }
+  return false;
+}
+
 function usuarioPodeEditarNotasAcademicas(sessao) {
   if (!sessao) return false;
+  if (usuarioContadorAutorizadoNotasPlanilha(sessao)) return true;
   var perfis = ["diretor", "secretaria", "coordenacao", "professor", "autorizado"];
   if (perfis.indexOf(sessao.perfil) >= 0) return true;
   if (typeof sessaoTemPerfilInstitucional === "function") {
