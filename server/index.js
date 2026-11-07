@@ -22,6 +22,10 @@ const {
   hostPermiteLoginAlunoRedeLocal
 } = require("./middleware/security");
 const { logStatusSmtpInicializacao, smtpConfigurado } = require("./services/email");
+const {
+  registrarRotasAgentes,
+  registrarFallback404
+} = require("./agent-discovery");
 
 const PORT = Number(process.env.PORT || 3456);
 const ROOT = path.join(__dirname, "..");
@@ -94,6 +98,8 @@ app.get("/login-aluno-ip.html", function (req, res) {
   res.sendFile(path.join(ROOT, "login-aluno-ip.html"));
 });
 
+registrarRotasAgentes(app, ROOT);
+
 app.use(
   express.static(ROOT, {
     index: "index.html",
@@ -116,11 +122,7 @@ app.use(
   })
 );
 
-app.get("*", function (req, res, next) {
-  if (req.path.startsWith("/api/")) return next();
-  if (req.path.includes(".")) return next();
-  res.sendFile(path.join(ROOT, "index.html"));
-});
+registrarFallback404(app, ROOT);
 
 app.listen(PORT, "0.0.0.0", function () {
   console.log("[SETAD] Servidor em http://localhost:" + PORT);

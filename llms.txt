@@ -1,0 +1,42 @@
+# SETAD — Seminário Teológico
+# https://setad.org.br — organização educacional sem fins lucrativos (Belém/PA e polos)
+
+> Formação teológica bíblica e acadêmica: Curso Médio, Curso Avançado e Bacharelado em Teologia, com polos presenciais e portal acadêmico integrado.
+
+## Política de uso por agentes de IA
+
+- Pesquisa e citação com atribuição: permitido (`search=yes`).
+- Entrada em fluxos de assistência ao usuário: permitido (`ai-input=yes`).
+- Treinamento de modelos com nosso conteúdo: não permitido (`ai-train=no`).
+- Detalhes: https://setad.org.br/termos.html
+
+## Páginas principais
+
+- Home (HTML): https://setad.org.br/
+- Home (Markdown): https://setad.org.br/index.md
+- Sobre: https://setad.org.br/sobre.html
+- Contato: https://setad.org.br/contato.html
+- Matrícula: https://setad.org.br/matricula/
+- Bacharelado: https://setad.org.br/matricula/teologia/
+- Polos: https://setad.org.br/polos/
+- Culto ao vivo: https://setad.org.br/culto-ao-vivo.html
+
+## Legal
+
+- Privacidade: https://setad.org.br/privacidade.html
+- Termos de uso: https://setad.org.br/termos.html
+
+## Contato
+
+- E-mail: recepcao@setad.org.br
+- Telefone/WhatsApp: +55 91 98085-2801
+- Instagram: https://www.instagram.com/setad.adbelem
+- YouTube: https://www.youtube.com/@SETAD-BELEM
+
+## API pública (saúde)
+
+- GET https://setad.org.br/api/health — status do serviço (JSON)
+
+## MCP
+
+- Server card: https://setad.org.br/.well-known/mcp/server-card.json

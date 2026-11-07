@@ -24,6 +24,8 @@
 
   <meta name="description" content="SETAD — Seminário Teológico. Formação bíblica sólida, ensino acadêmico e crescimento espiritual.">
   <!-- description aparece nos resultados do Google e ao compartilhar o link -->
+  <link rel="canonical" href="https://setad.org.br/">
+  <link rel="alternate" type="text/markdown" href="https://setad.org.br/index.md" title="SETAD (Markdown)">
 
   <meta name="theme-color" content="#23406b">
   <meta name="mobile-web-app-capable" content="yes">
@@ -59,6 +61,52 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="/css/pwa.css">
   <link rel="stylesheet" href="/css/mobile-viewport.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://setad.org.br/#organization",
+        "name": "SETAD — Seminário Teológico",
+        "alternateName": "SETAD",
+        "url": "https://setad.org.br/",
+        "logo": "https://setad.org.br/assets/images/marca-dagua-setad.png",
+        "description": "Formação teológica bíblica e acadêmica em Belém/PA e polos presenciais.",
+        "email": "recepcao@setad.org.br",
+        "telephone": "+55-91-98085-2801",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Belém",
+          "addressRegion": "PA",
+          "addressCountry": "BR"
+        },
+        "sameAs": [
+          "https://www.instagram.com/setad.adbelem",
+          "https://www.youtube.com/@SETAD-BELEM",
+          "https://open.spotify.com/playlist/0MqaKOIFA0Fs5Wsqf4zCem",
+          "https://wa.me/5591980852801"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://setad.org.br/#website",
+        "url": "https://setad.org.br/",
+        "name": "SETAD — Seminário Teológico",
+        "publisher": { "@id": "https://setad.org.br/#organization" },
+        "inLanguage": "pt-BR"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://setad.org.br/#webpage",
+        "url": "https://setad.org.br/",
+        "name": "SETAD — Seminário Teológico",
+        "isPartOf": { "@id": "https://setad.org.br/#website" },
+        "about": { "@id": "https://setad.org.br/#organization" }
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body class="pagina-inicial">
@@ -95,6 +143,7 @@
       <nav class="nav header__nav" id="nav">
         <ul class="nav__list">
           <li><a href="#sobre" class="nav__link">Sobre</a></li>
+          <li><a href="/contato.html" class="nav__link">Contato</a></li>
           <li><a href="polos/" class="nav__link">Polos</a></li>
           <li><a href="#programa" class="nav__link">Programa</a></li>
           <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
@@ -597,6 +646,21 @@
       </div>
     </section>
 
+    <footer class="setad-agent-footer section" id="setad-agent-footer" aria-label="Institucional e contato">
+      <div class="container container--wide">
+        <p class="section__text">
+          <a href="/sobre.html">Sobre o SETAD</a> ·
+          <a href="/contato.html">Contato</a> ·
+          <a href="/privacidade.html">Política de privacidade</a> ·
+          <a href="/termos.html">Termos de uso</a>
+        </p>
+        <p class="section__text">
+          E-mail: <a href="mailto:recepcao@setad.org.br">recepcao@setad.org.br</a> ·
+          Telefone: <a href="tel:+5591980852801">(91) 98085-2801</a>
+        </p>
+      </div>
+    </footer>
+
   </main>
 
   <!--
@@ -615,6 +679,7 @@
   <script src="js/script.js" defer></script>
   <script src="js/nossa-historia.js" defer></script>
   <script src="js/setad-index-idle.js" defer></script>
+  <script src="/js/setad-webmcp.js" defer></script>
   <script src="js/contato-setad.js" defer data-setad-contato></script>
   <script src="js/wpp-float.js" defer></script>
   <script src="/js/pwa.js" defer></script>

@@ -107,12 +107,14 @@
             '<div class="contato-setad__col">' +
               '<h3 class="contato-setad__titulo">Institucional</h3>' +
               '<ul class="contato-setad__lista">' +
-                '<li><a href="' + home + '#sobre">Sobre o SETAD</a></li>' +
+                '<li><a href="' + base + 'sobre.html">Sobre o SETAD</a></li>' +
+                '<li><a href="' + base + 'contato.html">Contato</a></li>' +
                 '<li><a href="' + home + '#historia">Nossa história</a></li>' +
                 '<li><a href="' + base + 'polos/">Nossos polos</a></li>' +
                 '<li><a href="' + home + '#localizacao">Onde estamos</a></li>' +
                 '<li><a href="' + home + '#informacoes">Informações do seminário</a></li>' +
                 '<li><a href="' + base + 'privacidade.html">Política de privacidade</a></li>' +
+                '<li><a href="' + base + 'termos.html">Termos de uso</a></li>' +
               "</ul>" +
               '<h3 class="contato-setad__titulo">Comunicação</h3>' +
               '<ul class="contato-setad__lista">' +
@@ -148,6 +150,8 @@
               "</ul>" +
               '<h3 class="contato-setad__titulo">Atendimento</h3>' +
               '<ul class="contato-setad__lista">' +
+                '<li><a href="mailto:recepcao@setad.org.br">recepcao@setad.org.br</a></li>' +
+                '<li><a href="tel:+5591980852801">(91) 98085-2801</a></li>' +
                 '<li><a href="https://wa.me/5591980852801" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>' +
                 '<li><a href="' + home + '#localizacao">Sede em Belém</a></li>' +
               "</ul>" +
@@ -159,7 +163,7 @@
         "</div>" +
         '<div class="contato-setad__rodape">' +
           '<p class="contato-setad__copyright">&copy; 2026 SETAD — Seminário Teológico. Todos os direitos reservados.</p>' +
-          '<p class="contato-setad__legal"><a href="' + base + 'privacidade.html">Política de privacidade</a></p>' +
+          '<p class="contato-setad__legal"><a href="' + base + 'privacidade.html">Política de privacidade</a> · <a href="' + base + 'termos.html">Termos de uso</a></p>' +
           '<a href="' + home + '#inicio" class="contato-setad__topo">Voltar ao topo &uarr;</a>' +
         "</div>" +
       "</div>" +

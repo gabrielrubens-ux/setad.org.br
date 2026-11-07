@@ -1,0 +1,16 @@
+# SETAD — setad.org.br
+# Política de rastreamento e sinais de uso de conteúdo para agentes.
+
+User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+Allow: /
+
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /painel-
+Disallow: /login-
+Disallow: /escolher-area-
+Disallow: /primeiro-acesso-
+Disallow: /recuperar-senha-
+
+Sitemap: https://setad.org.br/sitemap.xml

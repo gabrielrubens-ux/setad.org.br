@@ -1,0 +1,46 @@
+{
+  "spec": "https://spec.modelcontextprotocol.io/sep/1649/",
+  "name": "SETAD",
+  "version": "1.0.0",
+  "title": "SETAD — Seminário Teológico",
+  "description": "Servidor institucional setad.org.br: site público, matrícula, polos e API de dados acadêmicos autenticados.",
+  "homepage": "https://setad.org.br/",
+  "documentation": "https://setad.org.br/llms.txt",
+  "endpoints": [
+    {
+      "type": "http",
+      "url": "https://setad.org.br/api/health",
+      "description": "Verificação de disponibilidade (JSON público)."
+    }
+  ],
+  "capabilities": {
+    "tools": false,
+    "resources": true,
+    "prompts": false,
+    "streaming": false
+  },
+  "resources": [
+    {
+      "name": "llms-txt",
+      "uri": "https://setad.org.br/llms.txt",
+      "mimeType": "text/plain",
+      "description": "Resumo do site e URLs principais para agentes."
+    },
+    {
+      "name": "home-markdown",
+      "uri": "https://setad.org.br/index.md",
+      "mimeType": "text/markdown",
+      "description": "Página inicial em Markdown."
+    },
+    {
+      "name": "sitemap",
+      "uri": "https://setad.org.br/sitemap.xml",
+      "mimeType": "application/xml",
+      "description": "Mapa de URLs públicas."
+    }
+  ],
+  "contact": {
+    "email": "recepcao@setad.org.br",
+    "url": "https://setad.org.br/contato.html"
+  }
+}
