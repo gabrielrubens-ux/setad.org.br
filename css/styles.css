@@ -105,6 +105,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* Botão Matricule-se — azul com texto branco */
@@ -155,7 +156,7 @@ body {
   position: relative;
   display: inline-block;
   padding: 0.35rem 0.5rem;
-  margin-left: auto;
+  margin-left: 0;
   padding-left: 1.25rem;
   font-size: 0.72rem;
   font-weight: 500;
@@ -209,17 +210,23 @@ body {
 /* Navegação principal */
 .nav__list {
   display: flex;
-  justify-content: space-evenly;
+  flex-wrap: nowrap;
+  justify-content: center;
   align-items: center;
   width: 100%;
-  gap: clamp(0.75rem, 2.2vw, 2.25rem);
+  gap: clamp(0.4rem, 1.1vw, 1.5rem);
   list-style: none;
+}
+
+.nav__item--menu-extra {
+  display: none;
 }
 
 .nav__link {
   color: var(--cor-texto-suave);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: clamp(0.78rem, 0.85vw, 0.9rem);
+  white-space: nowrap;
   transition: color var(--transicao);
 }
 
@@ -4209,65 +4216,108 @@ body.has-radio-player .contato-setad {
   transform: translateY(0);
 }
 
+/* Cabeçalho compacto — barra não comporta menu horizontal + CTAs */
+@media (max-width: 1100px) {
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn--header-portal,
+  .btn--header-direcao {
+    display: none;
+  }
+
+  .nav__item--menu-extra {
+    display: list-item;
+  }
+
+  .header__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "logo acoes menu";
+    align-items: center;
+    gap: 0.5rem;
+    height: auto;
+    min-height: 3.75rem;
+    padding: 0.35rem 0;
+  }
+
+  .logo {
+    grid-area: logo;
+    min-width: 0;
+  }
+
+  .header__acoes {
+    grid-area: acoes;
+    margin-left: 0;
+    gap: 0.35rem;
+  }
+
+  .menu-toggle {
+    grid-area: menu;
+  }
+
+  .header__nav {
+    flex: none;
+  }
+
+  .nav {
+    position: fixed;
+    top: var(--setad-header-height, 3.85rem);
+    left: 0;
+    right: 0;
+    z-index: 99;
+    background-color: var(--cor-branco);
+    border-bottom: 1px solid var(--cor-borda);
+    padding: 1rem 0;
+    max-height: min(70vh, calc(100dvh - var(--setad-header-height, 3.85rem)));
+    overflow-y: auto;
+    transform: translateY(-120%);
+    transition: transform var(--transicao);
+  }
+
+  .nav--open {
+    transform: translateY(0);
+  }
+
+  .nav__list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+    padding: 0 1rem;
+  }
+
+  .nav__link {
+    display: block;
+    padding: 0.65rem 0.5rem;
+    font-size: 0.95rem;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 1101px) {
+  .btn--header-portal {
+    font-size: 0.72rem;
+    padding: 0.45rem 0.7rem;
+  }
+}
+
 /* ============================================================
    MEDIA QUERIES — estilos específicos para telas menores (mobile)
    @media aplica regras apenas quando a condição é verdadeira.
    ============================================================ */
 @media (max-width: 768px) {
-  .menu-toggle {
-    display: block;
-  }
-
   .btn--header-matricula {
     padding: 0.4rem 0.85rem;
     font-size: 0.75rem;
   }
 
-  .btn--header-direcao {
-    padding: 0.25rem 0.35rem;
-    padding-left: 0.65rem;
-    font-size: 0.55rem;
-    margin-left: auto;
-  }
-
-  .btn--header-portal {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.55rem;
-  }
-
-  .header__acoes {
-    gap: 0.35rem;
-  }
-
-  .header__inner {
-    gap: 0.4rem;
-  }
-
   .logo__img {
     height: 2.25rem;
-  }
-
-  .nav {
-    position: fixed;
-    top: 4rem;
-    left: 0;
-    right: 0;
-    background-color: var(--cor-branco);
-    border-bottom: 1px solid var(--cor-borda);
-    padding: 1rem 0;
-    transform: translateY(-120%); /* menu escondido acima da tela */
-    transition: transform var(--transicao);
-  }
-
-  /* Classe .nav--open é adicionada pelo JavaScript ao clicar no hambúrguer */
-  .nav--open {
-    transform: translateY(0); /* desce o menu para visível */
-  }
-
-  .nav__list {
-    flex-direction: column; /* itens empilhados verticalmente */
-    align-items: center;
-    gap: 1rem;
   }
 
   .hero {
