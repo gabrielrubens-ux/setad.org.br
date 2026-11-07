@@ -182,20 +182,13 @@
         >
       </a>
 
-      <!-- Botão hambúrguer (só aparece no mobile) -->
-      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de navegação">
-        <span class="menu-toggle__bar"></span>
-        <span class="menu-toggle__bar"></span>
-        <span class="menu-toggle__bar"></span>
-      </button>
-
       <nav class="nav header__nav" id="nav" aria-label="Menu principal">
         <ul class="nav__list">
           <li><a href="#sobre" class="nav__link">Sobre</a></li>
           <li><a href="polos/" class="nav__link">Polos</a></li>
           <li><a href="#programa" class="nav__link">Programa</a></li>
-          <li><a href="#localizacao" class="nav__link">Onde estamos</a></li>
-          <li><a href="#informacoes" class="nav__link">Informações</a></li>
+          <li><a href="#localizacao" class="nav__link">Localização</a></li>
+          <li><a href="#informacoes" class="nav__link">Cursos</a></li>
           <li><a href="#parceiros" class="nav__link">Parceiros</a></li>
           <li><a href="#historia" class="nav__link">História</a></li>
           <li class="nav__item nav__item--menu-extra"><a href="#portal" class="nav__link">Área do aluno e professor</a></li>
@@ -203,12 +196,19 @@
         </ul>
       </nav>
 
-      <div class="header__acoes">
-        <a href="matricula/" class="btn btn--header-matricula">Matricule-se</a>
-        <a href="#portal" class="btn btn--header-portal">Área do Aluno e Professor</a>
+      <div class="header__tools">
+        <div class="header__acoes">
+          <a href="matricula/" class="btn btn--header-matricula">Matricule-se</a>
+          <a href="#portal" class="btn btn--header-portal" title="Área do aluno e do professor">Portal</a>
+        </div>
+        <a href="login-direcao.html" class="btn btn--header-direcao">Direção</a>
       </div>
 
-      <a href="login-direcao.html" class="btn btn--header-direcao">Direção</a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="Abrir menu de navegação">
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+        <span class="menu-toggle__bar"></span>
+      </button>
 
     </div>
   </header>

@@ -16,21 +16,39 @@
 // document.getElementById busca um elemento pelo atributo id=""
 const menuToggle = document.getElementById("menuToggle");
 const nav = document.getElementById("nav");
+const headerInner = document.querySelector(".header__inner");
+
+function syncSetadHeaderHeight() {
+  if (!headerInner) return;
+  const altura = Math.ceil(headerInner.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--setad-header-height", altura + "px");
+}
+
+function setMenuAberto(aberto) {
+  if (!nav) return;
+  nav.classList.toggle("nav--open", aberto);
+  if (menuToggle) {
+    menuToggle.setAttribute("aria-expanded", aberto ? "true" : "false");
+    menuToggle.setAttribute(
+      "aria-label",
+      aberto ? "Fechar menu de navegação" : "Abrir menu de navegação"
+    );
+  }
+}
+
+syncSetadHeaderHeight();
+window.addEventListener("resize", syncSetadHeaderHeight);
+
+if (menuToggle && nav) {
+  menuToggle.addEventListener("click", function () {
+    setMenuAberto(!nav.classList.contains("nav--open"));
+  });
+}
+
 const navLinks = document.querySelectorAll(".nav__link");
-// querySelectorAll retorna TODOS os elementos que correspondem ao seletor CSS
-
-// --- Menu mobile: abrir/fechar ao clicar no hambúrguer ---
-menuToggle.addEventListener("click", function () {
-  // addEventListener escuta eventos (click, scroll, etc.) no elemento
-  // classList.toggle adiciona a classe se não existir, remove se existir
-  nav.classList.toggle("nav--open");
-});
-
-// --- Fechar menu ao clicar em um link (melhor UX no mobile) ---
 navLinks.forEach(function (link) {
-  // forEach percorre cada item de uma lista (NodeList)
   link.addEventListener("click", function () {
-    nav.classList.remove("nav--open"); // remove a classe, escondendo o menu
+    setMenuAberto(false);
   });
 });
 
