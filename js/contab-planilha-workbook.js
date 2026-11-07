@@ -27,6 +27,26 @@
     return String(row[idx] || "").trim();
   }
 
+  function obterMatriculaDaLinhaGrade(grade, row, poloId) {
+    if (typeof global.resolverMatriculaLinhaPlanilhaContab === "function") {
+      return global.resolverMatriculaLinhaPlanilhaContab(grade.headers, row, poloId);
+    }
+    var cab = (grade.headers || []).map(normCab);
+    var idxId = cab.indexOf("matricula_id");
+    var idxEmail = cab.indexOf("email");
+    if (idxId >= 0 && row[idxId]) {
+      return typeof global.obterMatriculaPorId === "function"
+        ? global.obterMatriculaPorId(String(row[idxId]).trim())
+        : null;
+    }
+    if (idxEmail >= 0 && row[idxEmail]) {
+      return typeof global.obterMatriculaPorEmail === "function"
+        ? global.obterMatriculaPorEmail(String(row[idxEmail]).trim())
+        : null;
+    }
+    return null;
+  }
+
   function matriculaCompativelLinhaPolo(matricula, grade, row, poloDestino) {
     if (!matricula) return false;
     if (modoRecepcaoGeral(poloDestino)) {
@@ -154,6 +174,173 @@
     return { headers: headers, body: body };
   }
 
+  function cabIndex(headers, nome) {
+    var cab = (headers || []).map(normCab);
+    return cab.indexOf(nome);
+  }
+
+  function linhaParaHeaders(headersDest, headersSrc, rowSrc) {
+    var cabSrc = (headersSrc || []).map(normCab);
+    return (headersDest || []).map(function (h) {
+      var ix = cabSrc.indexOf(normCab(h));
+      return ix >= 0 && rowSrc[ix] != null ? rowSrc[ix] : "";
+    });
+  }
+
+  function mesclarDuasLinhas(headers, siteRow, headersImp, impRow) {
+    var cabImp = (headersImp || []).map(normCab);
+    return (headers || []).map(function (h, i) {
+      var ixI = cabImp.indexOf(normCab(h));
+      var vI = ixI >= 0 ? impRow[ixI] : "";
+      var vS = siteRow[i] != null ? siteRow[i] : "";
+      if (vI !== "" && vI != null && String(vI).trim() !== "") return vI;
+      return vS;
+    });
+  }
+
+  function normalizarNomeMerge(nome) {
+    if (typeof global.normalizarNomePlanilhaContab === "function") {
+      return global.normalizarNomePlanilhaContab(nome);
+    }
+    return String(nome || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function chaveLinhaMerge(tipo, headers, row) {
+    var idIx = cabIndex(headers, "matricula_id");
+    var id = idIx >= 0 ? String(row[idIx] || "").trim() : "";
+    if (!id) {
+      var nIx = cabIndex(headers, "nome");
+      var nome = nIx >= 0 ? normalizarNomeMerge(row[nIx]) : "";
+      if (nome) id = "nome:" + nome;
+    }
+    if (!id) return "";
+    if (tipo === "notas") {
+      var dIx = cabIndex(headers, "disciplina");
+      var disc = dIx >= 0 ? String(row[dIx] || "").trim() : "";
+      return id + "§" + disc;
+    }
+    return id;
+  }
+
+  function mesclarGradeImportadaSite(importSheet, siteSheet, tipo) {
+    if (!siteSheet || !siteSheet.headers || !siteSheet.headers.length) {
+      return {
+        name: importSheet.name || "Planilha",
+        headers: (importSheet.headers || []).slice(),
+        body: (importSheet.body || []).map(function (r) {
+          return r.slice();
+        })
+      };
+    }
+    var headers = siteSheet.headers.slice();
+    var mapImp = {};
+    (importSheet.body || []).forEach(function (row) {
+      var ch = chaveLinhaMerge(tipo, importSheet.headers, row);
+      if (ch) mapImp[ch] = row;
+    });
+
+    var body = [];
+    var usados = {};
+
+    (siteSheet.body || []).forEach(function (siteRow) {
+      var ch = chaveLinhaMerge(tipo, headers, siteRow);
+      if (ch && mapImp[ch]) {
+        body.push(mesclarDuasLinhas(headers, siteRow, importSheet.headers, mapImp[ch]));
+        usados[ch] = true;
+      } else {
+        body.push(siteRow.slice());
+      }
+    });
+
+    Object.keys(mapImp).forEach(function (ch) {
+      if (usados[ch]) return;
+      body.push(linhaParaHeaders(headers, importSheet.headers, mapImp[ch]));
+    });
+
+    return {
+      name: siteSheet.name || importSheet.name,
+      headers: headers,
+      body: body
+    };
+  }
+
+  function mesclarWorkbooksImportadoSite(workbookImport, poloId) {
+    var importSheets = (workbookImport && workbookImport.sheets) || [];
+    if (typeof global.reconhecerAlunosWorkbookContabPolos === "function") {
+      var rec = global.reconhecerAlunosWorkbookContabPolos(workbookImport, poloId);
+      importSheets = rec.sheets || importSheets;
+    }
+    var siteSheets = montarWorkbookExportacaoPolo(poloId);
+    var importPorTipo = {};
+
+    importSheets.forEach(function (sh) {
+      var t = classificarAba(sh.name, sh.headers);
+      if (t !== "desconhecido") importPorTipo[t] = sh;
+    });
+
+    var saida = [];
+    var tiposSite = {};
+
+    siteSheets.forEach(function (siteSh) {
+      var t = classificarAba(siteSh.name, siteSh.headers);
+      tiposSite[t] = true;
+      var imp = importPorTipo[t];
+      if (imp) {
+        saida.push(mesclarGradeImportadaSite(imp, siteSh, t));
+      } else {
+        saida.push({
+          name: siteSh.name,
+          headers: siteSh.headers.slice(),
+          body: (siteSh.body || []).map(function (r) {
+            return r.slice();
+          })
+        });
+      }
+    });
+
+    importSheets.forEach(function (imp) {
+      var t = classificarAba(imp.name, imp.headers);
+      if (t === "desconhecido") {
+        saida.push({
+          name: imp.name,
+          headers: (imp.headers || []).slice(),
+          body: (imp.body || []).map(function (r) {
+            return r.slice();
+          })
+        });
+        return;
+      }
+      if (!tiposSite[t]) {
+        saida.push({
+          name: imp.name,
+          headers: (imp.headers || []).slice(),
+          body: (imp.body || []).map(function (r) {
+            return r.slice();
+          })
+        });
+      }
+    });
+
+    if (!saida.length && importSheets.length) {
+      return importSheets.map(function (sh) {
+        return {
+          name: sh.name,
+          headers: (sh.headers || []).slice(),
+          body: (sh.body || []).map(function (r) {
+            return r.slice();
+          })
+        };
+      });
+    }
+
+    return saida;
+  }
+
   function montarWorkbookExportacaoPolo(poloId) {
     var colunasCadastro =
       typeof CONTAB_POLOS_COLUNAS_MODELO !== "undefined"
@@ -236,8 +423,13 @@
         };
       }
     }
-    var r = aplicarGradePlanilhaContabPolos(grade, sessao);
-    return { ok: r.ok, erro: r.erro, count: r.atualizados || 0, tipo: "cadastro" };
+    var r = aplicarGradePlanilhaContabPolos(grade, sessao, poloId);
+    return {
+      ok: r.ok,
+      erro: r.erro || r.aviso,
+      count: r.atualizados || 0,
+      tipo: "cadastro"
+    };
   }
 
   function parseCelulaMensalidade(valor) {
@@ -258,8 +450,13 @@
     var cab = grade.headers.map(normCab);
     var idxId = cab.indexOf("matricula_id");
     var idxEmail = cab.indexOf("email");
-    if (idxId < 0 && idxEmail < 0) {
-      return { ok: false, erro: 'Aba Mensalidades: informe coluna "matricula_id" ou "email".', count: 0 };
+    var idxNome = cab.indexOf("nome");
+    if (idxId < 0 && idxEmail < 0 && idxNome < 0) {
+      return {
+        ok: false,
+        erro: 'Aba Mensalidades: informe "matricula_id", "email" ou "nome".',
+        count: 0
+      };
     }
     var meses = [];
     (grade.headers || []).forEach(function (c, i) {
@@ -273,19 +470,7 @@
     }
     var count = 0;
     grade.body.forEach(function (row) {
-      var matricula = null;
-      if (idxId >= 0 && row[idxId]) {
-        matricula =
-          typeof obterMatriculaPorId === "function"
-            ? obterMatriculaPorId(String(row[idxId]).trim())
-            : null;
-      }
-      if (!matricula && idxEmail >= 0 && row[idxEmail]) {
-        matricula =
-          typeof obterMatriculaPorEmail === "function"
-            ? obterMatriculaPorEmail(String(row[idxEmail]).trim())
-            : null;
-      }
+      var matricula = obterMatriculaDaLinhaGrade(grade, row, poloId);
       if (!matricula) return;
       if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
 
@@ -314,7 +499,6 @@
       return { ok: false, erro: "Módulo de notas indisponível.", count: 0 };
     }
     var cab = grade.headers.map(normCab);
-    var idxId = cab.indexOf("matricula_id");
     var idxDisc = cab.indexOf("disciplina");
     var idxNota = cab.indexOf("nota");
     var idxPeriodo = cab.indexOf("periodo");
@@ -324,13 +508,7 @@
     }
     var count = 0;
     grade.body.forEach(function (row) {
-      var matricula = null;
-      if (idxId >= 0 && row[idxId]) {
-        matricula =
-          typeof obterMatriculaPorId === "function"
-            ? obterMatriculaPorId(String(row[idxId]).trim())
-            : null;
-      }
+      var matricula = obterMatriculaDaLinhaGrade(grade, row, poloId);
       if (!matricula) return;
       if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
 
@@ -418,6 +596,14 @@
       return { ok: false, erro: erros.join(" ") };
     }
 
+    if (!resumo.length) {
+      return {
+        ok: false,
+        erro:
+          "Nenhuma aba aplicada. Use abas Cadastro_contabil, Mensalidades ou Notas_medias com os cabeçalhos do modelo Excel."
+      };
+    }
+
     return {
       ok: true,
       atualizados: resumo.join(" · "),
@@ -429,6 +615,7 @@
   global.SETADContabPlanilhaWorkbook = {
     classificarAba: classificarAba,
     montarWorkbookExportacaoPolo: montarWorkbookExportacaoPolo,
+    mesclarWorkbooksImportadoSite: mesclarWorkbooksImportadoSite,
     exportarWorkbookPolo: exportarWorkbookPolo,
     aplicarWorkbookContabPolos: aplicarWorkbookContabPolos
   };

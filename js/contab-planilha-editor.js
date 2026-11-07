@@ -214,7 +214,15 @@
     var resumoCheckin = modoCheckin ? resumoCheckinImportacao(sheets, polos) : null;
 
     host.hidden = false;
+    host.removeAttribute("hidden");
     document.documentElement.classList.add("setad-planilha-editor-aberto");
+    if (host.scrollIntoView) {
+      try {
+        host.scrollIntoView({ block: "nearest" });
+      } catch (_e) {
+        /* ignorar */
+      }
+    }
 
     var opcoesPolo = polos
       .map(function (p) {
@@ -293,9 +301,12 @@
         opcoesPolo +
         "</select></div>";
 
+    var modoEdicaoSite = !!opts.modoEdicaoSite;
     var rotuloAplicar = modoCheckin
       ? "Confirmar envio da planilha ao site"
-      : "Salvar no polo selecionado";
+      : modoEdicaoSite
+        ? "Salvar alterações no site"
+        : "Salvar no polo selecionado";
     var btnAplicarDisabled = modoCheckin ? " disabled" : "";
 
     host.innerHTML =
@@ -415,6 +426,39 @@
       }
     });
 
+    function repintarEditorAposMerge(followup) {
+      if (!followup || !followup.workbook || !followup.workbook.sheets) return;
+      estado.sheets = followup.workbook.sheets;
+      if (followup.poloId) estado.poloId = followup.poloId;
+      var abasNav = host.querySelector("#setadPlanilhaAbas");
+      if (abasNav) {
+        abasNav.innerHTML = estado.sheets
+          .map(function (s, i) {
+            var cls =
+              i === estado.sheetAtiva ? " setad-planilha-editor__aba--ativa" : "";
+            return (
+              '<button type="button" class="setad-planilha-editor__aba' +
+              cls +
+              '" data-sheet-ix="' +
+              i +
+              '">' +
+              escaparTexto(s.name || "Aba " + (i + 1)) +
+              "</button>"
+            );
+          })
+          .join("");
+        abasNav.querySelectorAll(".setad-planilha-editor__aba").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            pintarAba(Number(btn.getAttribute("data-sheet-ix")));
+          });
+        });
+      }
+      pintarAba(estado.sheetAtiva);
+      host.hidden = false;
+      host.removeAttribute("hidden");
+      document.documentElement.classList.add("setad-planilha-editor-aberto");
+    }
+
     btnAplicar.addEventListener("click", function () {
       persistirAbaVisivel();
       var sel = host.querySelector("#setadPlanilhaPoloSelect");
@@ -427,12 +471,31 @@
         alert("Selecione o polo de destino.");
         return;
       }
-      fecharEditor(host);
-      if (typeof opts.onAplicar === "function") {
-        opts.onAplicar({
-          sheets: estado.sheets,
-          poloId: estado.poloId
-        });
+      if (typeof opts.onAplicar !== "function") return;
+
+      var payload = {
+        sheets: estado.sheets,
+        poloId: estado.poloId
+      };
+
+      function aoConcluir(r, followup) {
+        if (r && r.ok && followup && followup.manterEditor) {
+          repintarEditorAposMerge(followup);
+          if (typeof opts.onSalvo === "function") opts.onSalvo(r);
+          return;
+        }
+        if (r && !r.ok && r.erro) {
+          alert(r.erro);
+        }
+        fecharEditor(host);
+        if (typeof opts.onSalvo === "function") opts.onSalvo(r);
+      }
+
+      if (opts.onAplicar.length >= 2) {
+        opts.onAplicar(payload, aoConcluir);
+      } else {
+        fecharEditor(host);
+        opts.onAplicar(payload);
       }
     });
 

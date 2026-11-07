@@ -1,42 +1,38 @@
 # SETAD — Seminário Teológico
-# https://setad.org.br — organização educacional sem fins lucrativos (Belém/PA e polos)
 
-> Formação teológica bíblica e acadêmica: Curso Médio, Curso Avançado e Bacharelado em Teologia, com polos presenciais e portal acadêmico integrado.
+> Formação teológica bíblica e acadêmica em Belém/PA e polos: Curso Médio, Curso Avançado e Bacharelado em Teologia, com portal acadêmico integrado. Organização educacional sem fins lucrativos.
 
-## Política de uso por agentes de IA
+## Institucional
 
-- Pesquisa e citação com atribuição: permitido (`search=yes`).
-- Entrada em fluxos de assistência ao usuário: permitido (`ai-input=yes`).
-- Treinamento de modelos com nosso conteúdo: não permitido (`ai-train=no`).
-- Detalhes: https://setad.org.br/termos.html
+- [Sobre o SETAD](https://setad.org.br/sobre.html)
+- [Contato](https://setad.org.br/contato.html)
+- [Política de privacidade](https://setad.org.br/privacidade.html)
+- [Termos de uso](https://setad.org.br/termos.html)
 
 ## Páginas principais
 
-- Home (HTML): https://setad.org.br/
-- Home (Markdown): https://setad.org.br/index.md
-- Sobre: https://setad.org.br/sobre.html
-- Contato: https://setad.org.br/contato.html
-- Matrícula: https://setad.org.br/matricula/
-- Bacharelado: https://setad.org.br/matricula/teologia/
-- Polos: https://setad.org.br/polos/
-- Culto ao vivo: https://setad.org.br/culto-ao-vivo.html
+- [Página inicial](https://setad.org.br/)
+- [Home em Markdown](https://setad.org.br/index.md)
+- [Matrícula online](https://setad.org.br/matricula/)
+- [Bacharelado em Teologia](https://setad.org.br/matricula/teologia/)
+- [Polos presenciais](https://setad.org.br/polos/)
+- [Culto ao vivo](https://setad.org.br/culto-ao-vivo.html)
 
-## Legal
+## Uso por agentes de IA
 
-- Privacidade: https://setad.org.br/privacidade.html
-- Termos de uso: https://setad.org.br/termos.html
+- [robots.txt](https://setad.org.br/robots.txt) — `Content-Signal: search=yes, ai-input=yes, ai-train=no`
+- [Termos de uso (IA)](https://setad.org.br/termos.html)
 
-## Contato
+## Contato e redes
 
-- E-mail: recepcao@setad.org.br
-- Telefone/WhatsApp: +55 91 98085-2801
-- Instagram: https://www.instagram.com/setad.adbelem
-- YouTube: https://www.youtube.com/@SETAD-BELEM
+- E-mail: [recepcao@setad.org.br](mailto:recepcao@setad.org.br)
+- Telefone: [+55 91 98085-2801](tel:+5591980852801)
+- [WhatsApp](https://wa.me/5591980852801)
+- [Instagram](https://www.instagram.com/setad.adbelem)
+- [YouTube](https://www.youtube.com/@SETAD-BELEM)
 
-## API pública (saúde)
+## Descoberta técnica
 
-- GET https://setad.org.br/api/health — status do serviço (JSON)
-
-## MCP
-
-- Server card: https://setad.org.br/.well-known/mcp/server-card.json
+- [Sitemap](https://setad.org.br/sitemap.xml)
+- [API health](https://setad.org.br/api/health)
+- [MCP server card](https://setad.org.br/.well-known/mcp/server-card.json)
