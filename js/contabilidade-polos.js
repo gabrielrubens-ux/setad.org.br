@@ -413,13 +413,17 @@ function usuarioEhContadorPlanilhaAutorizado(sessao) {
   return false;
 }
 
-/** Contadores autorizados e direção podem persistir importações completas. */
+/** Quem importa com contabilidade desbloqueada pode persistir a planilha no site. */
 function usuarioPodeSalvarPlanilhaContabPolos(sessao) {
-  if (!estaDesbloqueadaContabilidadePolos(sessao)) return false;
+  if (usuarioPodeImportarExportarPlanilhaContab(sessao)) return true;
   if (usuarioPlanilhaContabPolosCompleto(sessao)) return true;
   if (usuarioEhContadorPlanilhaAutorizado(sessao)) return true;
-  if (sessao.perfil === "diretor") return true;
-  if (typeof sessaoTemPerfilInstitucional === "function" && sessaoTemPerfilInstitucional(sessao, "diretor")) {
+  if (sessao && sessao.perfil === "diretor") return true;
+  if (
+    sessao &&
+    typeof sessaoTemPerfilInstitucional === "function" &&
+    sessaoTemPerfilInstitucional(sessao, "diretor")
+  ) {
     return true;
   }
   return false;
@@ -662,26 +666,25 @@ function aplicarGradePlanilhaContabPolos(grade, sessao, poloId) {
     if (idxObs >= 0 && row[idxObs]) {
       parcial.observacoes = String(row[idxObs]).trim();
     }
-    if (idxValor >= 0 && row[idxValor]) {
+    var taxaMatricula = 0;
+    if (idxValor >= 0 && row[idxValor] !== "" && row[idxValor] != null) {
       var v = Number(String(row[idxValor]).replace(",", "."));
-      if (v > 0) parcial.ultimoValor = v;
+      if (!Number.isNaN(v) && v > 0) {
+        taxaMatricula = v;
+        parcial.ultimoValor = v;
+      }
     }
     salvarExtraAlunoPolo(matricula.id, parcial);
 
-    if (
-      parcial.situacao === "em_dia" &&
-      parcial.ultimoValor &&
-      parcial.formaPagamento &&
-      typeof registrarPagamentoPresencialSecretaria === "function"
-    ) {
+    if (taxaMatricula > 0) {
       aplicarPagamentoAlunoPolo(
         matricula,
         {
-          tipoCobranca: "mensalidade",
+          tipoCobranca: "matricula",
           situacaoPagamento: "pago_presencial",
-          formaPagamento: parcial.formaPagamento,
-          valor: parcial.ultimoValor,
-          observacoes: "Importação planilha polos"
+          formaPagamento: parcial.formaPagamento || "PIX",
+          valor: taxaMatricula,
+          observacoes: "Importação planilha — taxa de matrícula"
         },
         sessao
       );
@@ -794,42 +797,62 @@ function montarOpcoesEditorPlanilhaContab(sessao, optsBase) {
     nomeArquivo: optsBase.nomeArquivo || "",
     editarCompleto: usuarioEhContadorPlanilhaAutorizado(sessao),
     onAplicar: function (payload, concluir) {
-      var r;
-      if (window.SETADContabPlanilhaWorkbook) {
-        r = window.SETADContabPlanilhaWorkbook.aplicarWorkbookContabPolos(
-          { sheets: payload.sheets },
-          payload.poloId,
-          sessao
-        );
-      } else {
-        var primeira = payload.sheets[0];
-        r = aplicarGradePlanilhaContabPolos(primeira, sessao);
-      }
-      if (r.ok && window.SETAD && SETAD.pullColecoesInstitucionais) {
-        SETAD.pullColecoesInstitucionais({ notificar: true });
-      }
-      if (r.ok) {
-        atualizarDadosPainelAposPlanilhaContab();
-      }
-      if (r.ok && window.SETADContabPlanilhaWorkbook) {
-        var posRecon = reconhecerAlunosWorkbookContabPolos(
-          { sheets: payload.sheets },
-          payload.poloId
-        );
-        var mesclado = window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
-          { sheets: posRecon.sheets },
-          payload.poloId
-        );
-        if (posRecon.reconhecidos) {
-          r.reconhecidos = posRecon.reconhecidos;
+      var poloId = payload.poloId;
+      var posRecon = reconhecerAlunosWorkbookContabPolos(
+        { sheets: payload.sheets },
+        poloId
+      );
+      var r = { ok: false, erro: "Erro desconhecido ao salvar." };
+
+      try {
+        if (window.SETADContabPlanilhaWorkbook) {
+          r = window.SETADContabPlanilhaWorkbook.aplicarWorkbookContabPolos(
+            { sheets: posRecon.sheets },
+            poloId,
+            sessao
+          );
+        } else {
+          var primeira = posRecon.sheets[0];
+          r = aplicarGradePlanilhaContabPolos(primeira, sessao, poloId);
         }
-        concluir(r, {
-          manterEditor: true,
-          workbook: { sheets: mesclado },
-          poloId: payload.poloId
-        });
+      } catch (err) {
+        r = { ok: false, erro: (err && err.message) || "Falha ao gravar os dados." };
+      }
+
+      if (posRecon.reconhecidos != null) {
+        r.reconhecidos = posRecon.reconhecidos;
+      }
+      if (posRecon.semMatch > 0) {
+        r.avisoNome =
+          posRecon.semMatch +
+          " linha(s) sem matrícula reconhecida no polo — confira nomes na aba Mensalidades.";
+      }
+
+      function encerrarSalvar() {
+        if (r.ok) {
+          atualizarDadosPainelAposPlanilhaContab();
+        }
+        if (r.ok && window.SETADContabPlanilhaWorkbook) {
+          var mesclado = window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
+            { sheets: posRecon.sheets },
+            poloId
+          );
+          concluir(r, {
+            manterEditor: true,
+            workbook: { sheets: mesclado },
+            poloId: poloId
+          });
+        } else {
+          concluir(r);
+        }
+      }
+
+      if (r.ok && window.SETAD && SETAD.pullColecoesInstitucionais) {
+        SETAD.pullColecoesInstitucionais({ notificar: true })
+          .then(encerrarSalvar)
+          .catch(encerrarSalvar);
       } else {
-        concluir(r);
+        encerrarSalvar();
       }
     },
     onSalvo: optsBase.onSalvo,
@@ -978,12 +1001,17 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
         return;
       }
       var reconhecido = reconhecerAlunosWorkbookContabPolos(workbook, poloDestino);
-      var mesclado = window.SETADContabPlanilhaWorkbook
-        ? window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
-            { sheets: reconhecido.sheets },
-            poloDestino
-          )
-        : reconhecido.sheets;
+      var mesclado;
+      if (workbook.origemLegadoPolo) {
+        mesclado = reconhecido.sheets;
+      } else if (window.SETADContabPlanilhaWorkbook) {
+        mesclado = window.SETADContabPlanilhaWorkbook.mesclarWorkbooksImportadoSite(
+          { sheets: reconhecido.sheets },
+          poloDestino
+        );
+      } else {
+        mesclado = reconhecido.sheets;
+      }
 
       var legadoAviso =
         workbook && workbook.origemLegadoPolo
@@ -1021,6 +1049,7 @@ function importarPlanilhaContabPolos(arquivo, sessao, cb, hostEditor, poloIdDefa
         }
       });
       opts.workbook = { sheets: mesclado };
+      opts.origemLegadoPolo = !!workbook.origemLegadoPolo;
 
       window.SETADContabPlanilhaEditor.abrirEditorPlanilhaImportacao(host, opts);
       cb({

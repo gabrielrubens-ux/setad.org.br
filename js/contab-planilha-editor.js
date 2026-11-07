@@ -206,7 +206,13 @@
     if (modoCheckin) {
       poloId = idGeral;
     }
-    var estado = { sheetAtiva: 0, sheets: sheets, poloId: poloId, checkinOk: false };
+    var estado = {
+      sheetAtiva: 0,
+      sheets: sheets,
+      poloId: poloId,
+      checkinOk: false,
+      origemLegadoPolo: !!opts.origemLegadoPolo
+    };
     var titulo = opts.titulo || "Revisar planilha";
     var descricao =
       opts.descricao ||
@@ -473,29 +479,58 @@
       }
       if (typeof opts.onAplicar !== "function") return;
 
+      var textoSalvar = btnAplicar.textContent;
+      btnAplicar.disabled = true;
+      btnAplicar.textContent = "Salvando…";
+
       var payload = {
         sheets: estado.sheets,
-        poloId: estado.poloId
+        poloId: estado.poloId,
+        origemLegadoPolo: estado.origemLegadoPolo
       };
 
+      function liberarBotao() {
+        btnAplicar.disabled = modoCheckin ? true : false;
+        btnAplicar.textContent = textoSalvar;
+      }
+
       function aoConcluir(r, followup) {
+        liberarBotao();
         if (r && r.ok && followup && followup.manterEditor) {
           repintarEditorAposMerge(followup);
+          var msg =
+            (r.atualizados ? "Dados gravados: " + r.atualizados : "Alterações salvas.") +
+            (r.avisoNome ? "\n\n" + r.avisoNome : "");
+          alert(msg);
           if (typeof opts.onSalvo === "function") opts.onSalvo(r);
           return;
         }
-        if (r && !r.ok && r.erro) {
-          alert(r.erro);
+        if (r && !r.ok) {
+          var erros = [r.erro]
+            .concat(r.avisos || [])
+            .filter(Boolean)
+            .join("\n");
+          if (erros) alert(erros || "Não foi possível salvar.");
+          if (opts.manterAbertoAposSalvar) {
+            if (typeof opts.onSalvo === "function") opts.onSalvo(r);
+            return;
+          }
         }
         fecharEditor(host);
         if (typeof opts.onSalvo === "function") opts.onSalvo(r);
       }
 
-      if (opts.onAplicar.length >= 2) {
-        opts.onAplicar(payload, aoConcluir);
-      } else {
-        fecharEditor(host);
-        opts.onAplicar(payload);
+      try {
+        if (opts.onAplicar.length >= 2) {
+          opts.onAplicar(payload, aoConcluir);
+        } else {
+          fecharEditor(host);
+          liberarBotao();
+          opts.onAplicar(payload);
+        }
+      } catch (err) {
+        liberarBotao();
+        alert((err && err.message) || "Erro ao salvar a planilha.");
       }
     });
 

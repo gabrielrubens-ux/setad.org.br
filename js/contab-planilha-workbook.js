@@ -227,7 +227,37 @@
     return id;
   }
 
-  function mesclarGradeImportadaSite(importSheet, siteSheet, tipo) {
+  function extrairColunasMes(headers) {
+    return (headers || [])
+      .map(function (h) {
+        return String(h || "").trim();
+      })
+      .filter(function (h) {
+        return /^\d{2}\/\d{4}$/.test(h);
+      });
+  }
+
+  function headersMensalidadesUnidos(siteHeaders, impHeaders) {
+    var prefixo = ["matricula_id", "nome", "email", "polo_id", "taxa_matricula"];
+    var meses = extrairColunasMes(siteHeaders).concat(extrairColunasMes(impHeaders));
+    var vistos = {};
+    meses = meses.filter(function (m) {
+      if (vistos[m]) return false;
+      vistos[m] = true;
+      return true;
+    });
+    meses.sort(function (a, b) {
+      var pa = a.split("/");
+      var pb = b.split("/");
+      var ka = Number(pa[1] + pa[0]);
+      var kb = Number(pb[1] + pb[0]);
+      return ka - kb;
+    });
+    return prefixo.concat(meses).concat(["total_pago", "em_aberto"]);
+  }
+
+  function mesclarGradeImportadaSite(importSheet, siteSheet, tipo, opcoes) {
+    opcoes = opcoes || {};
     if (!siteSheet || !siteSheet.headers || !siteSheet.headers.length) {
       return {
         name: importSheet.name || "Planilha",
@@ -237,7 +267,10 @@
         })
       };
     }
-    var headers = siteSheet.headers.slice();
+    var headers =
+      tipo === "mensalidades"
+        ? headersMensalidadesUnidos(siteSheet.headers, importSheet.headers)
+        : siteSheet.headers.slice();
     var mapImp = {};
     (importSheet.body || []).forEach(function (row) {
       var ch = chaveLinhaMerge(tipo, importSheet.headers, row);
@@ -247,13 +280,23 @@
     var body = [];
     var usados = {};
 
+    function linhaNoLayout(headersDest, headersSrc, rowSrc, rowSite) {
+      if (opcoes.priorizarImportacao && rowSrc) {
+        return linhaParaHeaders(headersDest, headersSrc, rowSrc);
+      }
+      if (rowSite) {
+        return mesclarDuasLinhas(headersDest, rowSite, headersSrc, rowSrc);
+      }
+      return linhaParaHeaders(headersDest, headersSrc, rowSrc);
+    }
+
     (siteSheet.body || []).forEach(function (siteRow) {
       var ch = chaveLinhaMerge(tipo, headers, siteRow);
       if (ch && mapImp[ch]) {
-        body.push(mesclarDuasLinhas(headers, siteRow, importSheet.headers, mapImp[ch]));
+        body.push(linhaNoLayout(headers, importSheet.headers, mapImp[ch], siteRow));
         usados[ch] = true;
-      } else {
-        body.push(siteRow.slice());
+      } else if (!opcoes.priorizarImportacao) {
+        body.push(linhaParaHeaders(headers, siteSheet.headers, siteRow));
       }
     });
 
@@ -269,13 +312,17 @@
     };
   }
 
-  function mesclarWorkbooksImportadoSite(workbookImport, poloId) {
+  function mesclarWorkbooksImportadoSite(workbookImport, poloId, opcoes) {
+    opcoes = opcoes || {};
+    if (opcoes.priorizarImportacao || (workbookImport && workbookImport.origemLegadoPolo)) {
+      opcoes.priorizarImportacao = true;
+    }
     var importSheets = (workbookImport && workbookImport.sheets) || [];
     if (typeof global.reconhecerAlunosWorkbookContabPolos === "function") {
       var rec = global.reconhecerAlunosWorkbookContabPolos(workbookImport, poloId);
       importSheets = rec.sheets || importSheets;
     }
-    var siteSheets = montarWorkbookExportacaoPolo(poloId);
+    var siteSheets = opcoes.priorizarImportacao ? [] : montarWorkbookExportacaoPolo(poloId);
     var importPorTipo = {};
 
     importSheets.forEach(function (sh) {
@@ -291,7 +338,7 @@
       tiposSite[t] = true;
       var imp = importPorTipo[t];
       if (imp) {
-        saida.push(mesclarGradeImportadaSite(imp, siteSh, t));
+        saida.push(mesclarGradeImportadaSite(imp, siteSh, t, opcoes));
       } else {
         saida.push({
           name: siteSh.name,
@@ -327,6 +374,18 @@
     });
 
     if (!saida.length && importSheets.length) {
+      return importSheets.map(function (sh) {
+        return {
+          name: sh.name,
+          headers: (sh.headers || []).slice(),
+          body: (sh.body || []).map(function (r) {
+            return r.slice();
+          })
+        };
+      });
+    }
+
+    if (opcoes.priorizarImportacao && !saida.length) {
       return importSheets.map(function (sh) {
         return {
           name: sh.name,
@@ -468,11 +527,36 @@
     if (!meses.length) {
       return { ok: false, erro: "Aba Mensalidades: nenhuma coluna de mês (ex.: 03/2026).", count: 0 };
     }
+    var idxTaxa = cab.indexOf("taxa_matricula");
     var count = 0;
     grade.body.forEach(function (row) {
       var matricula = obterMatriculaDaLinhaGrade(grade, row, poloId);
       if (!matricula) return;
       if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
+
+      if (idxTaxa >= 0 && row[idxTaxa] !== "" && row[idxTaxa] != null) {
+        var taxaParsed = parseCelulaMensalidade(row[idxTaxa]);
+        if (!taxaParsed) {
+          var taxaNum = Number(String(row[idxTaxa]).replace(",", "."));
+          if (!Number.isNaN(taxaNum) && taxaNum > 0) {
+            taxaParsed = { valor: taxaNum, status: "pago" };
+          }
+        }
+        if (taxaParsed && taxaParsed.valor > 0 && typeof global.aplicarPagamentoAlunoPolo === "function") {
+          var regTaxa = global.aplicarPagamentoAlunoPolo(
+            matricula,
+            {
+              tipoCobranca: "matricula",
+              situacaoPagamento: "pago_presencial",
+              formaPagamento: "PIX",
+              valor: taxaParsed.valor,
+              observacoes: "Importação Excel — taxa de matrícula"
+            },
+            sessao
+          );
+          if (regTaxa && regTaxa.ok) count++;
+        }
+      }
 
       meses.forEach(function (mes) {
         var parsed = parseCelulaMensalidade(row[mes.ix]);
@@ -563,7 +647,7 @@
     ) {
       return {
         ok: false,
-        erro: "Somente a contabilidade autorizada pode salvar alterações importadas."
+        erro: "Confirme a senha da contabilidade para salvar alterações no site."
       };
     }
     if (!poloId) {

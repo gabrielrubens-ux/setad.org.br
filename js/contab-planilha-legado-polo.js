@@ -107,7 +107,7 @@
       "valor_sugerido",
       "observacoes"
     ];
-    var headersMens = ["matricula_id", "nome", "email", "polo_id"];
+    var headersMens = ["matricula_id", "nome", "email", "polo_id", "taxa_matricula"];
     colunasMes.forEach(function (col) {
       headersMens.push(col.rotulo);
     });
@@ -172,8 +172,11 @@
         obs.join("; ")
       ]);
 
-      var linhaMens = ["", nome, "", poloId || ""];
+      var celTaxa =
+        taxa && !Number.isNaN(taxa) ? String(taxa) + "|pago" : "";
+      var linhaMens = ["", nome, "", poloId || "", celTaxa];
       var totalPago = 0;
+      if (taxa && !Number.isNaN(taxa)) totalPago += taxa;
       colunasMes.forEach(function (col) {
         var cel = interpretarCelulaMensalidadeLegado(row[col.ix]);
         linhaMens.push(cel);
@@ -183,7 +186,6 @@
           if (!Number.isNaN(val)) totalPago += val;
         }
       });
-      if (taxa && !Number.isNaN(taxa)) totalPago += taxa;
       linhaMens.push(totalPago, "");
 
       bodyMens.push(linhaMens);

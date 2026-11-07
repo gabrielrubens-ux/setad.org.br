@@ -114,7 +114,7 @@ function obterPagamentoMensalidadeReferencia(email, referencia) {
 }
 
 function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, sessao) {
-  if (!matricula || !matricula.email) {
+  if (!matricula || !matricula.id) {
     return { ok: false, erro: "Matrícula inválida." };
   }
   if (typeof inicializarDadosFinanceiros === "function") {
