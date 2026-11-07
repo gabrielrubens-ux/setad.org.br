@@ -62,33 +62,38 @@ fadeElements.forEach(function (element) {
 
 // --- Destaque do link ativo no menu conforme a seção visível ---
 const sections = document.querySelectorAll("section[id]");
+let navScrollTicking = false;
 
-window.addEventListener("scroll", function () {
-  // Executa a cada pixel de rolagem (pode ser otimizado com throttle, mas
-  // para uma landing page simples, funciona bem assim)
-
+function atualizarNavAtivo() {
+  navScrollTicking = false;
   let currentSection = "";
 
   sections.forEach(function (section) {
     const sectionTop = section.offsetTop - 100;
-    // offsetTop = distância do topo da página até a seção
-    // -100 compensa a altura do header fixo
-
     if (window.scrollY >= sectionTop) {
-      // scrollY = quantos pixels o usuário rolou para baixo
       currentSection = section.getAttribute("id");
     }
   });
 
-      navLinks.forEach(function (link) {
-        link.style.color = "";
-        link.style.fontWeight = "";
-        if (link.getAttribute("href") === "#" + currentSection) {
-          link.style.color = "var(--cor-secundaria)";
-          link.style.fontWeight = "600";
-        }
-      });
-});
+  navLinks.forEach(function (link) {
+    link.style.color = "";
+    link.style.fontWeight = "";
+    if (link.getAttribute("href") === "#" + currentSection) {
+      link.style.color = "var(--cor-secundaria)";
+      link.style.fontWeight = "600";
+    }
+  });
+}
+
+window.addEventListener(
+  "scroll",
+  function () {
+    if (navScrollTicking) return;
+    navScrollTicking = true;
+    window.requestAnimationFrame(atualizarNavAtivo);
+  },
+  { passive: true }
+);
 
 // --- Fundo interativo da seção "Nossa sede" (grade + parallax discreto) ---
 (function inicializarFundoLocalizacao() {

@@ -94,10 +94,27 @@ app.get("/login-aluno-ip.html", function (req, res) {
   res.sendFile(path.join(ROOT, "login-aluno-ip.html"));
 });
 
-app.use(express.static(ROOT, {
-  index: "index.html",
-  extensions: ["html"]
-}));
+app.use(
+  express.static(ROOT, {
+    index: "index.html",
+    extensions: ["html"],
+    setHeaders: function (res, filePath) {
+      if (/\.(js|mjs|css|woff2?)$/i.test(filePath)) {
+        res.setHeader(
+          "Cache-Control",
+          "public, max-age=604800, stale-while-revalidate=86400"
+        );
+      } else if (/\.(png|jpe?g|webp|gif|svg|ico)$/i.test(filePath)) {
+        res.setHeader(
+          "Cache-Control",
+          "public, max-age=2592000, stale-while-revalidate=86400"
+        );
+      } else if (/\.html$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "no-cache");
+      }
+    }
+  })
+);
 
 app.get("*", function (req, res, next) {
   if (req.path.startsWith("/api/")) return next();

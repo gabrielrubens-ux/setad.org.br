@@ -47,15 +47,18 @@
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="/css/pwa.css">
   <link
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap"
+    media="print"
+    onload="this.media='all'"
   >
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+  </noscript>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="/css/pwa.css">
+  <link rel="stylesheet" href="/css/mobile-viewport.css">
 </head>
 
 <body class="pagina-inicial">
@@ -71,7 +74,15 @@
 
       <!-- Logo no canto esquerdo — marca d'água com fundo transparente -->
       <a href="#inicio" class="logo">
-        <img src="assets/images/marca-dagua-setad.png" alt="SETAD — Seminário Teológico" class="logo__img">
+        <img
+          src="assets/images/marca-dagua-setad.png"
+          alt="SETAD — Seminário Teológico"
+          class="logo__img"
+          width="160"
+          height="44"
+          decoding="async"
+          fetchpriority="high"
+        >
       </a>
 
       <!-- Botão hambúrguer (só aparece no mobile) -->
@@ -175,7 +186,7 @@
       </div>
     </section>
 
-    <!-- PROGRAMA: grid de cards com os pilares do seminário -->
+    <!-- PROGRAMA: grade curricular interativa (Curso Médio) -->
     <section class="section fade-in" id="programa">
       <div class="container">
         <p class="section__label">O que você vai aprender</p>
@@ -184,51 +195,29 @@
           Um currículo estruturado que abrange as principais áreas da teologia cristã.
         </p>
 
-        <!-- Grid responsivo com 4 cards -->
-        <div class="grid">
+        <div class="programa-grade fade-in" data-programa-grade id="programa-grade">
+          <div class="programa-grade__cabecalho">
+            <p class="programa-grade__selo">Grade curricular</p>
+            <h3 class="programa-grade__titulo" data-programa-grade-titulo>Curso Médio em Teologia e Ciências Bíblicas</h3>
+            <p class="programa-grade__intro section__text" data-programa-grade-intro></p>
+            <div class="programa-grade__meta" data-programa-grade-meta></div>
+          </div>
 
-          <article class="card">
-            <!-- <article> é semântico para conteúdo independente (como um card) -->
-            <p class="card__number">01</p>
-            <h3 class="card__title">Teologia Sistemática</h3>
-            <p class="card__text">
-              Estudo organizado das doutrinas cristãs: Deus, Cristo, Espírito Santo,
-              salvação, Igreja e escatologia.
-            </p>
-          </article>
+          <div class="programa-grade__corpo">
+            <p class="programa-grade__dica">Escolha um eixo para ver as disciplinas — sem listar tudo de uma vez.</p>
+            <div class="programa-grade__nav" data-programa-grade-nav role="tablist" aria-label="Eixos do curso médio"></div>
+            <div class="programa-grade__painel" data-programa-grade-painel></div>
+          </div>
 
-          <article class="card">
-            <p class="card__number">02</p>
-            <h3 class="card__title">Hermenêutica Bíblica</h3>
-            <p class="card__text">
-              Princípios de interpretação das Escrituras para uma leitura fiel
-              e contextualizada do texto bíblico.
-            </p>
-          </article>
-
-          <article class="card">
-            <p class="card__number">03</p>
-            <h3 class="card__title">História da Igreja</h3>
-            <p class="card__text">
-              Trajetória do cristianismo desde os apóstolos até os dias atuais,
-              compreendendo reformas e movimentos teológicos.
-            </p>
-          </article>
-
-          <article class="card">
-            <p class="card__number">04</p>
-            <h3 class="card__title">Teologia Prática</h3>
-            <p class="card__text">
-              Pregação, aconselhamento pastoral, liderança e ética cristã
-              aplicadas ao contexto ministerial contemporâneo.
-            </p>
-          </article>
-
+          <div class="programa-grade__rodape">
+            <a href="matricula/?modulo=medio" class="btn btn--secondary programa-grade__cta" data-programa-grade-matricula>
+              Matricular no Médio
+            </a>
+            <a href="#informacoes" class="programa-grade__link-infos">Valores e outras modalidades &darr;</a>
+          </div>
         </div>
       </div>
     </section>
-
-    <!-- PORTAL: acesso separado para alunos e professores -->
     <section class="section portal fade-in" id="portal">
       <div class="container">
         <p class="section__label">Área restrita</p>
@@ -617,21 +606,16 @@
   -->
   <script src="/js/app-config.js"></script>
   <script src="/js/native-bridge.js"></script>
-  <script src="js/polos.js"></script>
-  <script src="js/polos-coordenadas.js"></script>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <script src="js/polos.js" defer></script>
+  <script src="js/polos-coordenadas.js" defer></script>
+  <script src="js/setad-load-leaflet.js" defer></script>
   <script src="js/campus-mapa-bg.js" defer></script>
+  <script src="js/grade-curriculo-setad.js" defer></script>
+  <script src="js/programa-grade.js" defer></script>
   <script src="js/script.js" defer></script>
-  <script src="js/midias-bg.js" defer></script>
-  <script src="js/matricula-cta-bg.js" defer></script>
-  <script src="js/missoes-fita.js" defer></script>
-  <script src="js/missoes-bg.js" defer></script>
   <script src="js/nossa-historia.js" defer></script>
-  <script src="js/contato-setad.js"></script>
+  <script src="js/setad-index-idle.js" defer></script>
+  <script src="js/contato-setad.js" defer data-setad-contato></script>
   <script src="js/wpp-float.js" defer></script>
   <script src="/js/pwa.js" defer></script>
 

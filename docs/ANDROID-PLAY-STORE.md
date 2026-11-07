@@ -144,7 +144,8 @@ Artefato esperado:
 
 | Sintoma | Causa provável | Ação |
 |--------|----------------|------|
-| `invalid source release: 21` | JDK 17 no Gradle | Usar JBR do Android Studio (Java 21+) |
+| `invalid source release: 21` | JDK 17 no Gradle | Usar JDK **21** (ou JBR 21+) no Gradle |
+| `Unsupported class file major version 69` | JBR **Java 25** no `gradlew` | JDK **21 LTS** no `JAVA_HOME` ou **Generate Signed Bundle** no Android Studio |
 | SDK não encontrado | `ANDROID_HOME` errado ou sem `local.properties` | Corrigir `sdk.dir` |
 | Play rejeita o AAB | Assinatura debug | Gerar **Signed** bundle com keystore de upload |
 | App sem dados novos | `www/` desatualizado | `npm run cap:sync` antes do build |

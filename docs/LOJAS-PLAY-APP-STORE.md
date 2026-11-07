@@ -9,6 +9,8 @@ O app é **Capacitor** (WebView do portal) com `appId` **`org.setad.seminario`**
 
 Detalhes de JDK, SDK, keystore e AAB: **[ANDROID-PLAY-STORE.md](./ANDROID-PLAY-STORE.md)**.
 
+Checklist do que falta no PC de desenvolvimento: **[CHECKLIST-PLAY-PC.md](./CHECKLIST-PLAY-PC.md)**.
+
 **URL de privacidade (lojas):** `https://setad.org.br/privacidade.html`
 
 **Produção validada em 08/10/2026:** `privacidade.html` publicada; `GET /api/health` retorna `ok: true`.

@@ -2,56 +2,40 @@
  * Service Worker SETAD — cache offline para o app PWA.
  * Estratégia: precache do núcleo + stale-while-revalidate para estáticos + network-first para HTML.
  */
-const CACHE_VERSION = "setad-pwa-v10";
-const PRECACHE = "setad-precache-v10";
-const RUNTIME = "setad-runtime-v1";
+const CACHE_VERSION = "setad-pwa-v11";
+const PRECACHE = "setad-precache-v11";
+const RUNTIME = "setad-runtime-v2";
+const RUNTIME_MAX_ENTRIES = 96;
 
+/* Núcleo leve no install — painéis e rotas secundárias entram via runtime ao visitar */
 const PRECACHE_URLS = [
   "/",
   "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
   "/css/styles.css",
-  "/css/portal.css",
   "/css/pwa.css",
+  "/css/mobile-viewport.css",
   "/js/pwa.js",
   "/js/script.js",
-  "/js/dados.js",
-  "/js/auth.js",
-  "/js/areas-institucionais.js",
-  "/js/api-client.js",
+  "/js/setad-viewport-boot.js",
+  "/js/mobile-viewport.js",
   "/js/app-config.js",
   "/js/native-bridge.js",
-  "/js/setad-sync.js",
+  "/js/api-client.js",
   "/js/contato-setad.js",
   "/js/wpp-float.js",
-  "/assets/icons/icon-16.png",
-  "/assets/icons/icon-32.png",
-  "/assets/icons/icon-72.png",
+  "/js/grade-curriculo-setad.js",
+  "/js/programa-grade.js",
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png",
-  "/assets/icons/icon-maskable-512.png",
-  "/assets/icons/apple-touch-icon.png",
-  "/assets/images/app-icon-setad.png",
-  "/assets/images/favicon-setad-circle.png",
   "/assets/images/marca-dagua-setad.png",
   "/login-aluno.html",
   "/login-professor.html",
   "/login-direcao.html",
   "/escolher-area-institucional.html",
   "/recuperar-senha-institucional.html",
-  "/painel-aluno.html",
-  "/painel-professor.html",
-  "/painel-secretaria.html",
-  "/painel-diretor.html",
-  "/painel-contador.html",
-  "/painel-coordenacao.html",
-  "/painel-contador-aluno-pagamentos.html",
-  "/culto-ao-vivo.html",
-  "/matricula/index.html",
-  "/matricula/pagamento.html",
-  "/matricula/teologia/index.html",
-  "/polos/index.html"
+  "/privacidade.html"
 ];
 
 const STATIC_DESTINATIONS = new Set(["style", "script", "font", "image"]);
@@ -81,13 +65,21 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key.startsWith("setad-") && key !== PRECACHE && key !== RUNTIME)
-          .map((key) => caches.delete(key))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter(
+              (key) =>
+                (key.startsWith("setad-precache-") && key !== PRECACHE) ||
+                (key.startsWith("setad-pwa-") && key !== CACHE_VERSION) ||
+                (key.startsWith("setad-runtime-") && key !== RUNTIME)
+            )
+            .map((key) => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
@@ -139,14 +131,24 @@ async function networkFirstNavigation(request) {
   }
 }
 
+async function trimRuntimeCache(cache) {
+  const keys = await cache.keys();
+  if (keys.length <= RUNTIME_MAX_ENTRIES) return;
+  const excess = keys.length - RUNTIME_MAX_ENTRIES;
+  for (let i = 0; i < excess; i += 1) {
+    await cache.delete(keys[i]);
+  }
+}
+
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(RUNTIME);
   const cached = await cache.match(request);
 
   const fetchPromise = fetch(request)
-    .then((response) => {
+    .then(async (response) => {
       if (response.ok) {
-        cache.put(request, response.clone());
+        await cache.put(request, response.clone());
+        await trimRuntimeCache(cache);
       }
       return response;
     })

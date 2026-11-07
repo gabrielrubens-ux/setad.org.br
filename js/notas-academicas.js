@@ -101,6 +101,13 @@ function listasMateriaisIguais(listaA, listaB) {
 
 function obterMateriaisPadraoModulo(modulo) {
   var chave = modulo || "medio";
+  if (
+    chave === "medio" &&
+    window.SETAD_GRADE_OFICIAL &&
+    typeof window.SETAD_GRADE_OFICIAL.listarDisciplinasMedio === "function"
+  ) {
+    return window.SETAD_GRADE_OFICIAL.listarDisciplinasMedio();
+  }
   if (MATERIAIS_NOTAS_POR_MODULO[chave]) {
     return MATERIAIS_NOTAS_POR_MODULO[chave].slice();
   }

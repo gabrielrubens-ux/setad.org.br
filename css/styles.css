@@ -201,6 +201,9 @@ body {
   display: block;
   height: 2.75rem;
   width: auto;
+  max-width: min(160px, 46vw);
+  aspect-ratio: 160 / 44;
+  object-fit: contain;
 }
 
 /* Navegação principal */
@@ -436,6 +439,194 @@ body {
   font-size: 0.9rem;
   color: var(--cor-texto-suave);
   line-height: 1.6;
+}
+
+/* Programa Teológico — grade interativa (Curso Médio) */
+.programa-grade {
+  margin-top: 1.75rem;
+  padding: 1.5rem 1.35rem 1.35rem;
+  border-radius: 16px;
+  border: 1px solid var(--cor-borda-suave);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(245, 248, 255, 0.92) 100%
+  );
+  box-shadow: 0 14px 40px rgba(35, 64, 107, 0.07);
+}
+
+.programa-grade__selo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cor-acento);
+  margin: 0 0 0.35rem;
+}
+
+.programa-grade__titulo {
+  font-family: "Outfit", sans-serif;
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  font-weight: 700;
+  color: var(--cor-primaria);
+  margin: 0 0 0.5rem;
+  line-height: 1.25;
+}
+
+.programa-grade__intro {
+  margin-bottom: 0.75rem;
+  max-width: 42rem;
+}
+
+.programa-grade__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  margin-bottom: 1.25rem;
+}
+
+.programa-grade__meta span strong {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.programa-grade__dica {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+  margin: 0 0 0.85rem;
+}
+
+.programa-grade__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  min-height: 2.65rem;
+}
+
+.programa-grade__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--cor-borda-suave);
+  background: var(--cor-branco);
+  color: var(--cor-primaria-escura);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.programa-grade__tab:hover {
+  border-color: rgba(35, 64, 107, 0.28);
+}
+
+.programa-grade__tab.is-active {
+  border-color: var(--cor-primaria);
+  background: rgba(35, 64, 107, 0.08);
+  box-shadow: 0 4px 14px rgba(35, 64, 107, 0.1);
+}
+
+.programa-grade__tab-qtd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(103, 61, 230, 0.12);
+  color: var(--cor-acento);
+}
+
+.programa-grade__tab.is-active .programa-grade__tab-qtd {
+  background: var(--cor-primaria);
+  color: var(--cor-branco);
+}
+
+.programa-grade__painel {
+  min-height: 8rem;
+}
+
+.programa-grade__detalhe-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--cor-texto);
+  margin: 0 0 0.85rem;
+  max-width: 40rem;
+}
+
+.programa-grade__disciplinas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.45rem 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.programa-grade__disciplinas li {
+  position: relative;
+  padding: 0.45rem 0.55rem 0.45rem 1.15rem;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: var(--cor-texto-suave);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(35, 64, 107, 0.08);
+  border-radius: 8px;
+}
+
+.programa-grade__disciplinas li::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 0.72rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--cor-acento);
+}
+
+.programa-grade__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  margin-top: 1.35rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--cor-borda-suave);
+}
+
+.programa-grade__link-infos {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  text-decoration: none;
+}
+
+.programa-grade__link-infos:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .programa-grade {
+    padding: 1.15rem 1rem;
+  }
+
+  .programa-grade__tab {
+    flex: 1 1 calc(50% - 0.5rem);
+    justify-content: center;
+  }
+
+  .programa-grade__disciplinas {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Lista de informações (datas, local, etc.) */

@@ -286,13 +286,27 @@
       function (entries) {
         entries.forEach(function (entry) {
           estado.visivel = entry.isIntersecting;
-          if (entry.isIntersecting) {
+          if (!entry.isIntersecting) return;
+
+          function aposLeaflet() {
             sincronizarCampus(true);
             if (estado.mapa) estado.mapa.invalidateSize();
           }
+
+          if (typeof L !== "undefined") {
+            aposLeaflet();
+            return;
+          }
+          if (typeof window.SETADLoadLeaflet === "function") {
+            window.SETADLoadLeaflet().then(aposLeaflet).catch(function () {
+              sincronizarCampus(true);
+            });
+          } else {
+            sincronizarCampus(true);
+          }
         });
       },
-      { root: null, threshold: 0.12 }
+      { root: null, threshold: 0.12, rootMargin: "120px 0px" }
     );
 
     observer.observe(section);
