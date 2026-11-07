@@ -3849,6 +3849,58 @@ body.portal-marca-dagua .wpp-float {
   margin: 0;
 }
 
+.polo-contab__dropzone {
+  margin: 1rem 0 1.25rem;
+  padding: 1.35rem 1.25rem;
+  border: 2px dashed rgba(35, 64, 107, 0.35);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(227, 237, 252, 0.95), rgba(255, 255, 255, 0.9));
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.polo-contab__dropzone:focus {
+  outline: 2px solid #23406b;
+  outline-offset: 3px;
+}
+
+.polo-contab__dropzone--ativo,
+.polo-contab__dropzone:hover {
+  border-color: #23406b;
+  box-shadow: 0 6px 22px rgba(35, 64, 107, 0.12);
+  background: rgba(227, 237, 252, 1);
+}
+
+.polo-contab__dropzone-icone {
+  margin: 0 0 0.35rem;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.polo-contab__dropzone-titulo {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: #23406b;
+}
+
+.polo-contab__dropzone-polo {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a2f52;
+}
+
+.polo-contab__dropzone-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #5a6578;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+
 .polo-contab__polos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
