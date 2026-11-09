@@ -288,13 +288,12 @@ function aplicarImportacaoPdfAlunos(linhas, poloId, sessao, onProgresso) {
 
 function configurarImportacaoPdfContabPolos(container, sessao, obterPoloAtivoId, aoConcluir) {
   var input = document.getElementById("contabPolosPdfInput");
-  var zona = document.getElementById("contabPolosPdfDropZone");
   var revisao = document.getElementById("contabPolosPdfRevisao");
   if (!input || !revisao) return;
 
   if (!usuarioPodeImportarPdfContabPolos(sessao)) {
-    var bloco = document.getElementById("contabPolosPdfBloco");
-    if (bloco) bloco.hidden = true;
+    var label = document.getElementById("btnContabPolosPdfLabel");
+    if (label) label.hidden = true;
     return;
   }
 
@@ -385,22 +384,4 @@ function configurarImportacaoPdfContabPolos(container, sessao, obterPoloAtivoId,
     e.target.value = "";
   });
 
-  if (zona) {
-    zona.addEventListener("click", function () {
-      input.click();
-    });
-    zona.addEventListener("dragover", function (e) {
-      e.preventDefault();
-      zona.classList.add("polo-contab__pdf-drop--ativo");
-    });
-    zona.addEventListener("dragleave", function () {
-      zona.classList.remove("polo-contab__pdf-drop--ativo");
-    });
-    zona.addEventListener("drop", function (e) {
-      e.preventDefault();
-      zona.classList.remove("polo-contab__pdf-drop--ativo");
-      var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      processarArquivo(file);
-    });
-  }
 }

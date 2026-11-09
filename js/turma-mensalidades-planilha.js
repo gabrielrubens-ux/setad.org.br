@@ -1,7 +1,7 @@
 /* Planilha de mensalidades por turma / polo — alunos × meses, edição rápida */
 
-/** Colunas de mensalidade na contabilidade dos polos — até dez/2026 (2027+ no início do ano letivo). */
-var PLANILHA_POLO_MES_INICIO = 3;
+/** Ano letivo de pagamentos nos polos: jan–dez/2026 (2027 na abertura do próximo ano). */
+var PLANILHA_POLO_MES_INICIO = 1;
 var PLANILHA_POLO_ANO_INICIO = 2026;
 var PLANILHA_POLO_MES_FIM = 12;
 var PLANILHA_POLO_ANO_FIM = 2026;
@@ -381,11 +381,15 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
     typeof escaparHtml === "function" ? escaparHtml : function (s) { return s; };
   var formatar =
     typeof formatarMoeda === "function" ? formatarMoeda : String;
-  var colunas = gerarColunasMensalidadePlanilhaTurma({ alunos: alunos });
+  var optsColunas = { alunos: alunos };
+  if (meta.fixarGradeAnoLetivoPolo) {
+    optsColunas.incluirMesesComPagamento = false;
+  }
+  var colunas = gerarColunasMensalidadePlanilhaTurma(optsColunas);
   var titulo = meta.titulo || "Planilha de mensalidades";
   var subtitulo =
     meta.subtitulo ||
-    "Clique em + ou Editar para lançar pagamentos. Os dados vão para contador e direção.";
+    "Clique em + ou Editar para lançar pagamentos (jan–dez/2026). Os dados vão para contador e direção.";
 
   var mostrarMatricula = meta.planilhaColunaMatricula !== false;
   var cabMeses =

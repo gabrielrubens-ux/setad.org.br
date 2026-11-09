@@ -351,60 +351,6 @@ function aplicarPagamentoAlunoPolo(matricula, opcoes, sessao) {
   return registro;
 }
 
-function exportarPlanilhaContabPolos(poloId) {
-  var polos = obterPolosParaContabilidade();
-  var polo = polos.find(function (p) {
-    return p.id === poloId;
-  });
-  var linhas = obterMatriculasDoPolo(poloId);
-  var sep = ";";
-  var cab =
-    [
-      "matricula_id",
-      "nome",
-      "email",
-      "polo_id",
-      "polo_nome",
-      "modulo",
-      "situacao",
-      "forma_pagamento",
-      "valor_sugerido",
-      "observacoes"
-    ].join(sep) + "\n";
-
-  linhas.forEach(function (m) {
-    var extra = obterExtraAlunoPolo(m.id) || {};
-    var sit = inferirSituacaoFinanceiraPolo(m.id);
-    var valor =
-      extra.ultimoValor ||
-      (typeof obterMensalidadeModulo === "function"
-        ? obterMensalidadeModulo(m.modulo)
-        : "");
-    cab +=
-      [
-        m.id,
-        '"' + (m.nomeCompleto || "").replace(/"/g, '""') + '"',
-        m.email || "",
-        m.poloId || "",
-        '"' + (polo ? polo.nome : m.poloNome || "").replace(/"/g, '""') + '"',
-        m.modulo || "",
-        sit,
-        extra.formaPagamento || "",
-        valor,
-        '"' + (extra.observacoes || "").replace(/"/g, '""') + '"'
-      ].join(sep) + "\n";
-  });
-
-  var blob = new Blob(["\ufeff" + cab], { type: "text/csv;charset=utf-8" });
-  var nomeArquivo =
-    "setad-contab-polos-" + (poloId || "todos") + "-" + new Date().toISOString().slice(0, 10) + ".csv";
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = nomeArquivo;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 function renderizarTelaSenhaContabPolos(container, sessao) {
   container.innerHTML =
     '<div class="polo-contab polo-contab--gate">' +
@@ -498,21 +444,14 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab">' +
     avisoDev +
     '<div class="polo-contab__toolbar">' +
-    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Alunos do site aparecem conforme o polo vinculado na matrícula.</p>' +
+    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Mensalidades do ano letivo: <strong>jan–dez/2026</strong> em todos os polos. Importação somente em PDF (cadastro como na secretaria).</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExport">Exportar polo atual (CSV)</button>' +
+    '<label class="btn btn--primary btn--sm polo-contab__pdf-label-toolbar" id="btnContabPolosPdfLabel">' +
+    'Importar PDF<input type="file" id="contabPolosPdfInput" accept="application/pdf,.pdf" hidden></label>' +
     "</div></div>" +
-    '<div id="contabPolosPdfBloco" class="polo-contab__pdf-bloco">' +
-    '<div class="polo-contab__pdf-drop" id="contabPolosPdfDropZone" tabindex="0" role="button" aria-label="Importar lista de alunos em PDF">' +
-    '<p class="polo-contab__pdf-drop-icone" aria-hidden="true">📄</p>' +
-    '<p class="polo-contab__pdf-drop-titulo"><strong>Importar PDF do polo</strong></p>' +
-    '<p class="presencial-bloco__hint">O sistema lê tabelas ou listas com nome e e-mail e cadastra como na secretaria (polo SETADE: inclua nível e sala no PDF). Arraste o arquivo ou clique para escolher.</p>' +
-    '<label class="btn btn--primary btn--sm polo-contab__pdf-label">' +
-    'Escolher PDF<input type="file" id="contabPolosPdfInput" accept="application/pdf,.pdf" hidden></label>' +
-    "</div>" +
+    '<p class="presencial-bloco__hint polo-contab__pdf-dica">PDF com tabela ou lista (nome, e-mail, telefone…). Polo SETADE: inclua nível e sala. Não use Excel/planilha nesta tela.</p>' +
     '<div id="contabPolosPdfRevisao" class="polo-contab__pdf-revisao-host" hidden></div>' +
-    "</div>" +
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
     cardsPolos +
     "</div>" +
@@ -584,7 +523,9 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? "Planilha — " + turma.nome
         : "Planilha — " + (polo ? polo.nome : "Polo"),
       subtitulo:
-        "Mensalidades e notas do polo/turma. Lançamentos visíveis em secretaria, professor, aluno e direção.",
+        "Mensalidades de jan a dez/2026 (ano letivo). Clique em + ou Editar para lançar valores.",
+      fixarGradeAnoLetivoPolo: true,
+      planilhaColunaMatricula: true,
       turmaId: turma ? turma.id : null,
       onAtualizar: function () {
         renderPlanilha();
@@ -814,10 +755,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
   document.getElementById("btnContabPolosAtualizar").addEventListener("click", function () {
     renderizarContabilidadePolos(containerId, sessao);
   });
-  document.getElementById("btnContabPolosExport").addEventListener("click", function () {
-    exportarPlanilhaContabPolos(container.dataset.poloAtivo);
-  });
-
   if (typeof configurarImportacaoPdfContabPolos === "function") {
     configurarImportacaoPdfContabPolos(
       container,

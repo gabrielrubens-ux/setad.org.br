@@ -3849,47 +3849,15 @@ body.portal-marca-dagua .wpp-float {
   margin: 0;
 }
 
-.polo-contab__pdf-bloco {
-  margin: 0 0 1.25rem;
-}
-
-.polo-contab__pdf-drop {
-  padding: 1.35rem 1.25rem;
-  border: 2px dashed rgba(139, 26, 46, 0.35);
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(252, 236, 240, 0.95), rgba(255, 255, 255, 0.92));
-  text-align: center;
+.polo-contab__pdf-label-toolbar {
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
-.polo-contab__pdf-drop:focus {
-  outline: 2px solid #8b1a2e;
-  outline-offset: 3px;
-}
-
-.polo-contab__pdf-drop--ativo,
-.polo-contab__pdf-drop:hover {
-  border-color: #8b1a2e;
-  box-shadow: 0 6px 22px rgba(139, 26, 46, 0.12);
-}
-
-.polo-contab__pdf-drop-icone {
-  margin: 0 0 0.35rem;
-  font-size: 1.75rem;
-  line-height: 1;
-}
-
-.polo-contab__pdf-drop-titulo {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-  color: #8b1a2e;
-}
-
-.polo-contab__pdf-label {
-  cursor: pointer;
-  margin: 0.65rem 0 0;
-  display: inline-block;
+.polo-contab__pdf-dica {
+  margin: 0 0 1rem;
 }
 
 .polo-contab__pdf-revisao-host {
