@@ -4877,14 +4877,21 @@ button.midias__link {
 .culto-janela__badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  flex: 1;
+  min-width: 0;
+  gap: 0.35rem;
   padding: 0.15rem 0.45rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
-  font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-family: var(--fonte-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .culto-janela__dot {
@@ -4895,19 +4902,6 @@ button.midias__link {
   animation: cultoBadgeDot 1.2s ease-in-out infinite;
 }
 
-.culto-janela__titulo {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--fonte-display);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.culto-janela--mini .culto-janela__titulo,
 .culto-janela--mini .culto-janela__rodape,
 .culto-janela--mini .culto-janela__acoes {
   display: none;
@@ -5044,18 +5038,9 @@ button.midias__link {
 }
 
 .culto-janela--mini .culto-janela__badge {
-  flex: 1;
-  min-width: 0;
   padding: 0;
-  gap: 0.28rem;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-  text-transform: none;
+  font-size: 0.56rem;
   background: transparent;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .culto-janela--mini .culto-janela__dot {

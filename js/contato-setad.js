@@ -184,8 +184,7 @@
       '<div class="culto-janela culto-janela--mini" id="cultoJanela" hidden aria-live="polite" aria-expanded="false">' +
         '<div class="culto-janela__painel" id="cultoJanelaPainel">' +
           '<header class="culto-janela__cabecalho">' +
-            '<span class="culto-janela__badge" aria-label="Ao vivo — Boas Novas Canal 4.1 (Belém)"><span class="culto-janela__dot" aria-hidden="true"></span> Boas Novas Canal 4.1 (Belém)</span>' +
-            '<span class="culto-janela__titulo">Boas Novas Canal 4.1 (Belém)</span>' +
+            '<span class="culto-janela__badge" aria-label="Ao vivo — Boas Novas Canal 4.1 (Belém)"><span class="culto-janela__dot" aria-hidden="true"></span>Boas Novas Canal 4.1 (Belém)</span>' +
             '<div class="culto-janela__acoes">' +
               '<button type="button" class="culto-janela__btn" id="cultoJanelaExpandir" aria-label="Expandir ou recolher janela">' +
                 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
