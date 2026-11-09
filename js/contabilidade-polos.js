@@ -442,9 +442,28 @@ var CONTAB_POLOS_COLUNAS_MODELO = [
   "observacoes"
 ];
 
+/** Mesma ordem da lista de alunos na secretaria (cadastro mais recente primeiro). */
+function ordenarMatriculasListaSecretaria(lista) {
+  return (lista || []).slice().sort(function (a, b) {
+    var da = a.dataMatricula ? new Date(a.dataMatricula).getTime() : 0;
+    var db = b.dataMatricula ? new Date(b.dataMatricula).getTime() : 0;
+    if (db !== da) return db - da;
+    return (a.nomeCompleto || "").localeCompare(b.nomeCompleto || "", "pt-BR");
+  });
+}
+
+function obterMatriculasDoPoloOrdenadas(poloId) {
+  return ordenarMatriculasListaSecretaria(obterMatriculasDoPolo(poloId));
+}
+
+if (typeof window !== "undefined") {
+  window.ordenarMatriculasListaSecretaria = ordenarMatriculasListaSecretaria;
+  window.obterMatriculasDoPoloOrdenadas = obterMatriculasDoPoloOrdenadas;
+}
+
 function montarCorpoExportacaoContabPolos(poloId) {
   var polos = obterPolosParaContabilidade();
-  var linhas = obterMatriculasDoPolo(poloId);
+  var linhas = obterMatriculasDoPoloOrdenadas(poloId);
   return linhas.map(function (m) {
     var polo = polos.find(function (p) {
       return p.id === (m.poloId || poloId);
@@ -597,6 +616,11 @@ function preencherLinhaComMatriculaPlanilhaContab(headers, row, matricula, poloI
 }
 
 /** Reconhece alunos do polo em cada aba (preenche matricula_id, e-mail, nomes oficiais). */
+function abaPlanilhaContabTemColunasAluno(headers) {
+  var cab = (headers || []).map(normalizarCabecalhoPlanilhaContab);
+  return cab.indexOf("matricula_id") >= 0 || cab.indexOf("email") >= 0 || cab.indexOf("nome") >= 0;
+}
+
 function reconhecerAlunosWorkbookContabPolos(workbook, poloId) {
   var sheets = (workbook && workbook.sheets) || [];
   var reconhecidos = 0;
@@ -604,6 +628,9 @@ function reconhecerAlunosWorkbookContabPolos(workbook, poloId) {
 
   var saida = sheets.map(function (sh) {
     var headers = (sh.headers || []).slice();
+    if (!abaPlanilhaContabTemColunasAluno(headers)) {
+      return { name: sh.name, headers: headers, body: sh.body || [] };
+    }
     var body = (sh.body || []).map(function (row) {
       var temConteudo = row.some(function (c) {
         return String(c || "").trim() !== "";
@@ -795,7 +822,8 @@ function montarOpcoesEditorPlanilhaContab(sessao, optsBase) {
     modoEdicaoSite: true,
     manterAbertoAposSalvar: true,
     nomeArquivo: optsBase.nomeArquivo || "",
-    editarCompleto: usuarioEhContadorPlanilhaAutorizado(sessao),
+    editarCompleto:
+      usuarioEhContadorPlanilhaAutorizado(sessao) || usuarioPodeSalvarPlanilhaContabPolos(sessao),
     onAplicar: function (payload, concluir) {
       var poloId = payload.poloId;
       var posRecon = reconhecerAlunosWorkbookContabPolos(
@@ -1333,7 +1361,15 @@ function renderizarContabilidadePolos(containerId, sessao) {
         "</p>" +
         '<p class="polo-contab__dropzone-hint">Formato SETAD (3 abas) ou planilha manual (ALUNOS + meses).' +
         escaparHtml(dicaGeral) +
-        "</p></div>"
+        '</p></div>' +
+        '<div class="polo-contab__pastezone-wrap">' +
+        '<div class="polo-contab__pastezone" id="contabPolosPasteZone" tabindex="0" role="textbox" aria-label="Colar planilha copiada do Excel">' +
+        '<p class="polo-contab__pastezone-icone" aria-hidden="true">📋</p>' +
+        '<p><strong>Colar do Excel</strong> — selecione as células, <kbd>Ctrl+C</kbd> e cole aqui <kbd>Ctrl+V</kbd>.</p>' +
+        '<p class="polo-contab__dropzone-hint">Mesmo fluxo do arquivo .xlsx: revisão no editor e «Salvar alterações no site».</p>' +
+        "</div>" +
+        '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosColar">Ativar área de colar</button>' +
+        "</div>"
       );
     })() +
     '<div class="polo-contab__turma-filtro form-group">' +
@@ -1352,7 +1388,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div id="contabPolosPagamento" class="polo-contab__pagamento"></div>' +
     "</details>" +
     '<div id="contabPolosMsg" class="form-mensagem" role="status"></div>' +
-    '<p class="presencial-bloco__hint">Selecione o polo (incluindo SETAD geral), arraste o .xlsx, revise no editor e use «Salvar alterações no site». A grade abaixo traz matrícula editável e mensalidades de mar/2026 a dez/2026 (2027 no início do ano letivo).</p>' +
+    '<p class="presencial-bloco__hint">Selecione o polo (incluindo SETAD geral), importe ou cole o Excel, revise no editor e use «Salvar alterações no site» — cadastro, mensalidades e notas são gravados no sistema. A lista segue o mesmo cadastro da secretaria; pagamentos são editáveis na grade e na tabela.</p>' +
     "</div>";
 
   container.dataset.poloAtivo = poloAtivo;
@@ -1364,10 +1400,10 @@ function renderizarContabilidadePolos(containerId, sessao) {
     if (turmaId && typeof obterTurmaCatalogoPorId === "function") {
       var turma = obterTurmaCatalogoPorId(turmaId);
       if (turma && typeof listarAlunosNaTurma === "function") {
-        return listarAlunosNaTurma(turma);
+        return ordenarMatriculasListaSecretaria(listarAlunosNaTurma(turma));
       }
     }
-    return obterMatriculasDoPolo(pid);
+    return ordenarMatriculasListaSecretaria(obterMatriculasDoPolo(pid));
   }
 
   function preencherSelectTurmasPolo() {
@@ -1410,12 +1446,17 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? "Todos os alunos por polo. Coluna Matrícula (R$) editável; mensalidades de 03/2026 a 12/2026 — use + para lançar valores."
         : "Matrícula (R$) e mensalidades (03/2026–12/2026) editáveis na grade. Clique em + ou Editar em cada célula vazia.",
       planilhaColunaMatricula: true,
+      ordenacaoSecretaria: true,
       turmaId: turma ? turma.id : null,
       permissoesFicha: {
         notasEditar:
           usuarioEhContadorPlanilhaAutorizado(sessao) ||
           sessao.perfil === "secretaria" ||
-          sessao.perfil === "diretor"
+          sessao.perfil === "diretor",
+        financeiroEditar:
+          (typeof coordenacaoPedagogicaSemFinanceiro !== "function" ||
+            !coordenacaoPedagogicaSemFinanceiro(sessao)) &&
+          (usuarioEhContadorPlanilhaAutorizado(sessao) || usuarioPodeSalvarPlanilhaContabPolos(sessao))
       },
       onAtualizar: function () {
         renderPlanilha();
@@ -1433,15 +1474,18 @@ function renderizarContabilidadePolos(containerId, sessao) {
     var wrap = document.getElementById("contabPolosTabelaWrap");
     if (!wrap) return;
     var pid = container.dataset.poloAtivo;
-    var lista = obterMatriculasDoPolo(pid);
+    var lista = obterListaAlunosPlanilha();
     if (!lista.length) {
       wrap.innerHTML =
         '<p class="lista-vazia">Nenhum aluno vinculado a este polo ainda. Novas matrículas do site atualizam automaticamente.</p>';
       return;
     }
+    var mostrarPolo = ehPoloRecepcaoSetadGeral(pid);
     var html =
       '<table class="data-table polo-contab__tabela"><thead><tr>' +
-      "<th></th><th>Aluno</th><th>E-mail</th><th>Módulo</th><th>Situação</th><th>Forma pgto.</th><th>Ações</th>" +
+      "<th></th><th>ID</th><th>Aluno</th><th>E-mail</th>" +
+      (mostrarPolo ? "<th>Polo</th>" : "") +
+      "<th>Módulo</th><th>Cadastro</th><th>Situação</th><th>Forma pgto.</th><th>Ações</th>" +
       "</tr></thead><tbody>";
     lista.forEach(function (m) {
       var sit = inferirSituacaoFinanceiraPolo(m.id);
@@ -1450,6 +1494,19 @@ function renderizarContabilidadePolos(containerId, sessao) {
         typeof MODULOS_CURSO !== "undefined" && MODULOS_CURSO[m.modulo]
           ? MODULOS_CURSO[m.modulo].nome
           : m.modulo || "—";
+      var cadastro =
+        m.dataMatricula && typeof formatarDataBr === "function"
+          ? formatarDataBr(m.dataMatricula)
+          : m.dataMatricula
+            ? new Date(m.dataMatricula).toLocaleDateString("pt-BR")
+            : "—";
+      var poloLinha = m.poloNome || m.poloId || "—";
+      if (mostrarPolo && typeof obterPolosParaContabilidade === "function") {
+        var pRow = obterPolosParaContabilidade().find(function (p) {
+          return p.id === m.poloId;
+        });
+        if (pRow) poloLinha = pRow.nome;
+      }
       html +=
         "<tr data-matricula-id=\"" +
         escaparHtml(m.id) +
@@ -1458,13 +1515,23 @@ function renderizarContabilidadePolos(containerId, sessao) {
         escaparHtml(m.id) +
         '"></td>' +
         "<td>" +
+        escaparHtml(m.id) +
+        "</td>" +
+        "<td>" +
         escaparHtml(m.nomeCompleto) +
         "</td>" +
         "<td>" +
         escaparHtml(m.email) +
-        "</td>" +
+        "</td>";
+      if (mostrarPolo) {
+        html += "<td>" + escaparHtml(poloLinha) + "</td>";
+      }
+      html +=
         "<td>" +
         escaparHtml(mod) +
+        "</td>" +
+        "<td>" +
+        escaparHtml(cadastro) +
         "</td>" +
         '<td><span class="polo-contab__sit ' +
         classeSituacaoPolo(sit) +
@@ -1725,6 +1792,16 @@ function renderizarContabilidadePolos(containerId, sessao) {
 
   configurarArrastarSoltarPlanilhaContabPolos(
     container,
+    sessao,
+    function () {
+      return container.dataset.poloAtivo;
+    },
+    function (r) {
+      aoFeedbackImportacaoPlanilha(r, document.getElementById("contabPolosImport"));
+    }
+  );
+
+  configurarColarPlanilhaContabPolos(
     sessao,
     function () {
       return container.dataset.poloAtivo;

@@ -3914,8 +3914,18 @@ body.portal-marca-dagua .wpp-float {
   line-height: 1.45;
 }
 
+.polo-contab__pastezone-wrap {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .polo-contab__pastezone {
   margin: 0;
+  width: 100%;
+  max-width: 42rem;
   padding: 1.35rem 1.25rem;
   border: 2px dashed rgba(42, 125, 82, 0.4);
   border-radius: 14px;

@@ -112,7 +112,10 @@
     ) {
       return { headers: [], body: [] };
     }
-    var linhas = obterMatriculasDoPolo(poloId);
+    var linhas =
+      typeof obterMatriculasDoPoloOrdenadas === "function"
+        ? obterMatriculasDoPoloOrdenadas(poloId)
+        : obterMatriculasDoPolo(poloId);
     var colunas =
       typeof gerarColunasMensalidadePlanilhaTurma === "function"
         ? gerarColunasMensalidadePlanilhaTurma({
@@ -120,21 +123,25 @@
             incluirMesesComPagamento: false
           })
         : [];
-    var headers = ["matricula_id", "nome", "email", "polo_id", "taxa_matricula"];
+    var headers = ["matricula_id", "nome", "email", "polo_id", "forma_pagamento", "taxa_matricula"];
     colunas.forEach(function (c) {
       headers.push(c.coluna);
     });
     headers.push("total_pago", "em_aberto");
 
     var body = linhas.map(function (m) {
-      var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || "", ""];
+      var extra =
+        typeof obterExtraAlunoPolo === "function" ? obterExtraAlunoPolo(m.id) || {} : {};
+      var formaLinha = extra.formaPagamento || "";
+      var row = [m.id, m.nomeCompleto || "", m.email || "", m.poloId || "", formaLinha, ""];
       var pagMat =
         typeof obterPagamentoMatriculaMatricula === "function"
           ? obterPagamentoMatriculaMatricula(m)
           : null;
-      row[4] = pagMat
-        ? String(pagMat.valor || "") + "|" + (pagMat.status || "pago")
-        : "";
+      if (pagMat) {
+        var formaTaxa = pagMat.formaPagamento || formaLinha || "PIX";
+        row[5] = String(pagMat.valor || "") + "|" + (pagMat.status || "pago") + "|" + formaTaxa;
+      }
       colunas.forEach(function (col) {
         var pag =
           typeof obterPagamentoMensalidadeReferencia === "function"
@@ -144,7 +151,8 @@
           row.push("");
           return;
         }
-        row.push(String(pag.valor || "") + "|" + (pag.status || "pago"));
+        var formaMes = pag.formaPagamento || formaLinha || "PIX";
+        row.push(String(pag.valor || "") + "|" + (pag.status || "pago") + "|" + formaMes);
       });
       var resumo =
         typeof resumoExtratoMatricula === "function"
@@ -168,6 +176,10 @@
       typeof obterPeriodoLetivoAtual === "function"
         ? obterPeriodoLetivoAtual()
         : new Date().getFullYear() + "-1";
+    var linhasNotas =
+      typeof obterMatriculasDoPoloOrdenadas === "function"
+        ? obterMatriculasDoPoloOrdenadas(poloId)
+        : obterMatriculasDoPolo(poloId);
     var headers = [
       "matricula_id",
       "nome",
@@ -180,10 +192,9 @@
     ];
     var disciplinas =
       typeof DISCIPLINAS_SETAD !== "undefined" ? DISCIPLINAS_SETAD.slice() : [];
-    var linhas = obterMatriculasDoPolo(poloId);
     var body = [];
 
-    linhas.forEach(function (m) {
+    linhasNotas.forEach(function (m) {
       var media =
         typeof obterMediaExibicaoAluno === "function"
           ? obterMediaExibicaoAluno(m.email, periodo)
@@ -538,7 +549,23 @@
     var status = (partes[1] || "pago").trim().toLowerCase();
     if (status === "pago_presencial") status = "pago";
     if (!status) status = "pago";
-    return { valor: valorNum, status: status };
+    var forma = partes[2] ? String(partes[2]).trim() : "";
+    return { valor: valorNum, status: status, formaPagamento: forma };
+  }
+
+  function formaPagamentoDaLinhaMensalidades(grade, row) {
+    var cab = grade.headers.map(normCab);
+    var ix = cab.indexOf("forma_pagamento");
+    if (ix >= 0 && row[ix] != null && String(row[ix]).trim() !== "") {
+      return String(row[ix]).trim();
+    }
+    return "";
+  }
+
+  function resolverFormaPagamentoImportacao(parsed, formaLinha) {
+    if (parsed && parsed.formaPagamento) return parsed.formaPagamento;
+    if (formaLinha) return formaLinha;
+    return "PIX";
   }
 
   function aplicarAbaMensalidades(grade, poloId, sessao) {
@@ -572,6 +599,7 @@
       var matricula = obterMatriculaDaLinhaGrade(grade, row, poloId);
       if (!matricula) return;
       if (!matriculaCompativelLinhaPolo(matricula, grade, row, poloId)) return;
+      var formaLinha = formaPagamentoDaLinhaMensalidades(grade, row);
 
       if (idxTaxa >= 0 && row[idxTaxa] !== "" && row[idxTaxa] != null) {
         var taxaParsed = parseCelulaMensalidade(row[idxTaxa]);
@@ -587,7 +615,7 @@
             {
               tipoCobranca: "matricula",
               situacaoPagamento: "pago_presencial",
-              formaPagamento: "PIX",
+              formaPagamento: resolverFormaPagamentoImportacao(taxaParsed, formaLinha),
               valor: taxaParsed.valor,
               observacoes: "Importação Excel — taxa de matrícula"
             },
@@ -606,7 +634,7 @@
           {
             valor: parsed.valor,
             status: parsed.status,
-            formaPagamento: "PIX",
+            formaPagamento: resolverFormaPagamentoImportacao(parsed, formaLinha),
             observacoes: "Importação Excel — mensalidades"
           },
           sessao

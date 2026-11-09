@@ -363,9 +363,14 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
       '<p class="lista-vazia">Mensalidades e lançamentos financeiros não estão disponíveis para a coordenação pedagógica.</p>';
     return;
   }
-  alunos = (alunos || []).slice().sort(function (a, b) {
-    return (a.nomeCompleto || "").localeCompare(b.nomeCompleto || "", "pt-BR");
-  });
+  alunos = (alunos || []).slice();
+  if (meta.ordenacaoSecretaria && typeof ordenarMatriculasListaSecretaria === "function") {
+    alunos = ordenarMatriculasListaSecretaria(alunos);
+  } else {
+    alunos.sort(function (a, b) {
+      return (a.nomeCompleto || "").localeCompare(b.nomeCompleto || "", "pt-BR");
+    });
+  }
 
   if (!alunos.length) {
     container.innerHTML =
