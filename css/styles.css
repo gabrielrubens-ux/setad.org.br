@@ -5031,24 +5031,31 @@ button.midias__link {
   position: absolute;
   top: 0.18rem;
   left: 0.18rem;
-  right: auto;
+  right: 0.18rem;
   width: auto;
   max-width: calc(100% - 0.36rem);
   z-index: 2;
-  padding: 0.08rem 0.22rem;
-  background: rgba(190, 18, 60, 0.88);
+  padding: 0.22rem 0.45rem;
+  background: rgba(190, 18, 60, 0.92);
   border-radius: 999px;
-  justify-content: center;
+  justify-content: flex-start;
   cursor: grab;
   touch-action: none;
 }
 
 .culto-janela--mini .culto-janela__badge {
+  flex: 1;
+  min-width: 0;
   padding: 0;
-  gap: 0.12rem;
-  font-size: 0.38rem;
-  letter-spacing: 0.05em;
+  gap: 0.28rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: none;
   background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .culto-janela--mini .culto-janela__dot {
@@ -5268,7 +5275,7 @@ button.midias__link {
   }
 
   .culto-janela--mini .culto-janela__badge {
-    font-size: 0.34rem;
+    font-size: 0.52rem;
   }
 }
 
