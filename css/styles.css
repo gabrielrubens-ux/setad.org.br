@@ -83,6 +83,8 @@ body {
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 2px solid var(--cor-primaria);
+  container-type: inline-size;
+  container-name: setad-header;
 }
 
 .header__inner {
@@ -4289,15 +4291,13 @@ body.has-radio-player .contato-setad {
     margin-left: auto;
   }
 
-  .header__nav {
-    order: 4;
-    flex: none;
-    width: 100%;
+  .header__nav:not(.nav--open) {
+    display: none !important;
   }
 
   .btn--header-portal,
   .btn--header-direcao {
-    display: none;
+    display: none !important;
   }
 
   .nav__item--menu-extra {
@@ -4340,6 +4340,7 @@ body.has-radio-player .contato-setad {
   }
 
   .header__nav.nav--open {
+    display: block !important;
     transform: translateY(0);
     opacity: 1;
     visibility: visible;
@@ -4359,6 +4360,36 @@ body.has-radio-player .contato-setad {
     font-size: 0.95rem;
     text-align: center;
     white-space: normal;
+  }
+
+  .pagina-inicial .btn--header-matricula {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.72rem;
+    max-width: 7.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Barra estreita mesmo com viewport largo (ex.: zoom, janela dividida) */
+@container setad-header (max-width: 900px) {
+  .pagina-inicial .menu-toggle {
+    display: flex;
+  }
+
+  .pagina-inicial .header__inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .pagina-inicial .header__nav:not(.nav--open) {
+    display: none !important;
+  }
+
+  .pagina-inicial .btn--header-portal,
+  .pagina-inicial .btn--header-direcao {
+    display: none !important;
   }
 }
 
