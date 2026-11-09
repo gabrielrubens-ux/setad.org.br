@@ -3004,6 +3004,14 @@ body.portal-marca-dagua .wpp-float {
   margin: 1rem 0;
 }
 
+.polo-contab__semestres {
+  margin: 0 0 0.75rem;
+}
+
+.planilha-turma--semestres .planilha-turma__semestre-host {
+  min-height: 2rem;
+}
+
 .polo-contab__turma-filtro {
   margin: 1rem 0 0.5rem;
   max-width: 28rem;

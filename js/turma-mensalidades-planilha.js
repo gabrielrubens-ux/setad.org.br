@@ -1,10 +1,12 @@
 /* Planilha de mensalidades por turma / polo — alunos × meses, edição rápida */
 
-/** Ano letivo de pagamentos nos polos: jan–dez/2026 (2027 na abertura do próximo ano). */
+/** Ano letivo nos polos — grade em 2 semestres (6 meses cada). */
 var PLANILHA_POLO_MES_INICIO = 1;
 var PLANILHA_POLO_ANO_INICIO = 2026;
 var PLANILHA_POLO_MES_FIM = 12;
 var PLANILHA_POLO_ANO_FIM = 2026;
+var PLANILHA_POLO_SEMESTRE_1 = { mesInicio: 1, mesFim: 6, rotulo: "jan–jun" };
+var PLANILHA_POLO_SEMESTRE_2 = { mesInicio: 7, mesFim: 12, rotulo: "jul–dez" };
 var PLANILHA_REFERENCIA_TAXA_MATRICULA = "__taxa_matricula__";
 
 /** Mantém o editor aberto ao re-renderizar a planilha (sync institucional). */
@@ -102,6 +104,21 @@ function restaurarEditorPlanilhaTurmaSeAberto(container) {
   });
 }
 
+function obterLimitesSemestrePlanilhaPolo(semestre) {
+  var s = Number(semestre) === 2 ? 2 : 1;
+  return s === 2 ? PLANILHA_POLO_SEMESTRE_2 : PLANILHA_POLO_SEMESTRE_1;
+}
+
+function colunaMesNoSemestrePolo(coluna, semestre) {
+  if (!semestre) return true;
+  var p = String(coluna || "").split("/");
+  if (p.length !== 2) return false;
+  var mes = Number(p[0]);
+  if (!mes) return false;
+  var lim = obterLimitesSemestrePlanilhaPolo(semestre);
+  return mes >= lim.mesInicio && mes <= lim.mesFim;
+}
+
 function colunaMesDentroPeriodoPolo(coluna) {
   var p = String(coluna || "").split("/");
   if (p.length !== 2) return false;
@@ -115,12 +132,25 @@ function colunaMesDentroPeriodoPolo(coluna) {
   return true;
 }
 
+function rotuloSemestrePlanilhaPolo(semestre) {
+  var lim = obterLimitesSemestrePlanilhaPolo(semestre);
+  return (
+    (Number(semestre) === 2 ? "2º" : "1º") +
+    " semestre (" +
+    lim.rotulo +
+    "/" +
+    PLANILHA_POLO_ANO_INICIO +
+    ")"
+  );
+}
+
 function gerarColunasMensalidadePlanilhaTurma(opcoes) {
   opcoes = opcoes || {};
   var mapa = {};
 
   function incluirMes(coluna, referencia) {
     if (!coluna || !colunaMesDentroPeriodoPolo(coluna)) return;
+    if (opcoes.semestre && !colunaMesNoSemestrePolo(coluna, opcoes.semestre)) return;
     if (!mapa[coluna]) {
       mapa[coluna] = { coluna: coluna, referencia: referencia || "Mensalidade " + coluna };
     }
@@ -132,15 +162,28 @@ function gerarColunasMensalidadePlanilhaTurma(opcoes) {
     if (m) incluirMes(m[1] + "/" + m[2], ref);
   }
 
+  var mesLoopIni = PLANILHA_POLO_MES_INICIO;
+  var mesLoopFim = PLANILHA_POLO_MES_FIM;
+  if (opcoes.semestre) {
+    var limSem = obterLimitesSemestrePlanilhaPolo(opcoes.semestre);
+    mesLoopIni = Math.max(mesLoopIni, limSem.mesInicio);
+    mesLoopFim = Math.min(mesLoopFim, limSem.mesFim);
+  }
+
   var ano = PLANILHA_POLO_ANO_INICIO;
-  var mes = PLANILHA_POLO_MES_INICIO;
-  while (ano < PLANILHA_POLO_ANO_FIM || (ano === PLANILHA_POLO_ANO_FIM && mes <= PLANILHA_POLO_MES_FIM)) {
+  var mes = mesLoopIni;
+  while (ano < PLANILHA_POLO_ANO_FIM || (ano === PLANILHA_POLO_ANO_FIM && mes <= mesLoopFim)) {
+    if (mes < PLANILHA_POLO_MES_INICIO && ano === PLANILHA_POLO_ANO_INICIO) {
+      mes = PLANILHA_POLO_MES_INICIO;
+    }
     incluirMes(String(mes).padStart(2, "0") + "/" + ano);
     mes += 1;
+    if (mes > mesLoopFim && ano === PLANILHA_POLO_ANO_FIM) break;
     if (mes > 12) {
       mes = 1;
       ano += 1;
     }
+    if (ano > PLANILHA_POLO_ANO_FIM) break;
   }
 
   if (opcoes.colunasExtras && opcoes.colunasExtras.length) {
@@ -352,9 +395,80 @@ function montarCelulaPlanilhaTurmaMensalidade(matricula, coluna, sessao) {
   );
 }
 
+function renderizarPlanilhaMensalidadesPorSemestresPolo(container, alunos, sessao, meta) {
+  if (!container) return;
+  meta = meta || {};
+  var semAtivo = container.dataset.semestreAtivo === "2" ? "2" : "1";
+  var esc =
+    typeof escaparHtml === "function" ? escaparHtml : function (s) { return String(s || ""); };
+
+  container.innerHTML =
+    '<div class="planilha-turma planilha-turma--semestres">' +
+    '<nav class="turma-painel-academico__abas polo-contab__semestres" role="tablist" aria-label="Semestre letivo">' +
+    '<button type="button" class="turma-painel-academico__aba' +
+    (semAtivo === "1" ? " turma-painel-academico__aba--ativa" : "") +
+    '" data-polo-semestre="1" role="tab">' +
+    esc(rotuloSemestrePlanilhaPolo(1)) +
+    "</button>" +
+    '<button type="button" class="turma-painel-academico__aba' +
+    (semAtivo === "2" ? " turma-painel-academico__aba--ativa" : "") +
+    '" data-polo-semestre="2" role="tab">' +
+    esc(rotuloSemestrePlanilhaPolo(2)) +
+    "</button>" +
+    "</nav>" +
+    '<div class="planilha-turma__semestre-host" id="planilhaPoloSemestreHost"></div>' +
+    "</div>";
+
+  var host = container.querySelector("#planilhaPoloSemestreHost");
+
+  function pintarSemestre(sem) {
+    sem = sem === 2 || sem === "2" ? 2 : 1;
+    container.dataset.semestreAtivo = String(sem);
+    container.querySelectorAll("[data-polo-semestre]").forEach(function (btn) {
+      btn.classList.toggle(
+        "turma-painel-academico__aba--ativa",
+        btn.getAttribute("data-polo-semestre") === String(sem)
+      );
+    });
+  var lim = obterLimitesSemestrePlanilhaPolo(sem);
+    var childMeta = Object.assign({}, meta, {
+      dividirSemestresPolo: false,
+      semestre: sem,
+      titulo:
+        (meta.titulo || "Planilha") +
+        " — " +
+        (sem === 2 ? "2º" : "1º") +
+        " semestre",
+      subtitulo:
+        "Mensalidades de " +
+        lim.rotulo +
+        "/" +
+        PLANILHA_POLO_ANO_INICIO +
+        ". Clique em + ou Editar para lançar valores.",
+      onAtualizar: function () {
+        if (typeof meta.onAtualizar === "function") meta.onAtualizar();
+        pintarSemestre(sem);
+      }
+    });
+    if (host) renderizarPlanilhaMensalidadesTurma(host, alunos, sessao, childMeta);
+  }
+
+  container.querySelectorAll("[data-polo-semestre]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      pintarSemestre(btn.getAttribute("data-polo-semestre"));
+    });
+  });
+
+  pintarSemestre(semAtivo);
+}
+
 function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
   if (!container) return;
   meta = meta || {};
+  if (meta.dividirSemestresPolo) {
+    renderizarPlanilhaMensalidadesPorSemestresPolo(container, alunos, sessao, meta);
+    return;
+  }
   if (
     typeof coordenacaoPedagogicaSemFinanceiro === "function" &&
     coordenacaoPedagogicaSemFinanceiro(sessao)
@@ -382,6 +496,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
   var formatar =
     typeof formatarMoeda === "function" ? formatarMoeda : String;
   var optsColunas = { alunos: alunos };
+  if (meta.semestre) optsColunas.semestre = meta.semestre;
   if (meta.fixarGradeAnoLetivoPolo) {
     optsColunas.incluirMesesComPagamento = false;
   }
@@ -389,7 +504,9 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
   var titulo = meta.titulo || "Planilha de mensalidades";
   var subtitulo =
     meta.subtitulo ||
-    "Clique em + ou Editar para lançar pagamentos (jan–dez/2026). Os dados vão para contador e direção.";
+    "Clique em + ou Editar para lançar pagamentos por semestre (" +
+      PLANILHA_POLO_ANO_INICIO +
+      "). Os dados vão para contador e direção.";
 
   var mostrarMatricula = meta.planilhaColunaMatricula !== false;
   var cabMeses =
@@ -627,6 +744,8 @@ function abrirEditorPlanilhaTurma(container, btn, sessao) {
 
 if (typeof global !== "undefined") {
   global.colunaMesDentroPeriodoPolo = colunaMesDentroPeriodoPolo;
+  global.colunaMesNoSemestrePolo = colunaMesNoSemestrePolo;
+  global.obterLimitesSemestrePlanilhaPolo = obterLimitesSemestrePlanilhaPolo;
   global.gerarColunasMensalidadePlanilhaTurma = gerarColunasMensalidadePlanilhaTurma;
   global.obterPagamentoMatriculaMatricula = obterPagamentoMatriculaMatricula;
 }

@@ -63,14 +63,132 @@ function resolverSalaTurmaIdPorNome(nomeSala, setadeNivel) {
   return sala ? sala.id : "";
 }
 
+function gerarEmailImportacaoPdf(nome, poloId) {
+  var slug = String(nome || "aluno")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 36);
+  var pid = String(poloId || "polo")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .toLowerCase()
+    .slice(0, 24);
+  return (
+    "import." +
+    pid +
+    "." +
+    slug +
+    "." +
+    Math.random().toString(36).slice(2, 8) +
+    "@cadastro.setad.org.br"
+  );
+}
+
+function resumirPagamentosLinhaPdf(linha) {
+  var qtd = (linha.mensalidades || []).length + (linha.taxaMatricula ? 1 : 0);
+  if (!qtd) return "—";
+  var meses = (linha.mensalidades || [])
+    .map(function (m) {
+      return m.coluna || m.referencia;
+    })
+  .slice(0, 4)
+    .join(", ");
+  return qtd + " lanç." + (meses ? " (" + meses + (linha.mensalidades.length > 4 ? "…" : "") + ")" : "");
+}
+
+function valorMensalidadeImportacaoPdf(matricula, pag) {
+  if (pag && pag.valor != null && pag.valor > 0) return pag.valor;
+  if (typeof obterValorMensalidadeMatricula === "function") {
+    var v = obterValorMensalidadeMatricula(matricula);
+    if (v > 0) return v;
+  }
+  if (typeof obterMensalidadeModulo === "function") {
+    return obterMensalidadeModulo(matricula.modulo) || 0;
+  }
+  return 0;
+}
+
+function aplicarPagamentosLinhaPdfAluno(matricula, linha, sessao) {
+  if (!matricula || !linha) return 0;
+  var total = 0;
+
+  if (linha.taxaMatricula && typeof aplicarPagamentoAlunoPolo === "function") {
+    var valorTaxa =
+      linha.taxaMatricula.valor > 0
+        ? linha.taxaMatricula.valor
+        : typeof obterMensalidadeModulo === "function"
+          ? obterMensalidadeModulo(matricula.modulo)
+          : 50;
+    if (valorTaxa > 0) {
+      var regTaxa = aplicarPagamentoAlunoPolo(
+        matricula,
+        {
+          tipoCobranca: "matricula",
+          situacaoPagamento:
+            linha.taxaMatricula.status === "pendente" ? "pendente" : "pago_presencial",
+          formaPagamento: linha.taxaMatricula.formaPagamento || "PIX",
+          valor: valorTaxa,
+          observacoes: "Importação PDF — taxa de matrícula"
+        },
+        sessao
+      );
+      if (regTaxa && regTaxa.ok) total += 1;
+    }
+  }
+
+  (linha.mensalidades || []).forEach(function (pag) {
+    if (!pag || !pag.referencia) return;
+    var valor = valorMensalidadeImportacaoPdf(matricula, pag);
+    if (!valor || valor <= 0) return;
+    if (typeof registrarOuAtualizarMensalidadeTurma !== "function") return;
+    var reg = registrarOuAtualizarMensalidadeTurma(
+      matricula,
+      pag.referencia,
+      {
+        valor: valor,
+        status: pag.status || "pago",
+        formaPagamento: pag.formaPagamento || "PIX",
+        observacoes: "Importação PDF — " + (pag.coluna || pag.referencia)
+      },
+      sessao
+    );
+    if (reg && reg.ok) total += 1;
+  });
+
+  return total;
+}
+
+function encontrarMatriculaExistenteImportacaoPdf(linha, poloId) {
+  if (linha.email && typeof obterMatriculas === "function") {
+    var email = String(linha.email).toLowerCase();
+    var porEmail = obterMatriculas().find(function (m) {
+      return (m.email || "").toLowerCase() === email;
+    });
+    if (porEmail) return porEmail;
+  }
+  if (typeof obterMatriculasDoPolo === "function") {
+    var nome = String(linha.nomeCompleto || "").trim().toLowerCase();
+    return obterMatriculasDoPolo(poloId).find(function (m) {
+      return String(m.nomeCompleto || "").trim().toLowerCase() === nome;
+    });
+  }
+  return null;
+}
+
 function montarMatriculaDeLinhaPdf(linha, poloId, sessao) {
   var poloNome =
     typeof obterNomePoloSetad === "function" ? obterNomePoloSetad(poloId) : poloId;
   var setadeNivel = linha.setadeNivel || "";
   var modulo = normalizarModuloImportPdf(linha.modulo, setadeNivel);
+  var email = (linha.email || "").trim().toLowerCase();
+  if (!email) {
+    email = gerarEmailImportacaoPdf(linha.nomeCompleto, poloId);
+  }
   var dados = {
     nomeCompleto: linha.nomeCompleto,
-    email: (linha.email || "").trim().toLowerCase(),
+    email: email,
     telefone: linha.telefone || "",
     cpf: linha.cpf || "",
     dataNascimento: linha.dataNascimento || "",
@@ -86,6 +204,7 @@ function montarMatriculaDeLinhaPdf(linha, poloId, sessao) {
     situacaoCurso: "cursando",
     observacoes:
       "Cadastro automático via PDF do polo" +
+      (linha.email ? "" : " · E-mail provisório — atualizar na secretaria.") +
       (linha.salaTurmaNome ? " · Sala: " + linha.salaTurmaNome : "")
   };
 
@@ -129,19 +248,24 @@ function validarLinhaImportacaoPdf(dados) {
     return "Telefone inválido.";
   }
   if (!dados.poloId) return "Polo não definido.";
+  return null;
+}
+
+function avisoLinhaImportacaoPdf(dados) {
+  var avisos = [];
   if (typeof ehPoloSetade === "function" && ehPoloSetade(dados.poloId)) {
     if (
       dados.modulo !== "teologia" &&
       dados.setadeNivel !== "medio" &&
       dados.setadeNivel !== "avancado"
     ) {
-      return "SETADE: informe nível (Médio/Avançado) no PDF ou módulo.";
+      avisos.push("SETADE: conferir nível na secretaria");
     }
     if (!dados.salaTurmaId && !dados.salaTurmaNome) {
-      return "SETADE: informe sala/turma no PDF.";
+      avisos.push("SETADE: conferir sala/turma");
     }
   }
-  return null;
+  return avisos.join(" · ");
 }
 
 function renderizarRevisaoImportacaoPdfContab(container, alunos, meta, sessao, aoConfirmar) {
@@ -150,7 +274,14 @@ function renderizarRevisaoImportacaoPdfContab(container, alunos, meta, sessao, a
 
   if (!alunos.length) {
     container.innerHTML =
-      '<p class="lista-vazia">Nenhum aluno reconhecido no PDF. Confira se o arquivo tem colunas (Nome, E-mail, Telefone…) ou linhas com e-mail.</p>';
+      '<p class="lista-vazia">Nenhum aluno reconhecido no PDF. Use PDF com <strong>texto selecionável</strong> e tabela com coluna de <strong>nomes</strong> e meses (03/2026, Mar-26, Set-26…) ou valores de mensalidade/matrícula.</p>' +
+      (meta.amostraTexto
+        ? '<details class="polo-contab__pdf-amostra"><summary>Ver início do texto extraído do PDF</summary><pre class="polo-contab__pdf-pre"></pre></details>'
+        : "");
+    if (meta.amostraTexto) {
+      var pre = container.querySelector(".polo-contab__pdf-pre");
+      if (pre) pre.textContent = meta.amostraTexto.slice(0, 2500);
+    }
     container.hidden = false;
     return;
   }
@@ -159,7 +290,9 @@ function renderizarRevisaoImportacaoPdfContab(container, alunos, meta, sessao, a
     .map(function (a, ix) {
       var dados = montarMatriculaDeLinhaPdf(a, meta.poloId, sessao);
       var erro = validarLinhaImportacaoPdf(dados);
+      var aviso = avisoLinhaImportacaoPdf(dados);
       var sitClass = erro ? "polo-contab__pdf-linha--erro" : "polo-contab__pdf-linha--ok";
+      var statusTxt = erro || aviso || "Pronto";
       return (
         '<tr class="polo-contab__pdf-linha ' + sitClass + '" data-pdf-ix="' + ix + '">' +
         '<td><input type="checkbox" class="polo-contab__pdf-check" data-pdf-ix="' + ix + '"' +
@@ -168,9 +301,9 @@ function renderizarRevisaoImportacaoPdfContab(container, alunos, meta, sessao, a
         "></td>" +
         "<td>" + esc(dados.nomeCompleto) + "</td>" +
         "<td>" + esc(dados.email) + "</td>" +
-        "<td>" + esc(dados.telefone || "—") + "</td>" +
+        "<td>" + esc(resumirPagamentosLinhaPdf(a)) + "</td>" +
         "<td>" + esc(dados.modulo || "—") + "</td>" +
-        "<td>" + esc(erro || "Pronto") + "</td>" +
+        "<td>" + esc(statusTxt) + "</td>" +
         "</tr>"
       );
     })
@@ -187,14 +320,14 @@ function renderizarRevisaoImportacaoPdfContab(container, alunos, meta, sessao, a
     alunos.length +
     " linha(s) · Polo: <strong>" +
     esc(meta.poloNome || meta.poloId) +
-    "</strong>. Marque os alunos e clique em cadastrar no site (mesmo fluxo da secretaria, sem pagamento automático).</p>" +
+    "</strong>. Cadastra alunos no polo e replica <strong>matrícula e mensalidades</strong> reconhecidas na tabela.</p>" +
     '<div class="polo-contab__pdf-acoes">' +
     '<button type="button" class="btn btn--primary btn--sm" id="btnContabPolosPdfCadastrar">Cadastrar selecionados no site</button>' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosPdfCancelar">Descartar</button>' +
     "</div>" +
     '<div class="polo-contab__pdf-tabela-wrap">' +
     '<table class="data-table polo-contab__pdf-tabela"><thead><tr>' +
-    "<th></th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Módulo</th><th>Status</th>" +
+    "<th></th><th>Nome</th><th>E-mail</th><th>Pagamentos</th><th>Módulo</th><th>Status</th>" +
     "</tr></thead><tbody>" +
     linhas +
     "</tbody></table></div>" +
@@ -239,7 +372,7 @@ function aplicarImportacaoPdfAlunos(linhas, poloId, sessao, onProgresso) {
           );
         };
 
-  var resultados = { ok: 0, erros: [], duplicados: 0 };
+  var resultados = { ok: 0, erros: [], duplicados: 0, pagamentos: 0, atualizados: 0 };
   var ix = 0;
 
   function proximo() {
@@ -268,12 +401,25 @@ function aplicarImportacaoPdfAlunos(linhas, poloId, sessao, onProgresso) {
 
     return verificar.then(function (disp) {
       if (!disp.ok) {
-        resultados.duplicados += 1;
+        var existente = encontrarMatriculaExistenteImportacaoPdf(linha, poloId);
+        if (existente) {
+          var qtdPag = aplicarPagamentosLinhaPdfAluno(existente, linha, sessao);
+          resultados.atualizados += 1;
+          resultados.pagamentos += qtdPag;
+        } else {
+          resultados.duplicados += 1;
+        }
         return proximo();
       }
       return cadastrar(dados).then(function (r) {
-        if (r && r.ok) resultados.ok += 1;
-        else {
+        if (r && r.ok) {
+          resultados.ok += 1;
+          var mat = r.matricula || dados;
+          if (typeof obterMatriculaPorId === "function" && mat.id) {
+            mat = obterMatriculaPorId(mat.id) || mat;
+          }
+          resultados.pagamentos += aplicarPagamentosLinhaPdfAluno(mat, linha, sessao);
+        } else {
           resultados.erros.push(
             dados.nomeCompleto + ": " + ((r && r.erro) || "Falha ao cadastrar.")
           );
@@ -333,7 +479,8 @@ function configurarImportacaoPdfContabPolos(container, sessao, obterPoloAtivoId,
           poloId: poloId,
           poloNome: poloNome,
           metodo: r.metodo,
-          nomeArquivo: r.nomeArquivo
+          nomeArquivo: r.nomeArquivo,
+          amostraTexto: r.amostraTexto || ""
         },
         sessao,
         function (selecionados) {
@@ -349,7 +496,9 @@ function configurarImportacaoPdfContabPolos(container, sessao, obterPoloAtivoId,
             var texto =
               res.ok +
               " aluno(s) cadastrado(s)." +
-              (res.duplicados ? " " + res.duplicados + " já existiam (e-mail)." : "") +
+              (res.atualizados ? " " + res.atualizados + " existente(s) com pagamentos atualizados." : "") +
+              (res.pagamentos ? " " + res.pagamentos + " lançamento(s) financeiro(s)." : "") +
+              (res.duplicados ? " " + res.duplicados + " duplicado(s) ignorado(s)." : "") +
               (res.erros.length ? " Erros: " + res.erros.slice(0, 3).join(" · ") : "");
             if (msgRev) {
               msgRev.className =

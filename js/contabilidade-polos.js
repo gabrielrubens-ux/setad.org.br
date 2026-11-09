@@ -523,8 +523,11 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? "Planilha — " + turma.nome
         : "Planilha — " + (polo ? polo.nome : "Polo"),
       subtitulo:
-        "Mensalidades de jan a dez/2026 (ano letivo). Clique em + ou Editar para lançar valores.",
+        "Ano letivo " +
+        (typeof PLANILHA_POLO_ANO_INICIO !== "undefined" ? PLANILHA_POLO_ANO_INICIO : "2026") +
+        " em 1º e 2º semestre (6 meses cada).",
       fixarGradeAnoLetivoPolo: true,
+      dividirSemestresPolo: true,
       planilhaColunaMatricula: true,
       turmaId: turma ? turma.id : null,
       onAtualizar: function () {
