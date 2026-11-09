@@ -448,6 +448,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Ano letivo em <strong>dois semestres</strong> (jan–jun e jul–dez). Cadastre novos alunos pela secretaria.</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosImprimirHistorico">Imprimir histórico (pagamentos e notas)</button>' +
     "</div></div>" +
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
     cardsPolos +
@@ -593,7 +594,10 @@ function renderizarContabilidadePolos(containerId, sessao) {
         "</td>" +
         '<td><button type="button" class="btn btn--link btn--sm" data-contab-pagar="' +
         escaparHtml(m.id) +
-        '">Pagamento</button></td>' +
+        '">Pagamento</button> ' +
+        '<button type="button" class="btn btn--link btn--sm" data-contab-historico="' +
+        escaparHtml(m.id) +
+        '">Histórico</button></td>' +
         "</tr>";
     });
     html += "</tbody></table>";
@@ -605,6 +609,17 @@ function renderizarContabilidadePolos(containerId, sessao) {
         var radio = wrap.querySelector('input[value="' + id + '"]');
         if (radio) radio.checked = true;
         renderFormPagamento(id);
+      });
+    });
+
+    wrap.querySelectorAll("[data-contab-historico]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-contab-historico");
+        var aluno = obterMatriculaPorId(id);
+        if (!aluno) return;
+        if (typeof SETADHistoricoRecibo !== "undefined") {
+          SETADHistoricoRecibo.imprimirHistorico(aluno);
+        }
       });
     });
   }
@@ -656,6 +671,11 @@ function renderizarContabilidadePolos(containerId, sessao) {
       "</select></div>" +
       '<div class="form-group form-group--full"><label for="contabPoloObs">Observações</label>' +
       '<textarea id="contabPoloObs" rows="2"></textarea></div>' +
+      '<div class="form-group form-group--full">' +
+      '<label class="presencial-bloco__check">' +
+      '<input type="checkbox" id="contabPoloEmitirRecibo" checked> ' +
+      "Emitir recibo para o aluno (entregar com o cupom fiscal da maquininha, se houver)" +
+      "</label></div>" +
       "</div>" +
       '<button type="button" class="btn btn--primary" id="btnContabPoloSalvarPag">Registrar pagamento</button> ' +
       '<button type="button" class="btn btn--secondary" id="btnContabPoloSalvarSit">Só atualizar situação</button>';
@@ -682,6 +702,14 @@ function renderizarContabilidadePolos(containerId, sessao) {
         : "form-mensagem form-mensagem--erro visible";
       msg.textContent = r.ok ? "Pagamento registrado e lançamento contábil gerado." : r.erro;
       if (r.ok) {
+        if (typeof SETADHistoricoRecibo !== "undefined") {
+          var chkRecibo = document.getElementById("contabPoloEmitirRecibo");
+          SETADHistoricoRecibo.aposPagamentoRealizado(m, r, sessao, {
+            emitirRecibo: !chkRecibo || chkRecibo.checked,
+            imprimirReciboSemConfirmar: true,
+            poloNome: m.poloNome
+          });
+        }
         renderizarContabilidadePolos(containerId, sessao);
       }
     });
@@ -728,7 +756,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
           typeof obterMensalidadeModulo === "function"
             ? obterMensalidadeModulo(aluno.modulo)
             : 150;
-        aplicarPagamentoAlunoPolo(
+        var regModelo = aplicarPagamentoAlunoPolo(
           aluno,
           {
             tipoCobranca: mod.tipoCobranca,
@@ -738,6 +766,17 @@ function renderizarContabilidadePolos(containerId, sessao) {
           },
           sessao
         );
+        if (
+          regModelo.ok &&
+          mod.situacaoPagamento === "pago_presencial" &&
+          typeof SETADHistoricoRecibo !== "undefined"
+        ) {
+          SETADHistoricoRecibo.aposPagamentoRealizado(aluno, regModelo, sessao, {
+            emitirRecibo: true,
+            imprimirReciboSemConfirmar: true,
+            poloNome: aluno.poloNome
+          });
+        }
         renderizarContabilidadePolos(containerId, sessao);
       });
     });
@@ -762,6 +801,23 @@ function renderizarContabilidadePolos(containerId, sessao) {
   document.getElementById("btnContabPolosAtualizar").addEventListener("click", function () {
     renderizarContabilidadePolos(containerId, sessao);
   });
+  var btnHistoricoToolbar = document.getElementById("btnContabPolosImprimirHistorico");
+  if (btnHistoricoToolbar) {
+    btnHistoricoToolbar.addEventListener("click", function () {
+      var aluno = obterAlunoSelecionado();
+      var msg = document.getElementById("contabPolosMsg");
+      if (!aluno) {
+        if (msg) {
+          msg.className = "form-mensagem form-mensagem--erro visible";
+          msg.textContent = "Selecione um aluno na tabela (marque o círculo à esquerda).";
+        }
+        return;
+      }
+      if (typeof SETADHistoricoRecibo !== "undefined") {
+        SETADHistoricoRecibo.imprimirHistorico(aluno);
+      }
+    });
+  }
   renderPlanilha();
   renderTabela();
 }

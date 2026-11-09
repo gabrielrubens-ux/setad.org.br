@@ -629,7 +629,12 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
       .join("") +
     "</select></div>" +
     '<div class="form-group form-group--full"><label for="planilhaTurmaEditorObs">Observações</label>' +
-    '<textarea id="planilhaTurmaEditorObs" rows="2"></textarea></div></div>' +
+    '<textarea id="planilhaTurmaEditorObs" rows="2"></textarea></div>' +
+    '<div class="form-group form-group--full">' +
+    '<label class="presencial-bloco__check">' +
+    '<input type="checkbox" id="planilhaTurmaEditorEmitirRecibo" checked> ' +
+    "Emitir recibo ao salvar como pago" +
+    "</label></div></div>" +
     '<button type="button" class="btn btn--primary btn--sm" id="planilhaTurmaEditorSalvar">Salvar lançamento</button> ' +
     '<button type="button" class="btn btn--secondary btn--sm" id="planilhaTurmaEditorCancelar">Cancelar</button>' +
     '<p id="planilhaTurmaEditorMsg" class="form-mensagem" role="status"></p>' +
@@ -747,6 +752,18 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
           : resultado.erro || "Não foi possível salvar.";
       }
       if (resultado.ok) {
+        if (
+          status === "pago" &&
+          typeof SETADHistoricoRecibo !== "undefined"
+        ) {
+          var chkPlan = container.querySelector("#planilhaTurmaEditorEmitirRecibo");
+          SETADHistoricoRecibo.aposPagamentoRealizado(matricula, resultado, sessao, {
+            emitirRecibo: !chkPlan || chkPlan.checked,
+            imprimirReciboSemConfirmar: true,
+            poloNome: matricula.poloNome,
+            delayMs: 500
+          });
+        }
         fecharEditorPlanilhaTurma(container);
         refresh();
       }

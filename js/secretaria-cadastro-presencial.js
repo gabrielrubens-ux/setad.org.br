@@ -1144,6 +1144,19 @@ function finalizarCadastroPresencialComPagamento(
     renderizarPlanilhaMensalidadesCadastroAluno(matricula);
   }
 
+  if (
+    pag &&
+    pag.status === "pago" &&
+    typeof SETADHistoricoRecibo !== "undefined"
+  ) {
+    var chkRecibo = document.getElementById("secEmitirReciboPagamento");
+    SETADHistoricoRecibo.aposPagamentoRealizado(matricula, pagamentoResult, sessao, {
+      emitirRecibo: !chkRecibo || chkRecibo.checked,
+      imprimirReciboSemConfirmar: true,
+      poloNome: matricula.poloNome
+    });
+  }
+
   renderizarVisaoSecretaria();
   renderizarAlunosSecretaria();
 }
