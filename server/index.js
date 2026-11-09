@@ -15,6 +15,7 @@ const { aplicarZeragemAcervoBiblioteca } = require("./biblioteca-acervo");
 const bibliaRoutes = require("./routes/biblia");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
+const contabPolosPdfRoutes = require("./routes/contab-polos-pdf");
 const {
   corsPermitido,
   headersSeguranca,
@@ -90,6 +91,7 @@ app.get("/api/health", function (_req, res) {
 app.use("/api/auth", authRoutes);
 app.use("/api/biblia", bibliaRoutes);
 app.use("/api", dataRoutes);
+app.use("/api", contabPolosPdfRoutes);
 
 app.get("/login-aluno-ip.html", function (req, res) {
   if (!hostPermiteLoginAlunoRedeLocal(req)) {

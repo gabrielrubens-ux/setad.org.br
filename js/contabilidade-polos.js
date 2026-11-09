@@ -405,89 +405,6 @@ function exportarPlanilhaContabPolos(poloId) {
   URL.revokeObjectURL(a.href);
 }
 
-function exportarModeloPlanilhaContabPolos() {
-  exportarPlanilhaContabPolos(obterPolosParaContabilidade()[0]
-    ? obterPolosParaContabilidade()[0].id
-    : "modelo");
-}
-
-function importarPlanilhaContabPolos(arquivo, sessao, cb) {
-  if (!arquivo) {
-    cb({ ok: false, erro: "Selecione um arquivo CSV ou planilha exportada do Excel." });
-    return;
-  }
-  var reader = new FileReader();
-  reader.onload = function () {
-    var texto = String(reader.result || "");
-    var linhas = texto.split(/\r?\n/).filter(function (l) {
-      return l.trim();
-    });
-    if (linhas.length < 2) {
-      cb({ ok: false, erro: "Arquivo vazio ou sem dados." });
-      return;
-    }
-    var sep = linhas[0].indexOf(";") >= 0 ? ";" : ",";
-    var cab = linhas[0].split(sep).map(function (c) {
-      return c.trim().toLowerCase().replace(/"/g, "");
-    });
-    var idxId = cab.indexOf("matricula_id");
-    var idxSit = cab.indexOf("situacao");
-    var idxForma = cab.indexOf("forma_pagamento");
-    var idxValor = cab.indexOf("valor_sugerido");
-    var idxObs = cab.indexOf("observacoes");
-    var atualizados = 0;
-
-    for (var i = 1; i < linhas.length; i++) {
-      var cols = linhas[i].split(sep);
-      var matriculaId = idxId >= 0 ? cols[idxId].replace(/"/g, "").trim() : "";
-      if (!matriculaId) continue;
-      var matricula = obterMatriculaPorId(matriculaId);
-      if (!matricula) continue;
-
-      var parcial = {};
-      if (idxSit >= 0 && cols[idxSit]) {
-        parcial.situacao = cols[idxSit].replace(/"/g, "").trim();
-      }
-      if (idxForma >= 0 && cols[idxForma]) {
-        parcial.formaPagamento = cols[idxForma].replace(/"/g, "").trim();
-      }
-      if (idxObs >= 0 && cols[idxObs]) {
-        parcial.observacoes = cols[idxObs].replace(/"/g, "").trim();
-      }
-      if (idxValor >= 0 && cols[idxValor]) {
-        var v = Number(String(cols[idxValor]).replace(/"/g, "").replace(",", "."));
-        if (v > 0) parcial.ultimoValor = v;
-      }
-      salvarExtraAlunoPolo(matriculaId, parcial);
-
-      if (
-        parcial.situacao === "em_dia" &&
-        parcial.ultimoValor &&
-        parcial.formaPagamento &&
-        typeof registrarPagamentoPresencialSecretaria === "function"
-      ) {
-        aplicarPagamentoAlunoPolo(
-          matricula,
-          {
-            tipoCobranca: "mensalidade",
-            situacaoPagamento: "pago_presencial",
-            formaPagamento: parcial.formaPagamento,
-            valor: parcial.ultimoValor,
-            observacoes: "Importação planilha polos"
-          },
-          sessao
-        );
-      }
-      atualizados++;
-    }
-    cb({ ok: true, atualizados: atualizados });
-  };
-  reader.onerror = function () {
-    cb({ ok: false, erro: "Não foi possível ler o arquivo." });
-  };
-  reader.readAsText(arquivo, "UTF-8");
-}
-
 function renderizarTelaSenhaContabPolos(container, sessao) {
   container.innerHTML =
     '<div class="polo-contab polo-contab--gate">' +
@@ -584,11 +501,18 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Alunos do site aparecem conforme o polo vinculado na matrícula.</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosModelo">Baixar modelo (Excel/CSV)</button>' +
-    '<label class="btn btn--secondary btn--sm polo-contab__import-label">' +
-    "Importar planilha<input type=\"file\" id=\"contabPolosImport\" accept=\".csv,.txt\" hidden></label>" +
-    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExport">Exportar polo atual</button>' +
+    '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosExport">Exportar polo atual (CSV)</button>' +
     "</div></div>" +
+    '<div id="contabPolosPdfBloco" class="polo-contab__pdf-bloco">' +
+    '<div class="polo-contab__pdf-drop" id="contabPolosPdfDropZone" tabindex="0" role="button" aria-label="Importar lista de alunos em PDF">' +
+    '<p class="polo-contab__pdf-drop-icone" aria-hidden="true">📄</p>' +
+    '<p class="polo-contab__pdf-drop-titulo"><strong>Importar PDF do polo</strong></p>' +
+    '<p class="presencial-bloco__hint">O sistema lê tabelas ou listas com nome e e-mail e cadastra como na secretaria (polo SETADE: inclua nível e sala no PDF). Arraste o arquivo ou clique para escolher.</p>' +
+    '<label class="btn btn--primary btn--sm polo-contab__pdf-label">' +
+    'Escolher PDF<input type="file" id="contabPolosPdfInput" accept="application/pdf,.pdf" hidden></label>' +
+    "</div>" +
+    '<div id="contabPolosPdfRevisao" class="polo-contab__pdf-revisao-host" hidden></div>' +
+    "</div>" +
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
     cardsPolos +
     "</div>" +
@@ -890,24 +814,23 @@ function renderizarContabilidadePolos(containerId, sessao) {
   document.getElementById("btnContabPolosAtualizar").addEventListener("click", function () {
     renderizarContabilidadePolos(containerId, sessao);
   });
-  document.getElementById("btnContabPolosModelo").addEventListener("click", exportarModeloPlanilhaContabPolos);
   document.getElementById("btnContabPolosExport").addEventListener("click", function () {
     exportarPlanilhaContabPolos(container.dataset.poloAtivo);
   });
-  document.getElementById("contabPolosImport").addEventListener("change", function (e) {
-    var file = e.target.files && e.target.files[0];
-    importarPlanilhaContabPolos(file, sessao, function (r) {
-      var msg = document.getElementById("contabPolosMsg");
-      msg.className = r.ok
-        ? "form-mensagem form-mensagem--sucesso visible"
-        : "form-mensagem form-mensagem--erro visible";
-      msg.textContent = r.ok
-        ? "Planilha importada — " + r.atualizados + " linha(s) processada(s)."
-        : r.erro;
-      if (r.ok) renderizarContabilidadePolos(containerId, sessao);
-      e.target.value = "";
-    });
-  });
+
+  if (typeof configurarImportacaoPdfContabPolos === "function") {
+    configurarImportacaoPdfContabPolos(
+      container,
+      sessao,
+      function () {
+        return container.dataset.poloAtivo;
+      },
+      function () {
+        renderPlanilha();
+        renderTabela();
+      }
+    );
+  }
 
   renderPlanilha();
   renderTabela();
