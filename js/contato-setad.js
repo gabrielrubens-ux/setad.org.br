@@ -185,7 +185,7 @@
         '<div class="culto-janela__painel" id="cultoJanelaPainel">' +
           '<header class="culto-janela__cabecalho">' +
             '<span class="culto-janela__badge"><span class="culto-janela__dot" aria-hidden="true"></span> AO VIVO</span>' +
-            '<span class="culto-janela__titulo">Culto ao Vivo</span>' +
+            '<span class="culto-janela__titulo">Boas Novas Canal 4.1</span>' +
             '<div class="culto-janela__acoes">' +
               '<button type="button" class="culto-janela__btn" id="cultoJanelaExpandir" aria-label="Expandir ou recolher janela">' +
                 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
@@ -193,7 +193,7 @@
             "</div>" +
           "</header>" +
           '<div class="culto-janela__corpo">' +
-            '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay title="Transmissão ao vivo — Culto SETAD"></video>' +
+            '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay title="Boas Novas Canal 4.1 — transmissão ao vivo"></video>' +
             '<button type="button" class="culto-janela__btn-play" id="cultoJanelaPlayPause" aria-label="Pausar transmissão ao vivo">' +
               '<svg class="culto-janela__icone-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' +
               '<svg class="culto-janela__icone-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
