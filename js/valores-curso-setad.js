@@ -346,7 +346,11 @@ function gerarMensalidadesPeriodoCurso(matricula) {
       );
     });
     if (existente) {
-      if (existente.valor !== valor) {
+      if (
+        existente.valor !== valor &&
+        existente.status !== "pendente" &&
+        existente.status !== "agendado"
+      ) {
         existente.valor = valor;
         atualizadas++;
       }
@@ -378,7 +382,9 @@ function gerarMensalidadesPeriodoCurso(matricula) {
   });
   var taxa = obterValorMatriculaMatricula(matricula);
   if (pagMat) {
-    pagMat.valor = taxa;
+    if (pagMat.status === "pago" && pagMat.valor !== taxa) {
+      pagMat.valor = taxa;
+    }
   } else if (typeof criarRegistroPagamentoMatricula === "function") {
     pagamentos.push(criarRegistroPagamentoMatricula(matricula));
   }

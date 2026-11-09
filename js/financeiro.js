@@ -182,21 +182,58 @@ function inicializarDadosFinanceiros() {
   sincronizarPagamentosDeMatriculas();
 }
 
+function matriculaJaTemLancamentoTaxaMatricula(pagamentos, mat) {
+  if (!mat) return false;
+  var email = (mat.email || "").trim().toLowerCase();
+  return pagamentos.some(function (p) {
+    if (!p) return false;
+    if (p.tipo && p.tipo !== "matricula") return false;
+    if (mat.id && p.matriculaId === mat.id) return true;
+    if (email && p.alunoEmail && String(p.alunoEmail).toLowerCase() === email) {
+      return true;
+    }
+    return false;
+  });
+}
+
+function deduplicarPagamentosTaxaMatricula(pagamentos) {
+  var vistos = {};
+  var lista = [];
+  var removidos = 0;
+  (pagamentos || []).forEach(function (p) {
+    if (!p) return;
+    if (p.tipo && p.tipo !== "matricula") {
+      lista.push(p);
+      return;
+    }
+    var chave =
+      (p.matriculaId || "") + "|" + String(p.alunoEmail || "").trim().toLowerCase();
+    if (vistos[chave]) {
+      removidos += 1;
+      return;
+    }
+    vistos[chave] = true;
+    lista.push(p);
+  });
+  return { lista: lista, removidos: removidos };
+}
+
 function sincronizarPagamentosDeMatriculas() {
   inicializarDadosFinanceiros();
-  const matriculas = obterMatriculas();
-  const dadosPagamentos = localStorage.getItem(FINANCEIRO_KEYS.pagamentosAlunos);
-  const pagamentos = dadosPagamentos ? JSON.parse(dadosPagamentos) : [];
-  let alterou = false;
+  var matriculas = obterMatriculas();
+  var pagamentos = obterPagamentosAlunos().slice();
+  var alterou = false;
+
+  var dedupe = deduplicarPagamentosTaxaMatricula(pagamentos);
+  if (dedupe.removidos > 0) {
+    pagamentos = dedupe.lista;
+    alterou = true;
+  }
 
   matriculas.forEach(function (mat) {
-    const existe = pagamentos.some(function (p) {
-      return p.matriculaId === mat.id;
-    });
-    if (!existe) {
-      pagamentos.push(criarRegistroPagamentoMatricula(mat));
-      alterou = true;
-    }
+    if (matriculaJaTemLancamentoTaxaMatricula(pagamentos, mat)) return;
+    pagamentos.push(criarRegistroPagamentoMatricula(mat));
+    alterou = true;
   });
 
   if (alterou) salvarPagamentosAlunos(pagamentos);
