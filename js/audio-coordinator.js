@@ -123,7 +123,15 @@
     entrarPaginaCulto: function () {
       var radioTocando = window.SETADRadio && window.SETADRadio.isPlaying();
       sessionStorage.setItem(STORAGE_RADIO_ANTES_CULTO, radioTocando ? "1" : "0");
-      window.SETADAudio.solicitarLive(true);
+      definirPreferencia("live");
+      definirFonte("live");
+      if (window.SETADRadio) {
+        window.SETADRadio.pause(true);
+      }
+      if (playerCultoDisponivel()) {
+        return window.SETADCultoPlayer.tocar(true);
+      }
+      return Promise.resolve();
     },
 
     sairPaginaCulto: function () {

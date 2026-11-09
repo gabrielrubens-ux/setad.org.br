@@ -8,6 +8,7 @@
 
   var JMV_CULTO_PLAYER =
     "https://player.jmvstream.com/lvw/LQQkxtAMXzxJcp0qLbfdJ4gYVZoag4";
+  var JMV_CULTO_PLAYER_EMBED = JMV_CULTO_PLAYER + "?autoplay=1";
   var HLS_MASTER =
     "https://cdn.live.br1.jmvstream.com/w/LVW-9375/LVW9375_6i0wPBCHYc/playlist.m3u8";
   var STORAGE_SEQ = "setad_culto_seq";
@@ -21,6 +22,28 @@
     hls: null,
     janelaStreamPronto: false
   };
+
+  function aoVivoInterfaceAtiva() {
+    var janela = document.getElementById("cultoJanela");
+    var janelaAberta = janela && !janela.hidden;
+    return janelaAberta || paginaCultoDedicada();
+  }
+
+  function agendarRetriesAutoplayJanela() {
+    [400, 1200, 2800].forEach(function (atraso) {
+      window.setTimeout(function () {
+        if (!estado.aoVivo) return;
+        var janela = document.getElementById("cultoJanela");
+        if (!janela || janela.hidden) return;
+        if (window.SETADCultoPlayer && window.SETADCultoPlayer.isPlaying()) return;
+        if (window.SETADAudio) {
+          window.SETADAudio.solicitarLive(true);
+        } else {
+          tentarAutoplayCulto();
+        }
+      }, atraso);
+    });
+  }
 
   function obterBaseCulto() {
     var path = window.location.pathname.replace(/\\/g, "/").toLowerCase();
@@ -210,34 +233,24 @@
     }
 
     function iniciarEtocar() {
-      return iniciarStreamNoVideo(video).then(function () {
-        if (!window.SETADAudio) {
+      var preparar = estado.janelaStreamPronto
+        ? Promise.resolve()
+        : iniciarStreamNoVideo(video).then(function () {
+            estado.janelaStreamPronto = true;
+          });
+
+      return preparar
+        .then(function () {
+          if (window.SETADAudio) {
+            return window.SETADAudio.solicitarLive(true);
+          }
           return tentarAutoplayCulto();
-        }
-
-        if (window.SETADAudio.obterPreferencia() === "radio") {
-          return Promise.resolve();
-        }
-
-        return window.SETADAudio.solicitarLive(true);
-      }).then(atualizarControlesJanela);
+        })
+        .then(atualizarControlesJanela)
+        .then(agendarRetriesAutoplayJanela);
     }
 
-    if (!estado.janelaStreamPronto) {
-      estado.janelaStreamPronto = true;
-      iniciarEtocar();
-      return;
-    }
-
-    if (window.SETADAudio) {
-      if (window.SETADAudio.obterPreferencia() !== "radio") {
-        window.SETADAudio.solicitarLive(true);
-      }
-    } else {
-      tentarAutoplayCulto();
-    }
-
-    atualizarControlesJanela();
+    iniciarEtocar();
   }
 
   function iniciarMonitoramentoPublico() {
@@ -278,6 +291,9 @@
   }
 
   function tentarAutoplayCulto() {
+    if (window.SETADAudio) {
+      return window.SETADAudio.solicitarLive(true);
+    }
     if (!window.SETADCultoPlayer) return Promise.resolve();
     return window.SETADCultoPlayer.tocar(true);
   }
@@ -299,18 +315,30 @@
           return Promise.resolve();
         }
 
-        video.muted = false;
+        function tentarPlay(mudo) {
+          video.muted = mudo === true;
+          return video.play();
+        }
 
-        return video.play().then(function () {
-          if (!programatico && window.SETADAudio) {
-            return window.SETADAudio.solicitarLive(true);
-          }
-        }).catch(function () {
-          video.muted = true;
-          return video.play().catch(function () {
+        return tentarPlay(false)
+          .then(function () {
+            video.muted = false;
+            if (!programatico && window.SETADAudio) {
+              return window.SETADAudio.solicitarLive(true);
+            }
+          })
+          .catch(function () {
+            return tentarPlay(true).then(function () {
+              if (programatico) {
+                return tentarPlay(false).catch(function () {
+                  return Promise.resolve();
+                });
+              }
+            });
+          })
+          .catch(function () {
             return Promise.resolve();
           });
-        });
       },
 
       pausar: function (programatico) {
@@ -337,6 +365,7 @@
       if (!window.SETADAudio) return;
 
       if (
+        !aoVivoInterfaceAtiva() &&
         window.SETADAudio.obterPreferencia() === "radio" &&
         window.SETADAudio.obterFonte() === "radio"
       ) {
@@ -374,7 +403,7 @@
     }
 
     iframe.hidden = false;
-    iframe.src = JMV_CULTO_PLAYER;
+    iframe.src = JMV_CULTO_PLAYER_EMBED;
   }
 
   function iniciarStreamNoVideo(video) {
@@ -458,23 +487,13 @@
     }
 
     function aposPlayerPronto() {
-      if (window.SETADAudio) {
+      if (paginaCultoDedicada() && window.SETADAudio) {
         window.SETADAudio.entrarPaginaCulto();
-      } else if (!paginaCultoDedicada()) {
+      } else if (window.SETADAudio) {
+        window.SETADAudio.solicitarLive(true);
+      } else {
         tentarAutoplayCulto();
       }
-
-      document.addEventListener(
-        "click",
-        function retomarAposBloqueioAutoplay() {
-          if (window.SETADAudio) {
-            window.SETADAudio.solicitarLive(true);
-          } else if (!paginaCultoDedicada()) {
-            tentarAutoplayCulto();
-          }
-        },
-        { once: true }
-      );
 
       return verificarTransmissaoAtiva();
     }
@@ -495,7 +514,7 @@
         if (entrouAoVivo && paginaCultoDedicada()) {
           var iframeEl = document.getElementById("cultoPlayerIframe");
           if (iframeEl) {
-            iframeEl.src = JMV_CULTO_PLAYER;
+            iframeEl.src = JMV_CULTO_PLAYER_EMBED;
           }
         }
         estavaAoVivo = aoVivo;
