@@ -1,15 +1,15 @@
 /* ============================================================
-   culto-live.js — Transmissão ao vivo (Brascast) + balão flutuante
-   Player: https://live.brascast.com/player/3672d32d
+   culto-live.js — Transmissão ao vivo (JMV) + balão flutuante
+   Player: https://player.jmvstream.com/lvw/LQQkxtAMXzxJcp0qLbfdJ4gYVZoag4
    ============================================================ */
 
 (function () {
   "use strict";
 
-  var PLAYER_ID = "3672d32d";
-  var BRASCAST_PLAYER = "https://live.brascast.com/player/" + PLAYER_ID + "?autoplay=1";
-  var HLS_BASE = "https://video01.brascast.com";
-  var HLS_MASTER = HLS_BASE + "/" + PLAYER_ID + "/" + PLAYER_ID + "/playlist.m3u8";
+  var JMV_CULTO_PLAYER =
+    "https://player.jmvstream.com/lvw/LQQkxtAMXzxJcp0qLbfdJ4gYVZoag4";
+  var HLS_MASTER =
+    "https://cdn.live.br1.jmvstream.com/w/LVW-9375/LVW9375_6i0wPBCHYc/playlist.m3u8";
   var STORAGE_SEQ = "setad_culto_seq";
   var STORAGE_LIVE = "setad_culto_ao_vivo";
   var POLL_MS = 45000;
@@ -58,14 +58,15 @@
     };
   }
 
-  function montarUrlPlaylist(caminho) {
+  function montarUrlPlaylist(caminho, playlistMaster) {
     if (!caminho) return null;
 
     if (caminho.indexOf("http") === 0) {
       return caminho;
     }
 
-    return HLS_BASE + (caminho.charAt(0) === "/" ? caminho : "/" + caminho);
+    var base = (playlistMaster || HLS_MASTER).replace(/[^/]+$/, "");
+    return base + (caminho.charAt(0) === "/" ? caminho.slice(1) : caminho);
   }
 
   async function obterPlaylistMedia() {
@@ -74,12 +75,13 @@
 
     var master = await respostaMaster.text();
     var linhaPlaylist = master.split("\n").find(function (linha) {
-      return linha.indexOf("playlist.m3u8") !== -1;
+      var t = linha.trim();
+      return t && t.charAt(0) !== "#" && /\.m3u8/i.test(t);
     });
 
     if (!linhaPlaylist) return null;
 
-    var urlMedia = montarUrlPlaylist(linhaPlaylist.trim());
+    var urlMedia = montarUrlPlaylist(linhaPlaylist.trim(), HLS_MASTER);
     if (!urlMedia) return null;
 
     var respostaMedia = await fetch(urlMedia, { cache: "no-store" });
@@ -363,7 +365,7 @@
     return player;
   }
 
-  function usarIframeBrascast(video, iframe) {
+  function usarIframeCulto(video, iframe) {
     if (!iframe) return;
 
     if (video) {
@@ -372,7 +374,7 @@
     }
 
     iframe.hidden = false;
-    iframe.src = BRASCAST_PLAYER;
+    iframe.src = JMV_CULTO_PLAYER;
   }
 
   function iniciarStreamNoVideo(video) {
@@ -395,9 +397,9 @@
         return;
       }
 
-      usarIframeBrascast(video, document.getElementById("cultoPlayerIframe"));
+      usarIframeCulto(video, document.getElementById("cultoPlayerIframe"));
     }).catch(function () {
-      usarIframeBrascast(video, document.getElementById("cultoPlayerIframe"));
+      usarIframeCulto(video, document.getElementById("cultoPlayerIframe"));
     });
   }
 
@@ -450,7 +452,7 @@
       if (document.getElementById("cultoOffAir")) {
         document.getElementById("cultoOffAir").hidden = true;
       }
-      usarIframeBrascast(video, iframe);
+      usarIframeCulto(video, iframe);
     } else {
       mostrarPlayerCulto();
     }
@@ -493,7 +495,7 @@
         if (entrouAoVivo && paginaCultoDedicada()) {
           var iframeEl = document.getElementById("cultoPlayerIframe");
           if (iframeEl) {
-            iframeEl.src = BRASCAST_PLAYER;
+            iframeEl.src = JMV_CULTO_PLAYER;
           }
         }
         estavaAoVivo = aoVivo;
