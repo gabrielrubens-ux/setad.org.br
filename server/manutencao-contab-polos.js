@@ -72,7 +72,7 @@ function removerMatriculasPolo(poloId) {
     try {
       db.prepare("DELETE FROM users WHERE matricula_id = ?").run(m.id);
     } catch (_e) {
-      /* ignore */
+      /* ignorar */
     }
   });
 

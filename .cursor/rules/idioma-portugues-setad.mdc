@@ -1,0 +1,27 @@
+---
+description: Idioma português no projeto SETAD (chat, commits, comentários, UI)
+alwaysApply: true
+---
+
+# Português no projeto SETAD
+
+## Chat com o agente
+
+- Respostas **sempre em português** (Brasil), salvo citação técnica inevitável (nome de API, flag de ambiente).
+- Evitar títulos e frases inteiras em inglês no texto ao usuário.
+- Não usar prefixos de commit em inglês (`feat:`, `fix:`, `chore:`) nas explicações; preferir *inclusão*, *correção*, *documentação*.
+
+## Git
+
+- Mensagens de **commit em português**, foco no *porquê*.
+- Formato sugerido: `Correção: …`, `Inclusão: …`, `Documentação: …` (sem obrigatoriedade de conventional commits em inglês).
+
+## Código
+
+- Comentários e JSDoc novos **em português**.
+- Textos de UI, tooltips, `console.log` voltados à equipe e strings de erro **em português** (respeitar também a regra de linguagem institucional financeira).
+
+## Exceções
+
+- Identificadores de código (variáveis, rotas REST, chaves de `localStorage`) podem permanecer em inglês se já forem padrão do repositório.
+- Bibliotecas de terceiros e saída nativa do Git/Node não são traduzidas.
