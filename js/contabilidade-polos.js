@@ -445,14 +445,10 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab">' +
     avisoDev +
     '<div class="polo-contab__toolbar">' +
-    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Ano letivo em <strong>dois semestres</strong> (jan–jun e jul–dez). Importação somente em PDF (cadastro como na secretaria).</p>' +
+    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Ano letivo em <strong>dois semestres</strong> (jan–jun e jul–dez). Cadastre novos alunos pela secretaria.</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
-    '<label class="btn btn--primary btn--sm polo-contab__pdf-label-toolbar" id="btnContabPolosPdfLabel">' +
-    'Importar PDF<input type="file" id="contabPolosPdfInput" accept="application/pdf,.pdf" hidden></label>' +
     "</div></div>" +
-    '<p class="presencial-bloco__hint polo-contab__pdf-dica">PDF com tabela ou lista (nome, e-mail, telefone…). Polo SETADE: inclua nível e sala. Não use Excel/planilha nesta tela.</p>' +
-    '<div id="contabPolosPdfRevisao" class="polo-contab__pdf-revisao-host" hidden></div>' +
     '<div class="polo-contab__polos-grid" role="tablist" aria-label="Polos">' +
     cardsPolos +
     "</div>" +
@@ -766,20 +762,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
   document.getElementById("btnContabPolosAtualizar").addEventListener("click", function () {
     renderizarContabilidadePolos(containerId, sessao);
   });
-  if (typeof configurarImportacaoPdfContabPolos === "function") {
-    configurarImportacaoPdfContabPolos(
-      container,
-      sessao,
-      function () {
-        return container.dataset.poloAtivo;
-      },
-      function () {
-        renderPlanilha();
-        renderTabela();
-      }
-    );
-  }
-
   renderPlanilha();
   renderTabela();
 }
