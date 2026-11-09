@@ -8,7 +8,12 @@ const router = express.Router();
 
 const uploadPdf = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+    fields: 8,
+    fieldNestingDepth: 1,
+    fieldArrayIndexLimit: 32
+  },
   fileFilter: function (_req, file, cb) {
     const nome = (file.originalname || "").toLowerCase();
     const mime = (file.mimetype || "").toLowerCase();

@@ -8,6 +8,7 @@ O painel **Node.js → Vulnerabilities** escaneia o `package-lock.json` instalad
 | `sharp` | ícones PWA / Capacitor (dev) | Baixo se o servidor **não** processa imagens com sharp |
 | `uuid` | cadeia Capacitor (dev) | Baixo em runtime da API |
 | `nodemailer` | SMTP (produção) | Manter ≥ **10.3.1** (addressparser / SMTP AUTH) |
+| `multer` | upload PDF (`contab-polos-pdf`) | Manter ≥ **2.3.0** (DoS em multipart; CVE 2025–2026) |
 
 A Hostinger **não** aplicou patch automático: todos os itens estavam com `is_patchable: false` (correção via PR só quando a plataforma marca como patchável).
 
