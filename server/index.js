@@ -12,6 +12,7 @@ const {
   garantirStaffSecretaria
 } = require("./staff-bootstrap");
 const { aplicarZeragemAcervoBiblioteca } = require("./biblioteca-acervo");
+const { aplicarManutencaoContabPolosMar2026 } = require("./manutencao-contab-polos");
 const bibliaRoutes = require("./routes/biblia");
 const authRoutes = require("./routes/auth");
 const dataRoutes = require("./routes/data");
@@ -52,6 +53,7 @@ garantirStaffAcessoTodasAreas();
 garantirStaffContabilidade();
 garantirStaffSecretaria();
 aplicarZeragemAcervoBiblioteca();
+aplicarManutencaoContabPolosMar2026();
 
 const app = express();
 

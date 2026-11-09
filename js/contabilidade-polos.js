@@ -310,8 +310,9 @@ function aplicarPagamentoAlunoPolo(matricula, opcoes, sessao) {
     return { ok: true };
   }
 
+  var sitPag = opcoes.situacaoPagamento || "pago_presencial";
   var valor = Number(opcoes.valor);
-  if (!valor || valor <= 0) {
+  if (sitPag !== "pendente" && (!valor || valor <= 0)) {
     return { ok: false, erro: "Informe um valor válido." };
   }
 
@@ -319,7 +320,7 @@ function aplicarPagamentoAlunoPolo(matricula, opcoes, sessao) {
     typeof registrarPagamentoPresencialSecretaria === "function"
       ? registrarPagamentoPresencialSecretaria(matricula, {
           tipoCobranca: opcoes.tipoCobranca || "mensalidade",
-          situacaoPagamento: opcoes.situacaoPagamento || "pago_presencial",
+          situacaoPagamento: sitPag,
           formaPagamento: opcoes.formaPagamento,
           instituicaoId: opcoes.instituicaoId || null,
           valor: valor,
@@ -332,13 +333,13 @@ function aplicarPagamentoAlunoPolo(matricula, opcoes, sessao) {
   if (!registro.ok) return registro;
 
   salvarExtraAlunoPolo(matricula.id, {
-    situacao: "em_dia",
+    situacao: sitPag === "pendente" ? "pendente" : "em_dia",
     formaPagamento: opcoes.formaPagamento || null,
     poloId: matricula.poloId,
-    ultimoValor: valor
+    ultimoValor: valor || 0
   });
 
-  if (opcoes.situacaoPagamento === "pago_presencial") {
+  if (sitPag === "pago_presencial") {
     registrarLancamentoPoloContabilidade(
       matricula,
       polo,
@@ -444,7 +445,7 @@ function renderizarContabilidadePolos(containerId, sessao) {
     '<div class="polo-contab">' +
     avisoDev +
     '<div class="polo-contab__toolbar">' +
-    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Mensalidades do ano letivo: <strong>jan–dez/2026</strong> em todos os polos. Importação somente em PDF (cadastro como na secretaria).</p>' +
+    '<p class="section__text polo-contab__intro">Lançamentos por polo integrados à contabilidade do SETAD. Ano letivo em <strong>dois semestres</strong> (jan–jun e jul–dez). Importação somente em PDF (cadastro como na secretaria).</p>' +
     '<div class="polo-contab__toolbar-acoes">' +
     '<button type="button" class="btn btn--secondary btn--sm" id="btnContabPolosAtualizar">Atualizar lista</button>' +
     '<label class="btn btn--primary btn--sm polo-contab__pdf-label-toolbar" id="btnContabPolosPdfLabel">' +
@@ -518,6 +519,9 @@ function renderizarContabilidadePolos(containerId, sessao) {
         ? obterTurmaCatalogoPorId(turmaId)
         : null;
     var lista = obterListaAlunosPlanilha();
+    var ehSetade =
+      pid === "setade-sede" ||
+      (typeof ehPoloSetade === "function" && ehPoloSetade(pid));
     var meta = {
       titulo: turma
         ? "Planilha — " + turma.nome
@@ -525,9 +529,13 @@ function renderizarContabilidadePolos(containerId, sessao) {
       subtitulo:
         "Ano letivo " +
         (typeof PLANILHA_POLO_ANO_INICIO !== "undefined" ? PLANILHA_POLO_ANO_INICIO : "2026") +
-        " em 1º e 2º semestre (6 meses cada).",
+        " em 1º e 2º semestre (6 meses cada)." +
+        (ehSetade
+          ? " SETADE: valores em branco até lançamento manual."
+          : ""),
       fixarGradeAnoLetivoPolo: true,
       dividirSemestresPolo: true,
+      planilhaSemValorPadrao: ehSetade,
       planilhaColunaMatricula: true,
       turmaId: turma ? turma.id : null,
       onAtualizar: function () {

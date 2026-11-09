@@ -25,7 +25,22 @@ function fecharEditorPlanilhaTurma(container) {
   PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
 }
 
-function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagamentoId) {
+function planilhaPoloSemValorPadrao(matricula, meta) {
+  if (meta && meta.planilhaSemValorPadrao) return true;
+  if (!matricula) return false;
+  if (matricula.poloId === "setade-sede") return true;
+  if (typeof ehPoloSetade === "function" && ehPoloSetade(matricula.poloId)) return true;
+  return false;
+}
+
+function situacaoExtraContabPolo(status) {
+  if (status === "pago" || status === "pago_presencial") return "em_dia";
+  if (status === "agendado") return "pendente";
+  if (status === "pendente") return "pendente";
+  return "pendente";
+}
+
+function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagamentoId, meta) {
   var editor = container.querySelector("#planilhaTurmaEditor");
   if (!editor) return false;
 
@@ -45,19 +60,27 @@ function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagame
   if (!pag && referencia === PLANILHA_REFERENCIA_TAXA_MATRICULA) {
     pag = obterPagamentoMatriculaMatricula(matricula);
   }
-  var valorDefault =
-    pag && pag.valor
-      ? pag.valor
-      : typeof obterValorMensalidadeMatricula === "function"
-        ? obterValorMensalidadeMatricula(matricula)
-        : typeof obterMensalidadeModulo === "function"
-          ? obterMensalidadeModulo(matricula.modulo)
-          : 0;
+  if (!meta && container._planilhaTurmaMeta) meta = container._planilhaTurmaMeta;
+  var semPadrao = planilhaPoloSemValorPadrao(matricula, meta);
+  var valorDefault = "";
+  if (pag && pag.valor != null && Number(pag.valor) > 0) {
+    valorDefault = pag.valor;
+  } else if (!semPadrao) {
+    if (typeof obterValorMensalidadeMatricula === "function") {
+      var vMat = obterValorMensalidadeMatricula(matricula);
+      if (vMat > 0) valorDefault = vMat;
+    }
+    if (!valorDefault && typeof obterMensalidadeModulo === "function") {
+      var vMod = obterMensalidadeModulo(matricula.modulo);
+      if (vMod > 0) valorDefault = vMod;
+    }
+  }
 
   container.querySelector("#planilhaTurmaEditorMatriculaId").value = matriculaId;
   container.querySelector("#planilhaTurmaEditorReferencia").value = referencia;
   container.querySelector("#planilhaTurmaEditorPagamentoId").value = pagamentoId || "";
-  container.querySelector("#planilhaTurmaEditorValor").value = String(valorDefault);
+  container.querySelector("#planilhaTurmaEditorValor").value =
+    valorDefault === "" ? "" : String(valorDefault);
   container.querySelector("#planilhaTurmaEditorStatus").value =
     pag && pag.status ? pag.status : "pago";
   container.querySelector("#planilhaTurmaEditorForma").value =
@@ -91,7 +114,15 @@ function preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagame
 function restaurarEditorPlanilhaTurmaSeAberto(container) {
   if (!PLANILHA_MENSALIDADES_EDITOR_ABERTO || !container) return;
   var st = PLANILHA_MENSALIDADES_EDITOR_ABERTO;
-  if (!preencherEditorPlanilhaTurma(container, st.matriculaId, st.referencia, st.pagamentoId)) {
+  if (
+    !preencherEditorPlanilhaTurma(
+      container,
+      st.matriculaId,
+      st.referencia,
+      st.pagamentoId,
+      container._planilhaTurmaMeta
+    )
+  ) {
     PLANILHA_MENSALIDADES_EDITOR_ABERTO = null;
     return;
   }
@@ -267,12 +298,18 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
   }
 
   var existente = obterPagamentoMensalidadeReferencia(matricula, referencia);
-  var valor =
-    opcoes.valor !== undefined && opcoes.valor !== null
-      ? Number(opcoes.valor)
-      : typeof obterMensalidadeModulo === "function"
-        ? obterMensalidadeModulo(matricula.modulo)
-        : 0;
+  var valor;
+  if (opcoes.valor !== undefined && opcoes.valor !== null && opcoes.valor !== "") {
+    valor = Number(opcoes.valor);
+  } else if (existente && existente.valor != null) {
+    valor = Number(existente.valor);
+  } else if (planilhaPoloSemValorPadrao(matricula, null)) {
+    valor = 0;
+  } else if (typeof obterMensalidadeModulo === "function") {
+    valor = obterMensalidadeModulo(matricula.modulo) || 0;
+  } else {
+    valor = 0;
+  }
 
   if (existente && typeof atualizarPagamentoContador === "function") {
     var campos = {
@@ -288,7 +325,7 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
     var atualizado = atualizarPagamentoContador(existente.id, campos);
     if (atualizado.ok && typeof salvarExtraAlunoPolo === "function") {
       salvarExtraAlunoPolo(matricula.id, {
-        situacao: campos.status === "pago" ? "em_dia" : "atraso",
+        situacao: situacaoExtraContabPolo(campos.status),
         formaPagamento: campos.formaPagamento || null,
         ultimoValor: valor
       });
@@ -319,8 +356,12 @@ function registrarOuAtualizarMensalidadeTurma(matricula, referencia, opcoes, ses
   );
 
   if (registro.ok && typeof salvarExtraAlunoPolo === "function") {
+    var statusUi =
+      opcoes.status === "pendente" || opcoes.status === "agendado"
+        ? opcoes.status
+        : "pago";
     salvarExtraAlunoPolo(matricula.id, {
-      situacao: situacao === "pago_presencial" ? "em_dia" : "atraso",
+      situacao: situacaoExtraContabPolo(statusUi),
       formaPagamento: opcoes.formaPagamento || "PIX",
       ultimoValor: valor
     });
@@ -599,6 +640,7 @@ function renderizarPlanilhaMensalidadesTurma(container, alunos, sessao, meta) {
 
 function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
   meta = meta || {};
+  container._planilhaTurmaMeta = meta;
 
   function refresh() {
     if (typeof meta.onAtualizar === "function") {
@@ -650,12 +692,15 @@ function configurarEventosPlanilhaMensalidadesTurma(container, sessao, meta) {
       var forma = container.querySelector("#planilhaTurmaEditorForma").value;
       var obs = container.querySelector("#planilhaTurmaEditorObs").value.trim();
 
-      if (!valor || valor <= 0) {
+      if (status === "pago" && (!valor || valor <= 0)) {
         if (msg) {
           msg.className = "form-mensagem form-mensagem--erro visible";
           msg.textContent = "Informe um valor válido.";
         }
         return;
+      }
+      if (status !== "pago" && (valor === undefined || Number.isNaN(valor))) {
+        valor = 0;
       }
       if (status === "pago" && !forma) {
         if (msg) {
@@ -720,7 +765,13 @@ function abrirEditorPlanilhaTurma(container, btn, sessao) {
   var pagamentoId = btn.getAttribute("data-planilha-pagamento") || "";
 
   if (
-    !preencherEditorPlanilhaTurma(container, matriculaId, referencia, pagamentoId || null)
+    !preencherEditorPlanilhaTurma(
+      container,
+      matriculaId,
+      referencia,
+      pagamentoId || null,
+      container._planilhaTurmaMeta
+    )
   ) {
     return;
   }
