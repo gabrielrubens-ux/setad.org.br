@@ -1,4 +1,4 @@
-/* Abertura interativa — SETADE (fachada) + SETAD Teen (VEM AÍ!) */
+/* Abertura interativa — fachada SETADE na home */
 
 .landing-intro {
   position: relative;
@@ -7,133 +7,6 @@
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-}
-
-.landing-intro__viewport {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  overflow: hidden;
-}
-
-.landing-intro__trilha {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
-}
-
-.landing-intro__trilha:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.75);
-  outline-offset: -4px;
-}
-
-.landing-intro__trilha::-webkit-scrollbar {
-  height: 6px;
-}
-
-.landing-intro__trilha::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-}
-
-.landing-intro__setas {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-}
-
-body.landing-intro--encerrado .landing-intro__setas {
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.4s ease,
-    visibility 0.4s ease;
-}
-
-.landing-intro__seta {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 50%;
-  background: rgba(13, 20, 26, 0.42);
-  color: #fff;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease,
-    opacity 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.landing-intro__seta--ant {
-  left: max(0.35rem, env(safe-area-inset-left, 0px));
-}
-
-.landing-intro__seta--prox {
-  right: max(0.35rem, env(safe-area-inset-right, 0px));
-}
-
-.landing-intro__seta-icone {
-  display: block;
-  font-size: 1.35rem;
-  line-height: 1;
-  margin-top: -2px;
-}
-
-.landing-intro__seta:hover:not(:disabled),
-.landing-intro__seta:focus-visible:not(:disabled) {
-  background: rgba(103, 61, 230, 0.75);
-  border-color: #fff;
-  transform: translateY(-50%) scale(1.06);
-}
-
-.landing-intro__seta:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-}
-
-.landing-intro__seta:disabled {
-  opacity: 0.28;
-  cursor: default;
-}
-
-.landing-intro__dica-scroll {
-  position: absolute;
-  bottom: 0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  margin: 0;
-  padding: 0.3rem 0.75rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
-  background: rgba(13, 20, 26, 0.28);
-  border-radius: 999px;
-  pointer-events: none;
-  backdrop-filter: blur(6px);
 }
 
 .landing-intro__fundo {
@@ -160,7 +33,6 @@ body.landing-intro--encerrado .landing-intro__fundo {
   background-repeat: no-repeat;
   transform: scale(1.05) translateZ(0);
   will-change: transform, opacity;
-  transition: opacity 0.2s linear;
 }
 
 .landing-intro__camada--setad {
@@ -168,13 +40,6 @@ body.landing-intro--encerrado .landing-intro__fundo {
     linear-gradient(rgba(13, 20, 26, 0.2), rgba(35, 64, 107, 0.55)),
     url("../assets/images/hero-setad-fachada.jpg");
   opacity: 1;
-}
-
-.landing-intro__camada--teen {
-  background-image:
-    linear-gradient(165deg, rgba(8, 16, 40, 0.35) 0%, rgba(35, 64, 107, 0.75) 100%),
-    url("../assets/images/setad-teen-vem-ai.jpg");
-  opacity: 0;
 }
 
 .landing-intro__granula {
@@ -188,13 +53,9 @@ body.landing-intro--encerrado .landing-intro__fundo {
 .landing-intro__painel {
   position: relative;
   z-index: 1;
-  flex: 0 0 100%;
   width: 100%;
-  min-width: 100%;
   height: 100%;
   min-height: 100%;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 .landing-intro .hero {
@@ -246,7 +107,7 @@ body.landing-intro--encerrado .landing-intro__fundo {
 .landing-intro__rolar:hover,
 .landing-intro__rolar:focus-visible {
   color: #fff;
-  transform: translateX(4px);
+  transform: translateY(2px);
 }
 
 .landing-intro__rolar-seta {
@@ -255,232 +116,20 @@ body.landing-intro--encerrado .landing-intro__fundo {
   height: 1.35rem;
   border-right: 2px solid currentColor;
   border-top: 2px solid currentColor;
-  transform: rotate(45deg);
+  transform: rotate(135deg);
   animation: landing-intro-seta 1.6s ease-in-out infinite;
 }
 
 @keyframes landing-intro-seta {
   0%,
   100% {
-    transform: rotate(45deg) translate(0, 0);
+    transform: rotate(135deg) translate(0, 0);
     opacity: 0.85;
   }
   50% {
-    transform: rotate(45deg) translate(4px, -4px);
+    transform: rotate(135deg) translate(0, 4px);
     opacity: 1;
   }
-}
-
-.landing-intro__passos {
-  position: fixed;
-  right: clamp(0.75rem, 2vw, 1.25rem);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin: 0;
-  padding: 0.5rem 0.35rem;
-  border: none;
-  background: rgba(13, 20, 26, 0.25);
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-}
-
-body.landing-intro--encerrado .landing-intro__passos {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-
-.landing-intro__ponto {
-  width: 0.65rem;
-  height: 0.65rem;
-  padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.65);
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition:
-    transform 0.25s ease,
-    background-color 0.25s ease,
-    border-color 0.25s ease;
-}
-
-.landing-intro__ponto.is-ativo,
-.landing-intro__ponto:hover,
-.landing-intro__ponto:focus-visible {
-  background: var(--cor-acento, #673de6);
-  border-color: #fff;
-  transform: scale(1.15);
-}
-
-/* —— SETAD Teen —— */
-.landing-intro__painel--teen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: calc(var(--setad-header-height, 64px) + 1.5rem) 1.25rem 2.75rem;
-  box-sizing: border-box;
-}
-
-.landing-teen {
-  width: min(100%, 32rem);
-  text-align: center;
-  color: #fff;
-}
-
-.landing-teen__selo {
-  display: inline-block;
-  margin: 0 0 1rem;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(103, 61, 230, 0.35);
-}
-
-.landing-teen__poster {
-  margin: 0 auto 1.25rem;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  perspective: 900px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.landing-teen__poster:focus-visible {
-  outline: 3px solid rgba(255, 255, 255, 0.85);
-  outline-offset: 6px;
-  border-radius: 1rem;
-}
-
-.landing-teen__cartao {
-  position: relative;
-  border-radius: 1.25rem;
-  overflow: hidden;
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(255, 255, 255, 0.12);
-  transform: rotateX(var(--teen-rot-x, 0deg)) rotateY(var(--teen-rot-y, 0deg));
-  transition:
-    transform 0.15s ease-out,
-    box-shadow 0.35s ease;
-  transform-style: preserve-3d;
-}
-
-.landing-teen__poster.is-pulsando .landing-teen__cartao,
-.landing-teen__poster[aria-pressed="true"] .landing-teen__cartao {
-  box-shadow:
-    0 28px 70px rgba(103, 61, 230, 0.45),
-    0 0 0 2px rgba(255, 195, 120, 0.65);
-}
-
-.landing-teen__arte {
-  display: block;
-  width: 100%;
-  height: auto;
-  vertical-align: middle;
-}
-
-.landing-teen__brilho {
-  position: absolute;
-  inset: -40%;
-  background: radial-gradient(
-    circle at var(--teen-brilho-x, 50%) var(--teen-brilho-y, 30%),
-    rgba(255, 200, 120, 0.45) 0%,
-    transparent 55%
-  );
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.landing-teen__poster:hover .landing-teen__brilho,
-.landing-teen__poster:focus-visible .landing-teen__brilho {
-  opacity: 1;
-}
-
-.landing-teen__faixa {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0.85rem 1rem 1.1rem;
-  background: linear-gradient(
-    to top,
-    rgba(8, 16, 40, 0.92) 0%,
-    rgba(8, 16, 40, 0.55) 55%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-.landing-teen__vem-ai {
-  display: block;
-  font-family: var(--fonte-display, "Outfit", sans-serif);
-  font-size: clamp(1.65rem, 6vw, 2.35rem);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #fff5e6;
-  text-shadow:
-    0 0 24px rgba(255, 160, 60, 0.65),
-    0 4px 16px rgba(0, 0, 0, 0.55);
-  animation: landing-teen-vem-ai 2.2s ease-in-out infinite;
-}
-
-@keyframes landing-teen-vem-ai {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  50% {
-    transform: scale(1.04);
-    filter: brightness(1.12);
-  }
-}
-
-.landing-teen__legenda {
-  margin: 0 auto 1.25rem;
-  max-width: 26rem;
-  font-size: 1rem;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
-}
-
-.landing-teen__acoes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.landing-teen__btn-contato {
-  min-width: 12rem;
-}
-
-.landing-teen__link-setad {
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.landing-teen__link-setad:hover,
-.landing-teen__link-setad:focus-visible {
-  color: #fff;
-  border-bottom-color: #fff;
 }
 
 .pagina-inicial main > .section,
@@ -496,51 +145,24 @@ body.landing-intro--encerrado .landing-intro__passos {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-intro__rolar-seta,
-  .landing-teen__vem-ai {
+  .landing-intro__rolar-seta {
     animation: none;
-  }
-
-  .landing-teen__cartao {
-    transform: none !important;
   }
 }
 
-/* WhatsApp flutuante — sobe na abertura para não cobrir a seta direita */
+/* WhatsApp flutuante — posição na abertura em tela cheia */
 body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
-  top: 23%;
-  bottom: auto;
-  transform: translateY(-50%);
+  top: auto;
+  bottom: max(5.5rem, env(safe-area-inset-bottom, 0px) + 4rem);
   right: max(1rem, env(safe-area-inset-right, 0px));
+  transform: none;
 }
 
 html.setad-mobile body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
-  bottom: auto;
-  top: 19%;
+  bottom: max(5rem, env(safe-area-inset-bottom, 0px) + 3.5rem);
 }
 
 @media (max-width: 768px) {
-  body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
-    top: 17%;
-  }
-
-  .landing-intro__seta {
-    width: 2.35rem;
-    height: 2.35rem;
-  }
-
-  .landing-intro__seta-icone {
-    font-size: 1.15rem;
-  }
-
-  .landing-intro__passos {
-    top: auto;
-    bottom: 1.25rem;
-    right: 50%;
-    transform: translateX(50%);
-    flex-direction: row;
-  }
-
   .hero__acoes-rodape {
     bottom: 4.5rem;
   }

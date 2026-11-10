@@ -198,7 +198,7 @@
 
       <nav class="nav header__nav" id="nav" aria-label="Menu principal">
         <ul class="nav__list">
-          <li><a href="#setad-teen" class="nav__link">SETAD Teen</a></li>
+          <li><a href="#inicio" class="nav__link">Início</a></li>
           <li><a href="#sobre" class="nav__link">Sobre</a></li>
           <li><a href="polos/" class="nav__link">Polos</a></li>
           <li><a href="#programa" class="nav__link">Programa</a></li>
@@ -234,41 +234,11 @@
     <div class="landing-intro" id="landingIntro" data-landing-intro>
       <div class="landing-intro__fundo" aria-hidden="true">
         <div class="landing-intro__camada landing-intro__camada--setad" data-landing-camada="setad"></div>
-        <div class="landing-intro__camada landing-intro__camada--teen" data-landing-camada="teen"></div>
         <div class="landing-intro__granula"></div>
       </div>
 
-      <nav class="landing-intro__passos" aria-label="Passos da abertura (deslize para os lados)">
-        <button type="button" class="landing-intro__ponto is-ativo" data-landing-passo="0" aria-label="SETAD — sede" aria-current="step"></button>
-        <button type="button" class="landing-intro__ponto" data-landing-passo="1" aria-label="SETAD Teen — vem aí!"></button>
-      </nav>
-
-      <p class="landing-intro__dica-scroll" aria-hidden="true">Deslize para os lados</p>
-
-      <div class="landing-intro__setas">
-        <button
-          type="button"
-          class="landing-intro__seta landing-intro__seta--ant"
-          id="landingIntroSetaAnt"
-          aria-label="Tela anterior — SETAD principal"
-          disabled
-        >
-          <span class="landing-intro__seta-icone" aria-hidden="true">&#10094;</span>
-        </button>
-        <button
-          type="button"
-          class="landing-intro__seta landing-intro__seta--prox"
-          id="landingIntroSetaProx"
-          aria-label="Próxima tela — SETAD Teen"
-        >
-          <span class="landing-intro__seta-icone" aria-hidden="true">&#10095;</span>
-        </button>
-      </div>
-
-      <div class="landing-intro__viewport">
-        <div class="landing-intro__trilha" data-landing-trilha tabindex="0" aria-label="SETAD principal e SETAD Teen — rolagem horizontal">
       <!-- HERO: fundo com foto da fachada SETAD (logo já visível no prédio) -->
-      <section class="hero landing-intro__painel landing-intro__painel--setad" id="inicio" data-landing-painel="0">
+      <section class="hero landing-intro__painel landing-intro__painel--setad" id="inicio">
         <div class="container hero__content">
           <span class="hero__badge">Seminário Teológico · SETADE</span>
           <h1 class="hero__title hero__title--sr-only">SETAD — Seminário Teológico da Assembleia de Deus em Belém</h1>
@@ -279,63 +249,12 @@
         </div>
         <div class="hero__acoes-rodape">
           <a href="matricula/" class="btn btn--primary hero__cta">Matricule-se</a>
-          <a href="#setad-teen" class="landing-intro__rolar" id="landingIntroRolar">
-            <span class="landing-intro__rolar-texto">Conheça o SETAD Teen</span>
+          <a href="#sobre" class="landing-intro__rolar" id="landingIntroRolar">
+            <span class="landing-intro__rolar-texto">Conhecer o SETAD</span>
             <span class="landing-intro__rolar-seta" aria-hidden="true"></span>
           </a>
         </div>
       </section>
-
-      <section
-        class="landing-intro__painel landing-intro__painel--teen fade-in"
-        id="setad-teen"
-        data-landing-painel="1"
-        aria-labelledby="setad-teen-titulo"
-      >
-        <div class="landing-teen">
-          <p class="landing-teen__selo" id="setad-teen-titulo">SETAD Teen</p>
-          <div
-            class="landing-teen__poster"
-            data-landing-teen-poster
-            tabindex="0"
-            role="button"
-            aria-pressed="false"
-            aria-label="SETAD Teen — toque para animar. Em breve."
-          >
-            <div class="landing-teen__cartao" data-landing-teen-cartao>
-              <div class="landing-teen__brilho" aria-hidden="true"></div>
-              <div class="landing-teen__faixa" aria-hidden="true">
-                <span class="landing-teen__vem-ai"><span>VEM AÍ!</span></span>
-              </div>
-              <img
-                src="assets/images/setad-teen-vem-ai.jpg"
-                alt="Arte SETAD Teen — formação teológica para adolescentes"
-                class="landing-teen__arte"
-                width="900"
-                height="900"
-                loading="eager"
-                decoding="async"
-              >
-            </div>
-          </div>
-          <p class="landing-teen__legenda">
-            Uma nova formação teológica pensada para <strong>adolescentes</strong>.
-            Deslize para o lado a partir da tela principal e fique pronto para o lançamento.
-          </p>
-          <div class="landing-teen__acoes">
-            <a
-              href="https://api.whatsapp.com/send?phone=559180582801&amp;text=Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20SETAD%20Teen&amp;type=phone_number&amp;app_absent=0"
-              class="btn btn--primary landing-teen__btn-contato"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Quero ser avisado — abrir WhatsApp do SETAD com mensagem sobre o SETAD Teen"
-            >Quero ser avisado</a>
-            <a href="#sobre" class="landing-teen__link-setad">Continuar explorando o SETAD</a>
-          </div>
-        </div>
-      </section>
-        </div>
-      </div>
     </div>
 
     <!-- SOBRE: apresentação do seminário -->
