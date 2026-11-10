@@ -20,10 +20,11 @@
 
   var contatoInst =
     (typeof window !== "undefined" && window.SETAD_CONTATO_INSTITUCIONAL) || {
-      telefone: "+5591980852801",
-      telefoneExibicao: "+5591980852801",
-      whatsappUrl: "https://wa.me/5591980852801",
-      telUrl: "tel:+5591980852801",
+      telefone: "+559180582801",
+      telefoneExibicao: "+55 91 98058-2801",
+      whatsappUrl:
+        "https://api.whatsapp.com/send?phone=559180582801&type=phone_number&app_absent=0",
+      telUrl: "tel:+559180582801",
       email: "recepcao@setad.org.br"
     };
 

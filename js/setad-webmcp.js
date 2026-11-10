@@ -7,7 +7,7 @@
   function textoResumoSetad() {
     return (
       "SETAD — Seminário Teológico (setad.org.br). Formação teológica em Belém/PA e polos. " +
-      "Matrícula: /matricula/ · Contato: recepcao@setad.org.br · Tel: +5591980852801. " +
+      "Matrícula: /matricula/ · Contato: recepcao@setad.org.br · Tel: +559180582801. " +
       "Markdown: /index.md · llms.txt: /llms.txt"
     );
   }

@@ -23,8 +23,8 @@ O SETAD oferece formação teológica com base bíblica e ensino acadêmico estr
 ## Contato
 
 - **E-mail:** recepcao@setad.org.br  
-- **Telefone:** +5591980852801  
-- **WhatsApp:** https://wa.me/5591980852801
+- **Telefone:** +559180582801  
+- **WhatsApp:** https://api.whatsapp.com/send?phone=559180582801&type=phone_number&app_absent=0
 
 ## Redes
 

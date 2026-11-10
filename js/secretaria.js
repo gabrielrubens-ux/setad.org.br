@@ -851,10 +851,25 @@ function renderizarThreadWpp(sessao, conversaId) {
   var btnAbrir = document.getElementById("btnAbrirWppExterno");
   if (btnAbrir) {
     btnAbrir.addEventListener("click", function () {
-      var url = conversa.telefone
-        ? "https://wa.me/" + conversa.telefone
-        : "https://wa.me/" + WPP_SEMINARIO_NUMERO;
-      window.open(url, "_blank", "noopener,noreferrer");
+      var url =
+        typeof montarUrlWhatsappInstitucional === "function"
+          ? montarUrlWhatsappInstitucional(
+              conversa.telefone || WPP_SEMINARIO_NUMERO
+            )
+          : "https://api.whatsapp.com/send?phone=" +
+            encodeURIComponent(
+              conversa.telefone
+                ? normalizarTelefoneWpp(conversa.telefone)
+                : WPP_SEMINARIO_NUMERO
+            ) +
+            "&type=phone_number&app_absent=0";
+      var link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     });
   }
 

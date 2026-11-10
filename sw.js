@@ -2,8 +2,8 @@
  * Service Worker SETAD — cache offline para o app PWA.
  * Estratégia: precache do núcleo + stale-while-revalidate para estáticos + network-first para HTML.
  */
-const CACHE_VERSION = "setad-pwa-v13";
-const PRECACHE = "setad-precache-v13";
+const CACHE_VERSION = "setad-pwa-v14";
+const PRECACHE = "setad-precache-v14";
 const RUNTIME = "setad-runtime-v2";
 const RUNTIME_MAX_ENTRIES = 96;
 

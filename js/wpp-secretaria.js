@@ -3,18 +3,48 @@
    Em produção: conectar à API oficial do WhatsApp Business (Meta).
    ============================================================ */
 
-var WPP_SEMINARIO_NUMERO = "5591980852801";
+var WPP_SEMINARIO_NUMERO = "559180582801";
 
 function normalizarTelefoneWpp(telefone) {
+  if (
+    typeof window !== "undefined" &&
+    window.SETAD_CONTATO_INSTITUCIONAL &&
+    typeof window.SETAD_CONTATO_INSTITUCIONAL.normalizarNumeroWhatsapp ===
+      "function"
+  ) {
+    return window.SETAD_CONTATO_INSTITUCIONAL.normalizarNumeroWhatsapp(telefone);
+  }
   if (!telefone) return "";
   var numeros = String(telefone).replace(/\D/g, "");
-  if (numeros.length === 11) {
+  if (numeros.length === 11 && numeros.indexOf("55") !== 0) {
     return "55" + numeros;
   }
-  if (numeros.length === 13 && numeros.indexOf("55") === 0) {
+  if (numeros.indexOf("55") === 0 && numeros.length >= 12) {
     return numeros;
   }
   return numeros;
+}
+
+function montarUrlWhatsappInstitucional(telefone, texto) {
+  if (
+    typeof window !== "undefined" &&
+    window.SETAD_CONTATO_INSTITUCIONAL &&
+    typeof window.SETAD_CONTATO_INSTITUCIONAL.montarUrlWhatsapp === "function"
+  ) {
+    return window.SETAD_CONTATO_INSTITUCIONAL.montarUrlWhatsapp(
+      telefone || window.SETAD_CONTATO_INSTITUCIONAL.whatsappNumero,
+      texto
+    );
+  }
+  var num = normalizarTelefoneWpp(telefone) || WPP_SEMINARIO_NUMERO;
+  var url =
+    "https://api.whatsapp.com/send?phone=" +
+    encodeURIComponent(num) +
+    "&type=phone_number&app_absent=0";
+  if (texto && String(texto).trim()) {
+    url += "&text=" + encodeURIComponent(String(texto).trim());
+  }
+  return url;
 }
 
 function wppApiAtivo() {
@@ -168,18 +198,16 @@ function enviarRespostaWpp(conversaId, texto, autorNome) {
     matriculaId: conversa.matriculaId
   });
 
-  if (conversa.telefone) {
-    var url =
-      "https://wa.me/" + conversa.telefone +
-      "?text=" + encodeURIComponent(texto.trim());
-    window.open(url, "_blank", "noopener,noreferrer");
-  } else {
-    window.open(
-      "https://wa.me/" + WPP_SEMINARIO_NUMERO,
-      "_blank",
-      "noopener,noreferrer"
-    );
-  }
+  var url = conversa.telefone
+    ? montarUrlWhatsappInstitucional(conversa.telefone, texto.trim())
+    : montarUrlWhatsappInstitucional(WPP_SEMINARIO_NUMERO);
+  var link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
   return conversa;
 }
