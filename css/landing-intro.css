@@ -1,0 +1,393 @@
+/* Abertura interativa — SETADE (fachada) + SETAD Teen (VEM AÍ!) */
+
+.landing-intro {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-intro__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+body.landing-intro--encerrado .landing-intro__fundo {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.65s ease,
+    visibility 0.65s ease;
+}
+
+.landing-intro__camada {
+  position: absolute;
+  inset: -4%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform: scale(1.05) translateZ(0);
+  will-change: transform, opacity;
+  transition: opacity 0.2s linear;
+}
+
+.landing-intro__camada--setad {
+  background-image:
+    linear-gradient(rgba(13, 20, 26, 0.2), rgba(35, 64, 107, 0.55)),
+    url("../assets/images/hero-setad-fachada.jpg");
+  opacity: 1;
+}
+
+.landing-intro__camada--teen {
+  background-image:
+    linear-gradient(165deg, rgba(8, 16, 40, 0.35) 0%, rgba(35, 64, 107, 0.75) 100%),
+    url("../assets/images/setad-teen-vem-ai.jpg");
+  opacity: 0;
+}
+
+.landing-intro__granula {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.landing-intro__painel {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.landing-intro .hero {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: transparent;
+}
+
+.hero__acoes-rodape {
+  position: absolute;
+  bottom: clamp(2.5rem, 8vh, 4.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(100%, 22rem);
+  padding: 0 1rem;
+}
+
+.landing-intro .hero__cta {
+  position: static;
+  transform: none;
+  width: 100%;
+  max-width: 16rem;
+}
+
+.landing-intro .hero__cta:hover {
+  transform: translateY(-2px);
+}
+
+.landing-intro__rolar {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.landing-intro__rolar:hover,
+.landing-intro__rolar:focus-visible {
+  color: #fff;
+  transform: translateY(2px);
+}
+
+.landing-intro__rolar-seta {
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  animation: landing-intro-seta 1.6s ease-in-out infinite;
+}
+
+@keyframes landing-intro-seta {
+  0%,
+  100% {
+    transform: rotate(45deg) translate(0, 0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(45deg) translate(4px, 4px);
+    opacity: 1;
+  }
+}
+
+.landing-intro__passos {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0.5rem 0.35rem;
+  border: none;
+  background: rgba(13, 20, 26, 0.25);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+body.landing-intro--encerrado .landing-intro__passos {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.landing-intro__ponto {
+  width: 0.65rem;
+  height: 0.65rem;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.landing-intro__ponto.is-ativo,
+.landing-intro__ponto:hover,
+.landing-intro__ponto:focus-visible {
+  background: var(--cor-acento, #673de6);
+  border-color: #fff;
+  transform: scale(1.15);
+}
+
+/* —— SETAD Teen —— */
+.landing-intro__painel--teen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--setad-header-height, 64px) + 1.5rem) 1.25rem 3rem;
+}
+
+.landing-teen {
+  width: min(100%, 32rem);
+  text-align: center;
+  color: #fff;
+}
+
+.landing-teen__selo {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(103, 61, 230, 0.35);
+}
+
+.landing-teen__poster {
+  margin: 0 auto 1.25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  perspective: 900px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.landing-teen__poster:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 6px;
+  border-radius: 1rem;
+}
+
+.landing-teen__cartao {
+  position: relative;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+  transform: rotateX(var(--teen-rot-x, 0deg)) rotateY(var(--teen-rot-y, 0deg));
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.35s ease;
+  transform-style: preserve-3d;
+}
+
+.landing-teen__poster.is-pulsando .landing-teen__cartao,
+.landing-teen__poster[aria-pressed="true"] .landing-teen__cartao {
+  box-shadow:
+    0 28px 70px rgba(103, 61, 230, 0.45),
+    0 0 0 2px rgba(255, 195, 120, 0.65);
+}
+
+.landing-teen__arte {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.landing-teen__brilho {
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    circle at var(--teen-brilho-x, 50%) var(--teen-brilho-y, 30%),
+    rgba(255, 200, 120, 0.45) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.landing-teen__poster:hover .landing-teen__brilho,
+.landing-teen__poster:focus-visible .landing-teen__brilho {
+  opacity: 1;
+}
+
+.landing-teen__faixa {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.85rem 1rem 1.1rem;
+  background: linear-gradient(
+    to top,
+    rgba(8, 16, 40, 0.92) 0%,
+    rgba(8, 16, 40, 0.55) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.landing-teen__vem-ai {
+  display: block;
+  font-family: var(--fonte-display, "Outfit", sans-serif);
+  font-size: clamp(1.65rem, 6vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff5e6;
+  text-shadow:
+    0 0 24px rgba(255, 160, 60, 0.65),
+    0 4px 16px rgba(0, 0, 0, 0.55);
+  animation: landing-teen-vem-ai 2.2s ease-in-out infinite;
+}
+
+@keyframes landing-teen-vem-ai {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.04);
+    filter: brightness(1.12);
+  }
+}
+
+.landing-teen__legenda {
+  margin: 0 auto 1.25rem;
+  max-width: 26rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+}
+
+.landing-teen__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.landing-teen__btn-contato {
+  min-width: 12rem;
+}
+
+.landing-teen__link-setad {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.landing-teen__link-setad:hover,
+.landing-teen__link-setad:focus-visible {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.pagina-inicial main > .section,
+.pagina-inicial main > .campus-info,
+.pagina-inicial main > .portal,
+.pagina-inicial main > .localizacao,
+.pagina-inicial main > .matricula-cta,
+.pagina-inicial main > .missoes,
+.pagina-inicial main > .nossa-historia {
+  position: relative;
+  z-index: 2;
+  background-color: var(--cor-fundo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-intro__rolar-seta,
+  .landing-teen__vem-ai {
+    animation: none;
+  }
+
+  .landing-teen__cartao {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-intro__passos {
+    top: auto;
+    bottom: 1.25rem;
+    right: 50%;
+    transform: translateX(50%);
+    flex-direction: row;
+  }
+
+  .hero__acoes-rodape {
+    bottom: 4.5rem;
+  }
+
+  .landing-intro .hero {
+    min-height: 100dvh;
+  }
+
+  .landing-intro .hero__cta {
+    position: static;
+    top: auto;
+  }
+}

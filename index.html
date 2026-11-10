@@ -55,7 +55,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&display=swap"
     media="print"
     onload="this.media='all'"
   >
@@ -63,6 +63,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
   </noscript>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/landing-intro.css">
   <link rel="stylesheet" href="/css/pwa.css">
   <link rel="stylesheet" href="/css/mobile-viewport.css">
   <script type="application/ld+json">
@@ -184,6 +185,7 @@
 
       <nav class="nav header__nav" id="nav" aria-label="Menu principal">
         <ul class="nav__list">
+          <li><a href="#setad-teen" class="nav__link">SETAD Teen</a></li>
           <li><a href="#sobre" class="nav__link">Sobre</a></li>
           <li><a href="polos/" class="nav__link">Polos</a></li>
           <li><a href="#programa" class="nav__link">Programa</a></li>
@@ -216,18 +218,80 @@
   <!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
   <main>
 
-    <!-- HERO: fundo com foto da fachada SETAD (logo já visível no prédio) -->
-    <section class="hero" id="inicio">
-      <div class="container hero__content">
-        <span class="hero__badge">Seminário Teológico</span>
-        <h1 class="hero__title hero__title--sr-only">SETAD — Seminário Teológico da Assembleia de Deus em Belém</h1>
-        <p class="hero__subtitle">
-          Formação teológica sólida, fundamentada nas Escrituras,
-          para quem deseja aprofundar o conhecimento bíblico e servir com excelência.
-        </p>
+    <div class="landing-intro" id="landingIntro" data-landing-intro>
+      <div class="landing-intro__fundo" aria-hidden="true">
+        <div class="landing-intro__camada landing-intro__camada--setad" data-landing-camada="setad"></div>
+        <div class="landing-intro__camada landing-intro__camada--teen" data-landing-camada="teen"></div>
+        <div class="landing-intro__granula"></div>
       </div>
-      <a href="matricula/" class="btn btn--primary hero__cta">Matricule-se</a>
-    </section>
+
+      <nav class="landing-intro__passos" aria-label="Passos da abertura">
+        <button type="button" class="landing-intro__ponto is-ativo" data-landing-passo="0" aria-label="SETAD — sede" aria-current="step"></button>
+        <button type="button" class="landing-intro__ponto" data-landing-passo="1" aria-label="SETAD Teen — vem aí!"></button>
+      </nav>
+
+      <!-- HERO: fundo com foto da fachada SETAD (logo já visível no prédio) -->
+      <section class="hero landing-intro__painel landing-intro__painel--setad" id="inicio" data-landing-painel="0">
+        <div class="container hero__content">
+          <span class="hero__badge">Seminário Teológico · SETADE</span>
+          <h1 class="hero__title hero__title--sr-only">SETAD — Seminário Teológico da Assembleia de Deus em Belém</h1>
+          <p class="hero__subtitle">
+            Formação teológica sólida, fundamentada nas Escrituras,
+            para quem deseja aprofundar o conhecimento bíblico e servir com excelência.
+          </p>
+        </div>
+        <div class="hero__acoes-rodape">
+          <a href="matricula/" class="btn btn--primary hero__cta">Matricule-se</a>
+          <a href="#setad-teen" class="landing-intro__rolar" id="landingIntroRolar">
+            <span class="landing-intro__rolar-texto">Conheça o SETAD Teen</span>
+            <span class="landing-intro__rolar-seta" aria-hidden="true"></span>
+          </a>
+        </div>
+      </section>
+
+      <section
+        class="landing-intro__painel landing-intro__painel--teen fade-in"
+        id="setad-teen"
+        data-landing-painel="1"
+        aria-labelledby="setad-teen-titulo"
+      >
+        <div class="landing-teen">
+          <p class="landing-teen__selo" id="setad-teen-titulo">SETAD Teen</p>
+          <div
+            class="landing-teen__poster"
+            data-landing-teen-poster
+            tabindex="0"
+            role="button"
+            aria-pressed="false"
+            aria-label="SETAD Teen — toque para animar. Em breve."
+          >
+            <div class="landing-teen__cartao" data-landing-teen-cartao>
+              <div class="landing-teen__brilho" aria-hidden="true"></div>
+              <div class="landing-teen__faixa" aria-hidden="true">
+                <span class="landing-teen__vem-ai"><span>VEM AÍ!</span></span>
+              </div>
+              <img
+                src="assets/images/setad-teen-vem-ai.jpg"
+                alt="Arte SETAD Teen — formação teológica para adolescentes"
+                class="landing-teen__arte"
+                width="900"
+                height="900"
+                loading="eager"
+                decoding="async"
+              >
+            </div>
+          </div>
+          <p class="landing-teen__legenda">
+            Uma nova formação teológica pensada para <strong>adolescentes</strong>.
+            Role a página, acompanhe as novidades e fique pronto para o lançamento.
+          </p>
+          <div class="landing-teen__acoes">
+            <a href="contato.html" class="btn btn--primary landing-teen__btn-contato">Quero ser avisado</a>
+            <a href="#sobre" class="landing-teen__link-setad">Continuar explorando o SETAD</a>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <!-- SOBRE: apresentação do seminário -->
     <section class="section fade-in" id="sobre">
@@ -729,6 +793,7 @@
   <script src="js/campus-mapa-bg.js" defer></script>
   <script src="js/grade-curriculo-setad.js" defer></script>
   <script src="js/programa-grade.js" defer></script>
+  <script src="js/landing-intro-scroll.js" defer></script>
   <script src="js/script.js" defer></script>
   <script src="js/nossa-historia.js" defer></script>
   <script src="js/setad-index-idle.js" defer></script>
