@@ -212,6 +212,106 @@ var SETADHistoricoRecibo = {
     );
   },
 
+  resolverMatricula: function (matriculaOuId) {
+    if (matriculaOuId && typeof matriculaOuId === "object" && matriculaOuId.id) {
+      return matriculaOuId;
+    }
+    var id = String(matriculaOuId || "").trim();
+    if (!id) return null;
+    if (typeof obterMatriculaPorId === "function") {
+      var m = obterMatriculaPorId(id);
+      if (m) return m;
+    }
+    if (typeof obterMatriculas === "function") {
+      return (
+        obterMatriculas().find(function (item) {
+          return item.id === id;
+        }) || null
+      );
+    }
+    return null;
+  },
+
+  prepararDadosHistorico: function () {
+    try {
+      if (typeof inicializarDadosFinanceiros === "function") {
+        inicializarDadosFinanceiros();
+      }
+    } catch (e1) {
+      /* ignorar */
+    }
+  },
+
+  exibirResultadoImpressao: function (resultado, elementoBotao) {
+    if (!resultado || resultado.ok) {
+      if (resultado && resultado.aviso && typeof alert === "function") {
+        alert(resultado.aviso);
+      }
+      return;
+    }
+    var msg = resultado.erro || "Não foi possível imprimir o histórico.";
+    if (typeof alert === "function") {
+      alert(msg);
+    }
+    if (elementoBotao && elementoBotao.dataset) {
+      elementoBotao.title = msg;
+    }
+  },
+
+  acionarImpressaoHistorico: function (matriculaOuId, opcoes) {
+    opcoes = opcoes || {};
+    var btn = opcoes.botao || null;
+    var self = this;
+
+    if (!window.SETADHistoricoRecibo || !window.SETADImpressao) {
+      if (typeof alert === "function") {
+        alert(
+          "Módulo de impressão não carregou. Atualize a página (Ctrl+F5) e tente novamente."
+        );
+      }
+      return Promise.resolve({ ok: false, erro: "Módulo indisponível." });
+    }
+
+    var matricula = self.resolverMatricula(matriculaOuId);
+    if (!matricula) {
+      var semAluno = { ok: false, erro: "Aluno não encontrado para imprimir o histórico." };
+      self.exibirResultadoImpressao(semAluno, btn);
+      return Promise.resolve(semAluno);
+    }
+
+    var textoOriginal = btn ? btn.textContent : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute("aria-busy", "true");
+      btn.textContent = "Abrindo…";
+    }
+
+    return self
+      .imprimirHistorico(matricula, opcoes)
+      .then(function (res) {
+        if (btn) {
+          btn.disabled = false;
+          btn.removeAttribute("aria-busy");
+          btn.textContent = textoOriginal || "Histórico";
+        }
+        self.exibirResultadoImpressao(res, btn);
+        return res;
+      })
+      .catch(function (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.removeAttribute("aria-busy");
+          btn.textContent = textoOriginal || "Histórico";
+        }
+        var falha = {
+          ok: false,
+          erro: (err && err.message) || "Erro inesperado ao imprimir."
+        };
+        self.exibirResultadoImpressao(falha, btn);
+        return falha;
+      });
+  },
+
   montarHtmlHistorico: function (matricula) {
     var pagamentos = this.obterPagamentosDoAluno(matricula);
     return (
@@ -228,15 +328,43 @@ var SETADHistoricoRecibo = {
     );
   },
 
-  imprimirHistorico: function (matricula) {
+  imprimirHistorico: function (matricula, opcoes) {
+    opcoes = opcoes || {};
+    matricula = this.resolverMatricula(matricula);
     if (!matricula) {
       return Promise.resolve({ ok: false, erro: "Aluno não encontrado." });
     }
     if (!window.SETADImpressao) {
       return Promise.resolve({ ok: false, erro: "Módulo de impressão indisponível." });
     }
+
+    this.prepararDadosHistorico();
+
     var titulo = "Histórico — " + (matricula.nomeCompleto || "Aluno");
-    return SETADImpressao.imprimirHtml(this.montarHtmlHistorico(matricula), { titulo: titulo });
+    var corpo;
+    try {
+      corpo = this.montarHtmlHistorico(matricula);
+    } catch (errMontagem) {
+      return Promise.resolve({
+        ok: false,
+        erro:
+          "Erro ao montar o histórico: " +
+          (errMontagem && errMontagem.message ? errMontagem.message : "dados inválidos")
+      });
+    }
+
+    var completo =
+      typeof corpo === "string" && corpo.indexOf("<!DOCTYPE") !== -1
+        ? corpo
+        : SETADImpressao.montarDocumentoImpressao(corpo, titulo);
+
+    return SETADImpressao.imprimirHtml(corpo, { titulo: titulo }).then(function (res) {
+      if (res && res.ok) return res;
+      if (typeof SETADImpressao.imprimirHtmlEmIframe === "function") {
+        return SETADImpressao.imprimirHtmlEmIframe(completo, titulo);
+      }
+      return res || { ok: false, erro: "Falha na impressão." };
+    });
   },
 
   montarHtmlRecibo: function (matricula, pagamento, contexto) {
@@ -338,6 +466,47 @@ var SETADHistoricoRecibo = {
   }
 };
 
+function configurarCliquesImpressaoHistoricoGlobal() {
+  if (typeof document === "undefined" || !document.body) return;
+  if (document.body.dataset.setadHistoricoPrintGlobal === "1") return;
+  document.body.dataset.setadHistoricoPrintGlobal = "1";
+
+  document.addEventListener(
+    "click",
+    function (ev) {
+      var btnLista = ev.target.closest(".btn-imprimir-historico-aluno");
+      var btnContab = ev.target.closest("[data-contab-historico]");
+      var alvo = btnLista || btnContab;
+      if (!alvo) return;
+      if (alvo.disabled) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      var id =
+        alvo.getAttribute("data-matricula-id") ||
+        alvo.getAttribute("data-contab-historico");
+      if (!id) return;
+
+      if (typeof SETADHistoricoRecibo === "undefined") {
+        if (typeof alert === "function") {
+          alert("Módulo de impressão não carregou. Atualize a página (Ctrl+F5).");
+        }
+        return;
+      }
+      SETADHistoricoRecibo.acionarImpressaoHistorico(id, { botao: alvo });
+    },
+    true
+  );
+}
+
 if (typeof window !== "undefined") {
   window.SETADHistoricoRecibo = SETADHistoricoRecibo;
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", configurarCliquesImpressaoHistoricoGlobal);
+    } else {
+      configurarCliquesImpressaoHistoricoGlobal();
+    }
+  }
 }

@@ -121,13 +121,62 @@ var SETADImpressao = {
     );
   },
 
-  abrirJanelaImpressao: function (html, titulo) {
-    var janela = window.open("", "_blank", "width=900,height=760");
-    if (!janela) {
+  imprimirHtmlEmIframe: function (html, titulo) {
+    var iframe = document.createElement("iframe");
+    iframe.className = "setad-print-iframe-oculta";
+    iframe.setAttribute("title", titulo || "Impressão SETAD");
+    iframe.style.cssText =
+      "position:fixed;left:0;top:0;width:0;height:0;border:0;opacity:0;pointer-events:none";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+    var iwin = iframe.contentWindow;
+    if (!iwin) {
+      iframe.remove();
       return Promise.resolve({
         ok: false,
-        erro: "Permita pop-ups neste site para abrir a impressão."
+        erro: "Não foi possível preparar a impressão neste navegador."
       });
+    }
+    iwin.document.open();
+    iwin.document.write(html);
+    iwin.document.close();
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        try {
+          iwin.focus();
+          iwin.print();
+          resolve({
+            ok: true,
+            modo: "iframe",
+            aviso: "A impressão foi aberta pelo navegador (modo alternativo)."
+          });
+        } catch (e) {
+          resolve({
+            ok: false,
+            erro:
+              "Não foi possível abrir a impressão. Permita pop-ups em setad.org.br ou tente outro navegador."
+          });
+        }
+        setTimeout(function () {
+          try {
+            iframe.remove();
+          } catch (e2) {
+            /* ignorar */
+          }
+        }, 4000);
+      }, 600);
+    });
+  },
+
+  abrirJanelaImpressao: function (html, titulo) {
+    var janela = null;
+    try {
+      janela = window.open("", "_blank", "width=900,height=760");
+    } catch (e) {
+      janela = null;
+    }
+    if (!janela) {
+      return SETADImpressao.imprimirHtmlEmIframe(html, titulo);
     }
     janela.document.open();
     janela.document.write(html);

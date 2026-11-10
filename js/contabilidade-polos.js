@@ -612,16 +612,6 @@ function renderizarContabilidadePolos(containerId, sessao) {
       });
     });
 
-    wrap.querySelectorAll("[data-contab-historico]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = btn.getAttribute("data-contab-historico");
-        var aluno = obterMatriculaPorId(id);
-        if (!aluno) return;
-        if (typeof SETADHistoricoRecibo !== "undefined") {
-          SETADHistoricoRecibo.imprimirHistorico(aluno);
-        }
-      });
-    });
   }
 
   function obterAlunoSelecionado() {
@@ -814,7 +804,11 @@ function renderizarContabilidadePolos(containerId, sessao) {
         return;
       }
       if (typeof SETADHistoricoRecibo !== "undefined") {
-        SETADHistoricoRecibo.imprimirHistorico(aluno);
+        SETADHistoricoRecibo.acionarImpressaoHistorico(aluno, {
+          botao: btnHistoricoToolbar
+        });
+      } else if (typeof alert === "function") {
+        alert("Módulo de impressão não carregou. Atualize a página (Ctrl+F5).");
       }
     });
   }
