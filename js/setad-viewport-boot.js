@@ -18,4 +18,11 @@
     a11y.defer = true;
     (d.head || d.documentElement).appendChild(a11y);
   }
+
+  if (!d.querySelector('script[src*="setad-contato-institucional.js"]')) {
+    var contatoInst = d.createElement("script");
+    contatoInst.src = "/js/setad-contato-institucional.js";
+    contatoInst.defer = true;
+    (d.head || d.documentElement).appendChild(contatoInst);
+  }
 })(document);

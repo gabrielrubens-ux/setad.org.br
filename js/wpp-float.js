@@ -4,7 +4,9 @@
   const btn = document.getElementById("wppFloatBtn");
   if (!float || !btn) return;
 
-  const WPP_URL = "https://wa.me/5591980852801";
+  const WPP_URL =
+    (window.SETAD_CONTATO_INSTITUCIONAL && window.SETAD_CONTATO_INSTITUCIONAL.whatsappUrl) ||
+    "https://wa.me/5591980852801";
   let expandido = false;
 
   function recolher() {
