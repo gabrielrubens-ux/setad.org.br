@@ -115,6 +115,7 @@
                 '<li><a href="' + home + '#informacoes">Informações do seminário</a></li>' +
                 '<li><a href="' + base + 'privacidade.html">Política de privacidade</a></li>' +
                 '<li><a href="' + base + 'termos.html">Termos de uso</a></li>' +
+                '<li><a href="' + base + 'acessibilidade.html">Acessibilidade</a></li>' +
               "</ul>" +
               '<h3 class="contato-setad__titulo">Comunicação</h3>' +
               '<ul class="contato-setad__lista">' +

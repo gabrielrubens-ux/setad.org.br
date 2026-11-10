@@ -155,4 +155,12 @@
       );
     }
   };
+
+  /* Rede de segurança: garante o módulo de acessibilidade mesmo com viewport-boot em cache antigo (PWA). */
+  if (!document.querySelector('script[src*="setad-acessibilidade.js"]')) {
+    var a11yScript = document.createElement("script");
+    a11yScript.src = "/js/setad-acessibilidade.js";
+    a11yScript.defer = true;
+    (document.head || document.documentElement).appendChild(a11yScript);
+  }
 })(window);

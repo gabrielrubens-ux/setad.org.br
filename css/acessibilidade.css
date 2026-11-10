@@ -1,0 +1,290 @@
+/* SETAD — barra e painel de acessibilidade (referência e-MAG / portais públicos) */
+
+.setad-a11y-skip {
+  position: absolute;
+  left: 0.5rem;
+  top: -100px;
+  z-index: 10000;
+  padding: 0.65rem 1rem;
+  background: var(--cor-primaria, #23406b);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 6px 6px;
+  transition: top 0.2s ease;
+}
+
+.setad-a11y-skip:focus {
+  top: 0.5rem;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.setad-a11y {
+  position: fixed;
+  left: 0;
+  top: calc(var(--setad-header-height, 56px) + 0.35rem);
+  z-index: 1001;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  max-width: min(calc(100vw - 0.5rem), 18rem);
+  font-family: var(--fonte-principal, "Segoe UI", system-ui, sans-serif);
+}
+
+.setad-a11y__aba {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.45rem 0.35rem;
+  border-radius: 0 12px 12px 0;
+  background: rgba(35, 64, 107, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: none;
+  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.setad-a11y__abrir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: 3.5rem;
+  min-height: 4.25rem;
+  padding: 0.45rem 0.35rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--cor-acento, #673de6);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.setad-a11y__abrir:hover,
+.setad-a11y__abrir:focus-visible {
+  background: var(--cor-acento-hover, #5025d1);
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.setad-a11y__abrir-icone {
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.setad-a11y__abrir-texto {
+  max-width: 3.25rem;
+  text-align: center;
+}
+
+.setad-a11y__painel {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(13, 20, 26, 0.96);
+  color: #f5f8ff;
+  border-radius: 0 12px 12px 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: none;
+  margin-left: 0.25rem;
+  transition:
+    width 0.28s ease,
+    opacity 0.28s ease,
+    padding 0.28s ease;
+}
+
+.setad-a11y--aberto .setad-a11y__painel {
+  width: min(16.5rem, calc(100vw - 5.25rem));
+  opacity: 1;
+  padding: 0.85rem 0.9rem 1rem;
+  pointer-events: auto;
+  overflow: visible;
+}
+
+.setad-a11y__titulo {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.setad-a11y__intro {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.setad-a11y__grupo {
+  margin: 0 0 0.65rem;
+}
+
+.setad-a11y__grupo-titulo {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.setad-a11y__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.setad-a11y__btn {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.setad-a11y__btn:hover,
+.setad-a11y__btn:focus-visible {
+  background: rgba(103, 61, 230, 0.45);
+  border-color: rgba(255, 255, 255, 0.45);
+  outline: none;
+}
+
+.setad-a11y__btn[aria-pressed="true"] {
+  background: var(--cor-acento, #673de6);
+  border-color: #fff;
+}
+
+.setad-a11y__rodape {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.setad-a11y__rodape a {
+  color: #c8d4ff;
+}
+
+.setad-a11y__rodape a:hover,
+.setad-a11y__rodape a:focus-visible {
+  color: #fff;
+}
+
+/* Tamanho de texto (escala no <html>) */
+html.setad-a11y-fonte-105 {
+  font-size: 105%;
+}
+
+html.setad-a11y-fonte-110 {
+  font-size: 110%;
+}
+
+html.setad-a11y-fonte-115 {
+  font-size: 115%;
+}
+
+html.setad-a11y-fonte-120 {
+  font-size: 120%;
+}
+
+html.setad-a11y-fonte-125 {
+  font-size: 125%;
+}
+
+/* Alto contraste institucional */
+html.setad-a11y-contraste {
+  --cor-fundo: #000;
+  --cor-fundo-suave: #111;
+  --cor-texto: #fff;
+  --cor-texto-suave: #e8e8e8;
+  --cor-borda: #fff;
+  --cor-branco: #000;
+  --cor-primaria: #ffff00;
+  --cor-primaria-hover: #ffea00;
+  --cor-acento: #00ffff;
+  --cor-acento-hover: #00d4d4;
+}
+
+html.setad-a11y-contraste body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.setad-a11y-contraste a {
+  color: #00ffff !important;
+  text-decoration: underline !important;
+}
+
+html.setad-a11y-contraste .header,
+html.setad-a11y-contraste .painel__header {
+  background: #000 !important;
+  border-bottom: 2px solid #fff !important;
+}
+
+html.setad-a11y-contraste .btn--primary {
+  background: #ffff00 !important;
+  color: #000 !important;
+}
+
+html.setad-a11y-contraste img {
+  filter: contrast(1.05);
+}
+
+/* Destaque de foco visível (teclado) */
+html.setad-a11y-foco-reforcado :focus-visible {
+  outline: 3px solid #ffea00 !important;
+  outline-offset: 3px !important;
+}
+
+/* VLibras — container reservado */
+.setad-a11y-vlibras-slot {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  z-index: 10050;
+}
+
+@media (max-width: 768px) {
+  .setad-a11y {
+    top: auto;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.pagina-inicial:not(.landing-intro--encerrado) .setad-a11y {
+    bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .setad-a11y--aberto .setad-a11y__painel {
+    width: min(15rem, calc(100vw - 3.5rem));
+  }
+}
+
+@media print {
+  .setad-a11y,
+  .setad-a11y-vlibras-slot {
+    display: none !important;
+  }
+}

@@ -26,4 +26,11 @@
     boot.async = false;
     document.head.appendChild(boot);
   }
+
+  if (!document.querySelector('script[src*="setad-acessibilidade.js"]')) {
+    var a11y = document.createElement("script");
+    a11y.src = "/js/setad-acessibilidade.js";
+    a11y.defer = true;
+    document.head.appendChild(a11y);
+  }
 })();
