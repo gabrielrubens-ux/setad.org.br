@@ -71,7 +71,12 @@
     return base ? rel : "/culto-ao-vivo.html";
   }
 
-  var home = base + "index.html";
+  function urlPaginaInicial() {
+    if (window.location.protocol === "file:") return base + "index.html";
+    return base || "/";
+  }
+
+  var home = urlPaginaInicial();
 
   function deveMostrarMidiaPublica() {
     var body = document.body;

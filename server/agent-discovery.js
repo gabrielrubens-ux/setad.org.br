@@ -30,14 +30,14 @@ function registrarRotasAgentes(app, root) {
     next();
   });
 
-  app.get("/index.html", function (req, res, next) {
+  app.get("/index.html", function (req, res) {
     if (aceitaMarkdown(req)) {
       return res
         .type("text/markdown; charset=utf-8")
         .sendFile(path.join(root, "index.md"));
     }
-    res.setHeader("Link", linkHeadersAgentes());
-    next();
+    /* URL canônica na barra do navegador: setad.org.br/ (sem index.html) */
+    return res.redirect(301, "/");
   });
 
   var mdPages = [

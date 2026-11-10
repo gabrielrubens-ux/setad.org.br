@@ -20,6 +20,19 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="/js/setad-viewport-boot.js"></script>
+  <script>
+    /* Mantém a página inicial como setad.org.br/ (sem index.html nem ?query na barra). */
+    (function () {
+      if (location.protocol === "file:") return;
+      var path = location.pathname.replace(/\/+$/, "") || "/";
+      var naRaiz = path === "" || path === "/" || /\/index\.html$/i.test(path);
+      if (!naRaiz) return;
+      if (/\/index\.html$/i.test(location.pathname) || location.search) {
+        var destino = "/" + (location.hash || "");
+        history.replaceState(null, "", destino);
+      }
+    })();
+  </script>
   <!-- viewport + js/mobile-viewport.js ajustam layout ao celular (safe areas, altura útil) -->
 
   <meta name="description" content="SETAD — Seminário Teológico. Formação bíblica sólida, ensino acadêmico e crescimento espiritual.">
