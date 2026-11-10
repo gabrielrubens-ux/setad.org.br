@@ -8,7 +8,7 @@
   if (d.documentElement.dataset.setadMobileViewportInit !== "1") {
     var s = d.createElement("script");
     s.src = "/js/mobile-viewport.js";
-    s.async = false;
+    s.defer = true;
     (d.head || d.documentElement).appendChild(s);
   }
 

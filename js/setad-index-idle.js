@@ -10,7 +10,8 @@
     "js/midias-bg.js",
     "js/matricula-cta-bg.js",
     "js/missoes-fita.js",
-    "js/missoes-bg.js"
+    "js/missoes-bg.js",
+    "/js/setad-webmcp.js"
   ];
 
   function carregarProximo(indice) {
@@ -37,8 +38,8 @@
   }
 
   if (typeof requestIdleCallback === "function") {
-    requestIdleCallback(iniciar, { timeout: 3500 });
+    requestIdleCallback(iniciar, { timeout: 6000 });
   } else {
-    window.setTimeout(iniciar, 2000);
+    window.setTimeout(iniciar, 3500);
   }
 })();

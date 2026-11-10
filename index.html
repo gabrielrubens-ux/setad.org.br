@@ -75,6 +75,7 @@
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
   </noscript>
+  <link rel="preload" as="image" href="/assets/images/hero-setad-fachada.jpg" fetchpriority="high">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/landing-intro.css">
   <link rel="stylesheet" href="/css/pwa.css">
@@ -768,19 +769,16 @@
     defer = baixa em paralelo e executa só depois do HTML estar pronto.
     Colocado no final do <body> garante que os elementos do DOM já existam.
   -->
-  <script src="/js/app-config.js"></script>
-  <script src="/js/native-bridge.js"></script>
+  <script src="/js/app-config.js" defer></script>
+  <script src="/js/native-bridge.js" defer></script>
   <script src="js/polos.js" defer></script>
   <script src="js/polos-coordenadas.js" defer></script>
   <script src="js/setad-load-leaflet.js" defer></script>
   <script src="js/campus-mapa-bg.js" defer></script>
-  <script src="js/grade-curriculo-setad.js" defer></script>
-  <script src="js/programa-grade.js" defer></script>
   <script src="js/landing-intro-scroll.js" defer></script>
   <script src="js/script.js" defer></script>
-  <script src="js/nossa-historia.js" defer></script>
+  <script src="js/setad-index-lazy.js" defer></script>
   <script src="js/setad-index-idle.js" defer></script>
-  <script src="/js/setad-webmcp.js" defer></script>
   <script src="js/contato-setad.js" defer data-setad-contato></script>
   <script src="js/wpp-float.js" defer></script>
   <script src="/js/pwa.js" defer></script>

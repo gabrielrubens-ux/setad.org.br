@@ -325,7 +325,6 @@
     var section = document.getElementById("campus");
     if (!section || !coord()) return;
 
-    sincronizarCampus(true);
     observarVisibilidade(section);
     iniciarSincroniaPeriodica();
 

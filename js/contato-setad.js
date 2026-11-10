@@ -214,12 +214,36 @@
     inserirAntesDoScript(holderCulto, alvo);
   }
 
+  function agendarMidiaPublicaHome(alvo) {
+    if (!document.body || !document.body.classList.contains("pagina-inicial")) {
+      injetarCultoJanela(alvo);
+      iniciarMidiaPublica();
+      return;
+    }
+
+    var feito = false;
+    function rodar() {
+      if (feito) return;
+      feito = true;
+      injetarCultoJanela(alvo);
+      iniciarMidiaPublica();
+    }
+
+    window.addEventListener("scroll", rodar, { once: true, passive: true });
+    window.addEventListener("pointerdown", rodar, { once: true, passive: true });
+
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(rodar, { timeout: 18000 });
+    } else {
+      window.setTimeout(rodar, 8000);
+    }
+  }
+
   function complementosHomeComRodapeNativo(alvo) {
     if (!ocultarBalaoWppFloat() && !document.getElementById("wppFloat")) {
       injetarBalaoWppFloat(alvo);
     }
-    injetarCultoJanela(alvo);
-    iniciarMidiaPublica();
+    agendarMidiaPublicaHome(alvo);
   }
 
   if (document.getElementById("site-footer")) {
@@ -351,5 +375,5 @@
   holder.innerHTML = html;
 
   inserirAntesDoScript(holder, script);
-  iniciarMidiaPublica();
+  agendarMidiaPublicaHome(script);
 })();
