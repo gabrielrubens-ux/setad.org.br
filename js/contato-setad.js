@@ -104,6 +104,129 @@
     return !document.querySelector(".painel");
   }
 
+  function deveMostrarRadioPlayer() {
+    var body = document.body;
+    if (!body || body.classList.contains("login-page")) return false;
+
+    if (
+      body.classList.contains("painel-direcao") ||
+      body.classList.contains("painel-contador") ||
+      body.classList.contains("painel-secretaria") ||
+      body.classList.contains("painel-coordenacao")
+    ) {
+      return false;
+    }
+
+    return !document.querySelector(".painel");
+  }
+
+  function carregarScriptSequencial(scripts) {
+    if (!scripts.length) return;
+
+    var atual = scripts.shift();
+    if (document.getElementById(atual.id)) {
+      carregarScriptSequencial(scripts);
+      return;
+    }
+
+    var tag = document.createElement("script");
+    tag.id = atual.id;
+    tag.src = base + atual.src;
+    tag.onerror = function () {
+      carregarScriptSequencial(scripts);
+    };
+    tag.onload = function () {
+      carregarScriptSequencial(scripts);
+    };
+    document.body.appendChild(tag);
+  }
+
+  function iniciarMidiaPublica() {
+    if (!deveMostrarMidiaPublica()) return;
+
+    var midiaScripts = [];
+
+    if (!window.SETADAudio) {
+      midiaScripts.push({ id: "setadAudioCoordinatorLoader", src: "js/audio-coordinator.js" });
+    }
+    if (!window.SETADCultoLive) {
+      midiaScripts.push({ id: "setadCultoLiveLoader", src: "js/culto-live.js" });
+    }
+
+    if (deveMostrarRadioPlayer()) {
+      midiaScripts.push({ id: "setadRadioPlayerLoader", src: "js/radio-player.js" });
+    }
+
+    if (document.getElementById("cultoJanela")) {
+      midiaScripts.push({ id: "setadCultoJanelaLoader", src: "js/culto-janela.js" });
+    }
+
+    if (midiaScripts.length) {
+      carregarScriptSequencial(midiaScripts);
+    }
+  }
+
+  function inserirAntesDoScript(fragmentos, alvo) {
+    while (fragmentos.firstChild) {
+      if (alvo && alvo.parentNode === document.body) {
+        document.body.insertBefore(fragmentos.firstChild, alvo);
+      } else {
+        document.body.appendChild(fragmentos.firstChild);
+      }
+    }
+  }
+
+  function injetarCultoJanela(alvo) {
+    if (!deveMostrarMidiaPublica() || document.body.classList.contains("pagina-culto-ao-vivo")) {
+      return;
+    }
+    if (document.getElementById("cultoJanela")) return;
+
+    var cultoHtml =
+      '<div class="culto-janela culto-janela--mini" id="cultoJanela" hidden aria-live="polite" aria-expanded="false">' +
+        '<div class="culto-janela__painel" id="cultoJanelaPainel">' +
+          '<header class="culto-janela__cabecalho" aria-label="Ao vivo — Boas Novas Canal 4.1">' +
+            '<p class="culto-janela__live-label">' +
+              '<span class="culto-janela__dot" aria-hidden="true"></span>' +
+              '<span class="culto-janela__nome">Boas Novas Canal 4.1</span>' +
+            "</p>" +
+            '<div class="culto-janela__acoes">' +
+              '<button type="button" class="culto-janela__btn" id="cultoJanelaExpandir" aria-label="Expandir ou recolher janela">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
+              "</button>" +
+            "</div>" +
+          "</header>" +
+          '<div class="culto-janela__corpo">' +
+            '<video id="cultoJanelaVideo" class="culto-janela__video" playsinline autoplay muted title="Boas Novas Canal 4.1 — transmissão ao vivo"></video>' +
+            '<button type="button" class="culto-janela__btn-play" id="cultoJanelaPlayPause" aria-label="Pausar transmissão ao vivo">' +
+              '<svg class="culto-janela__icone-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>' +
+              '<svg class="culto-janela__icone-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' +
+            "</button>" +
+          "</div>" +
+          '<footer class="culto-janela__rodape">' +
+            '<a href="' + urlCultoAoVivo() + '" class="culto-janela__link" id="cultoJanelaTelaCheia">Abrir em tela cheia</a>' +
+          "</footer>" +
+        "</div>" +
+      "</div>";
+
+    var holderCulto = document.createElement("div");
+    holderCulto.innerHTML = cultoHtml;
+    inserirAntesDoScript(holderCulto, alvo);
+  }
+
+  function complementosHomeComRodapeNativo(alvo) {
+    if (!ocultarBalaoWppFloat() && !document.getElementById("wppFloat")) {
+      injetarBalaoWppFloat(alvo);
+    }
+    injetarCultoJanela(alvo);
+    iniciarMidiaPublica();
+  }
+
+  if (document.getElementById("site-footer")) {
+    complementosHomeComRodapeNativo(script);
+    return;
+  }
+
   var html =
     '<section class="contato-setad" id="contato" aria-label="Rodapé institucional SETAD">' +
       '<div class="container container--wide">' +
@@ -227,73 +350,6 @@
   var holder = document.createElement("div");
   holder.innerHTML = html;
 
-  if (script && script.parentNode === document.body) {
-    while (holder.firstChild) {
-      document.body.insertBefore(holder.firstChild, script);
-    }
-  } else {
-    while (holder.firstChild) {
-      document.body.appendChild(holder.firstChild);
-    }
-  }
-
-  function deveMostrarRadioPlayer() {
-    var body = document.body;
-    if (!body || body.classList.contains("login-page")) return false;
-
-    if (
-      body.classList.contains("painel-direcao") ||
-      body.classList.contains("painel-contador") ||
-      body.classList.contains("painel-secretaria") ||
-      body.classList.contains("painel-coordenacao")
-    ) {
-      return false;
-    }
-
-    return !document.querySelector(".painel");
-  }
-
-  function carregarScriptSequencial(scripts) {
-    if (!scripts.length) return;
-
-    var atual = scripts.shift();
-    if (document.getElementById(atual.id)) {
-      carregarScriptSequencial(scripts);
-      return;
-    }
-
-    var tag = document.createElement("script");
-    tag.id = atual.id;
-    tag.src = base + atual.src;
-    tag.onerror = function () {
-      carregarScriptSequencial(scripts);
-    };
-    tag.onload = function () {
-      carregarScriptSequencial(scripts);
-    };
-    document.body.appendChild(tag);
-  }
-
-  if (deveMostrarMidiaPublica()) {
-    var midiaScripts = [];
-
-    if (!window.SETADAudio) {
-      midiaScripts.push({ id: "setadAudioCoordinatorLoader", src: "js/audio-coordinator.js" });
-    }
-    if (!window.SETADCultoLive) {
-      midiaScripts.push({ id: "setadCultoLiveLoader", src: "js/culto-live.js" });
-    }
-
-    if (deveMostrarRadioPlayer()) {
-      midiaScripts.push({ id: "setadRadioPlayerLoader", src: "js/radio-player.js" });
-    }
-
-    if (document.getElementById("cultoJanela")) {
-      midiaScripts.push({ id: "setadCultoJanelaLoader", src: "js/culto-janela.js" });
-    }
-
-    if (midiaScripts.length) {
-      carregarScriptSequencial(midiaScripts);
-    }
-  }
+  inserirAntesDoScript(holder, script);
+  iniciarMidiaPublica();
 })();

@@ -64,6 +64,34 @@ body.landing-intro--encerrado .landing-intro__fundo {
   background: transparent;
 }
 
+.hero__institucional {
+  margin: 0 0 1rem;
+}
+
+.hero__institucional-lista {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hero__institucional-lista a {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.hero__institucional-lista a:hover,
+.hero__institucional-lista a:focus-visible {
+  color: #fff;
+}
+
 .hero__acoes-rodape {
   position: absolute;
   bottom: clamp(2.5rem, 8vh, 4.5rem);

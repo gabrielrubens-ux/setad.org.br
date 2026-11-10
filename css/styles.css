@@ -408,6 +408,15 @@ body {
   max-width: 40rem;
 }
 
+.section__links-institucionais {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+}
+
+.section__links-institucionais a {
+  font-weight: 600;
+}
+
 .section__text--spaced {
   margin-top: 1rem; /* espaço extra entre parágrafos consecutivos */
 }
