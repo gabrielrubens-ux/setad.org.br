@@ -225,11 +225,35 @@
         <div class="landing-intro__granula"></div>
       </div>
 
-      <nav class="landing-intro__passos" aria-label="Passos da abertura">
+      <nav class="landing-intro__passos" aria-label="Passos da abertura (deslize para os lados)">
         <button type="button" class="landing-intro__ponto is-ativo" data-landing-passo="0" aria-label="SETAD — sede" aria-current="step"></button>
         <button type="button" class="landing-intro__ponto" data-landing-passo="1" aria-label="SETAD Teen — vem aí!"></button>
       </nav>
 
+      <p class="landing-intro__dica-scroll" aria-hidden="true">Deslize para os lados</p>
+
+      <div class="landing-intro__setas">
+        <button
+          type="button"
+          class="landing-intro__seta landing-intro__seta--ant"
+          id="landingIntroSetaAnt"
+          aria-label="Tela anterior — SETAD principal"
+          disabled
+        >
+          <span class="landing-intro__seta-icone" aria-hidden="true">&#10094;</span>
+        </button>
+        <button
+          type="button"
+          class="landing-intro__seta landing-intro__seta--prox"
+          id="landingIntroSetaProx"
+          aria-label="Próxima tela — SETAD Teen"
+        >
+          <span class="landing-intro__seta-icone" aria-hidden="true">&#10095;</span>
+        </button>
+      </div>
+
+      <div class="landing-intro__viewport">
+        <div class="landing-intro__trilha" data-landing-trilha tabindex="0" aria-label="SETAD principal e SETAD Teen — rolagem horizontal">
       <!-- HERO: fundo com foto da fachada SETAD (logo já visível no prédio) -->
       <section class="hero landing-intro__painel landing-intro__painel--setad" id="inicio" data-landing-painel="0">
         <div class="container hero__content">
@@ -283,7 +307,7 @@
           </div>
           <p class="landing-teen__legenda">
             Uma nova formação teológica pensada para <strong>adolescentes</strong>.
-            Role a página, acompanhe as novidades e fique pronto para o lançamento.
+            Deslize para o lado a partir da tela principal e fique pronto para o lançamento.
           </p>
           <div class="landing-teen__acoes">
             <a
@@ -297,6 +321,8 @@
           </div>
         </div>
       </section>
+        </div>
+      </div>
     </div>
 
     <!-- SOBRE: apresentação do seminário -->

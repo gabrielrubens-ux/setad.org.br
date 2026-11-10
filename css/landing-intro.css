@@ -3,6 +3,137 @@
 .landing-intro {
   position: relative;
   isolation: isolate;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.landing-intro__viewport {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.landing-intro__trilha {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+}
+
+.landing-intro__trilha:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: -4px;
+}
+
+.landing-intro__trilha::-webkit-scrollbar {
+  height: 6px;
+}
+
+.landing-intro__trilha::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+}
+
+.landing-intro__setas {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+body.landing-intro--encerrado .landing-intro__setas {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s ease;
+}
+
+.landing-intro__seta {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  background: rgba(13, 20, 26, 0.42);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.landing-intro__seta--ant {
+  left: max(0.35rem, env(safe-area-inset-left, 0px));
+}
+
+.landing-intro__seta--prox {
+  right: max(0.35rem, env(safe-area-inset-right, 0px));
+}
+
+.landing-intro__seta-icone {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+.landing-intro__seta:hover:not(:disabled),
+.landing-intro__seta:focus-visible:not(:disabled) {
+  background: rgba(103, 61, 230, 0.75);
+  border-color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.landing-intro__seta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.landing-intro__seta:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.landing-intro__dica-scroll {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(13, 20, 26, 0.28);
+  border-radius: 999px;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
 }
 
 .landing-intro__fundo {
@@ -57,13 +188,18 @@ body.landing-intro--encerrado .landing-intro__fundo {
 .landing-intro__painel {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  min-height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .landing-intro .hero {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
   background: transparent;
 }
 
@@ -94,9 +230,9 @@ body.landing-intro--encerrado .landing-intro__fundo {
 
 .landing-intro__rolar {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   font-size: 0.82rem;
@@ -110,7 +246,7 @@ body.landing-intro--encerrado .landing-intro__fundo {
 .landing-intro__rolar:hover,
 .landing-intro__rolar:focus-visible {
   color: #fff;
-  transform: translateY(2px);
+  transform: translateX(4px);
 }
 
 .landing-intro__rolar-seta {
@@ -118,7 +254,7 @@ body.landing-intro--encerrado .landing-intro__fundo {
   width: 1.35rem;
   height: 1.35rem;
   border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
+  border-top: 2px solid currentColor;
   transform: rotate(45deg);
   animation: landing-intro-seta 1.6s ease-in-out infinite;
 }
@@ -130,7 +266,7 @@ body.landing-intro--encerrado .landing-intro__fundo {
     opacity: 0.85;
   }
   50% {
-    transform: rotate(45deg) translate(4px, 4px);
+    transform: rotate(45deg) translate(4px, -4px);
     opacity: 1;
   }
 }
@@ -185,7 +321,8 @@ body.landing-intro--encerrado .landing-intro__passos {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--setad-header-height, 64px) + 1.5rem) 1.25rem 3rem;
+  padding: calc(var(--setad-header-height, 64px) + 1.5rem) 1.25rem 2.75rem;
+  box-sizing: border-box;
 }
 
 .landing-teen {
@@ -369,7 +506,33 @@ body.landing-intro--encerrado .landing-intro__passos {
   }
 }
 
+/* WhatsApp flutuante — sobe na abertura para não cobrir a seta direita */
+body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
+  top: 23%;
+  bottom: auto;
+  transform: translateY(-50%);
+  right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+html.setad-mobile body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
+  bottom: auto;
+  top: 19%;
+}
+
 @media (max-width: 768px) {
+  body.pagina-inicial:not(.landing-intro--encerrado) .wpp-float {
+    top: 17%;
+  }
+
+  .landing-intro__seta {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .landing-intro__seta-icone {
+    font-size: 1.15rem;
+  }
+
   .landing-intro__passos {
     top: auto;
     bottom: 1.25rem;
@@ -380,10 +543,6 @@ body.landing-intro--encerrado .landing-intro__passos {
 
   .hero__acoes-rodape {
     bottom: 4.5rem;
-  }
-
-  .landing-intro .hero {
-    min-height: 100dvh;
   }
 
   .landing-intro .hero__cta {
